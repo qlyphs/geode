@@ -1034,3 +1034,47 @@ pub fn selfcheck(seed: u64, nreal: usize) -> (usize, usize) {
     }
     (same, total)
 }
+
+/// Exhaustive chi truth table under the declared encoding A = 1 - 2a (hostile gate): the layer
+/// polynomial A (1 - (1 + B)(1 - C)/2) equals A (1 - B + C + BC) / 2 as a polynomial (checked at
+/// random extension points) and, on the eight bit triples, the signed value of a ^ (!b & c).
+/// Returns (passed, cases).
+pub fn chi_truth_table(seed: u64) -> (usize, usize) {
+    let (mut ok, mut tot) = (0, 0);
+    let k = Kind::Chi([0, 1, 2]);
+    let sg = |b: u64| if b == 1 { -F::ONE } else { F::ONE };
+    for t in 0..8u64 {
+        let (a, b, c) = (t & 1, t >> 1 & 1, t >> 2 & 1);
+        let v = [sg(a), sg(b), sg(c)];
+        ok += (eval_f(&k, &v) == sg(a ^ (!b & 1 & c))) as usize;
+        tot += 1;
+    }
+    let mut st = seed | 1;
+    let mut next = move || {
+        st ^= st << 13;
+        st ^= st >> 7;
+        st ^= st << 17;
+        st
+    };
+    for _ in 0..64 {
+        let v: [EF; 3] = core::array::from_fn(|_| EF::from_basis_coefficients_fn(|_| F::from_u64(next())));
+        let rhs = v[0] * (EF::ONE - v[1] + v[2] + v[1] * v[2]) * EF::from(half());
+        ok += (eval_f(&k, &v) == rhs) as usize;
+        tot += 1;
+    }
+    (ok, tot)
+}
+
+/// Every term of every layer vanishes on the field-zero vector (hostile gate: a skipped dummy
+/// row pair contributes exactly zero). Returns (terms with f(0) = 0, terms).
+pub fn zero_terms() -> (usize, usize) {
+    let (mut ok, mut tot) = (0, 0);
+    for s in specs() {
+        for t in &s.terms {
+            let z = [F::ZERO; MAXJ];
+            ok += (eval_f(&t.kind, &z) == F::ZERO) as usize;
+            tot += 1;
+        }
+    }
+    (ok, tot)
+}

@@ -153,6 +153,7 @@ impl CryptographicHasher<F, [u64; 8]> for Leaf7 {
             row.extend_from_slice(&x.as_canonical_u64().to_le_bytes());
         }
         self.calls.fetch_add(1, Ordering::Relaxed);
+        count(t, true);
         to_words(&fs7::leaf_hash(self.profile, t, KIND_ROW, &row))
     }
 }
@@ -172,6 +173,23 @@ impl Node7 {
     }
 }
 
+/// Hash counting for the registry census and the per-tree barrier test (off by default: the
+/// counters are only touched when COUNT is set).
+pub static COUNT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+pub static NODE_CALLS: AtomicU64 = AtomicU64::new(0);
+pub static LEAF_CALLS: AtomicU64 = AtomicU64::new(0);
+/// Per tree id: (leaf hashes, node hashes) while COUNT is set.
+pub static TREE_COUNTS: std::sync::Mutex<std::collections::BTreeMap<u32, (u64, u64)>> = std::sync::Mutex::new(std::collections::BTreeMap::new());
+
+fn count(tree: u32, leaf: bool) {
+    if COUNT.load(Ordering::Relaxed) {
+        if leaf { &LEAF_CALLS } else { &NODE_CALLS }.fetch_add(1, Ordering::Relaxed);
+        let mut m = TREE_COUNTS.lock().unwrap();
+        let e = m.entry(tree).or_default();
+        if leaf { e.0 += 1 } else { e.1 += 1 }
+    }
+}
+
 /// Test-only (dishonest prover): hash every tagged node with this tree round instead of the
 /// routing cell's (0 = off).
 pub static NODE_ROUND_OVERRIDE: AtomicU32 = AtomicU32::new(0);
@@ -182,6 +200,7 @@ impl PseudoCompressionFunction<[u64; 8], 2> for Node7 {
             None => to_words(&fs7::node_hash(&to_bytes(&input[0]), &to_bytes(&input[1]))),
             Some((profile, cell)) => {
                 let t = cell.load(Ordering::Relaxed);
+                count(t, false);
                 assert!(t != 0, "node hash outside a registered tree");
                 assert!(t <= u16::MAX as u32, "tree round does not fit LE16");
                 let o = NODE_ROUND_OVERRIDE.load(Ordering::Relaxed);

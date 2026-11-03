@@ -123,10 +123,9 @@ fn make_pcs_from(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<u
     (Pcs::new(config, dft, MyMmcs::new(ShakeLeaf, ShakeNode, 0)), fold0)
 }
 
-/// Per-term planner target: 272 as in every registered profile, 273 from dimension 31 on (the
-/// hidden-u schedule there needs it to keep the composed WHIR figure at 270 bits).
-pub fn target_for(num_vars: usize) -> usize {
-    if num_vars >= 31 { 273 } else { 272 }
+/// Per-term planner target of the JohnsonBound profiles: 272, as in every registered profile.
+pub fn target_for(_num_vars: usize) -> usize {
+    272
 }
 
 /// Soundness regime and per-term planner target of a PCS.

@@ -28,6 +28,7 @@ pub struct Violations {
     pub max_hints: usize,
 }
 
+#[derive(Clone)]
 pub struct Witness {
     pub n: usize,
     pub x: Vec<F>,

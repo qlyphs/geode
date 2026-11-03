@@ -21,6 +21,7 @@ mod mlnat;
 mod pcs;
 mod proj;
 mod reg7;
+mod registry;
 mod region;
 mod relaxed;
 mod route8;
@@ -1349,6 +1350,29 @@ fn main() {
         Some("h9chain") => h9chain_run(args[2].parse().unwrap()),
         Some("h9chainverify") => h9chain_verify(args[2].parse().unwrap(), &args[3]),
         Some("host") => println!("{}", host_line()),
+        Some("bigindex") => {
+            // Lengths and offsets across the 4 GiB boundary (2^32 field elements and more): a
+            // codeword-sized array (SSD-backed when H9_SPILL_DIR is set), a row-major matrix of
+            // width 64 over it, and element/row offsets on both sides of 2^32.
+            use p3_matrix::Matrix;
+            println!("{}", alloc::describe());
+            let len = (1usize << 32) + 4096;
+            let mut v = vec![F::ZERO; len];
+            let idx = [0usize, (1 << 32) - 2, (1 << 32) - 1, 1 << 32, (1 << 32) + 1, len - 1];
+            for &i in &idx {
+                v[i] = F::from_u64(i as u64 ^ 0x5a5a);
+            }
+            let ok_elems = idx.iter().all(|&i| v[i] == F::from_u64(i as u64 ^ 0x5a5a));
+            let m = p3_matrix::dense::RowMajorMatrix::new(v, 64);
+            let h = m.height();
+            let row = (1usize << 32) / 64;
+            let r0 = m.row_slice(row - 1).unwrap()[63];
+            let r1 = m.row_slice(row).unwrap()[0];
+            let ok_rows = h == len / 64 && r0 == F::from_u64(((1u64 << 32) - 1) ^ 0x5a5a) && r1 == F::from_u64((1u64 << 32) ^ 0x5a5a);
+            println!("array of {len} field elements ({:.2} GiB): elements around 2^32 read back: {ok_elems}; matrix of width 64, height {h}: rows {} and {row} straddle 2^32 correctly: {ok_rows}; SSD-backed now {:.2} GiB", (len * 8) as f64 / 1073741824.0, row - 1, alloc::spill().0 as f64 / 1073741824.0);
+            println!("BIGINDEX {}", if ok_elems && ok_rows { "PASS" } else { "FAIL" });
+        }
+        Some("h9registry") => registry::print(args[2].parse().unwrap(), args.get(3).map(|s| s == "run").unwrap_or(false)),
         Some("sched") => {
             // Library-derived WHIR schedules of the round-10 lab profiles, both families.
             for fam in [hidden::Fam::Johnson, hidden::Fam::Unique] {

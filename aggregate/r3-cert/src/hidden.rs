@@ -739,8 +739,9 @@ pub struct B9 {
 /// among JohnsonBound schedules with no grinding whose WHIR ledger is at least 270 bits, for
 /// the smallest estimated proof under the first-codeword budget of the 24 GB prover (start rate
 /// 1/2 from dimension 29 on), with at most 6 variables left for the final polynomial (the
-/// library's folding threshold). Dimension 31 uses the per-term planner target 273 (pcs::target_for):
-/// at 272 its fold terms leave the composed figure at 269.3 bits.
+/// library's folding threshold). Dimension 31 is the round-10 review's corrected large-range
+/// schedule (D.1): start 1, rates [2, 5, 8, 11], folds [6, 5, 5, 5, 5], target 272, whose
+/// composed PCS figure is 269.27 bits.
 pub fn schedule9(nv: usize) -> (usize, Vec<usize>, Vec<usize>) {
     match nv {
         25 => (3, vec![6, 8, 10], vec![6, 5, 5, 5]),
@@ -749,7 +750,7 @@ pub fn schedule9(nv: usize) -> (usize, Vec<usize>, Vec<usize>) {
         28 => (2, vec![3, 6, 9], vec![7, 5, 5, 5]),
         29 => (1, vec![2, 5, 8, 11], vec![6, 5, 5, 5, 5]),
         30 => (1, vec![3, 6, 9], vec![7, 6, 6, 6]),
-        31 => (1, vec![2, 5, 8], vec![7, 6, 6, 6]),
+        31 => (1, vec![2, 5, 8, 11], vec![6, 5, 5, 5, 5]),
         v => pcs::profile(v),
     }
 }
@@ -1598,6 +1599,16 @@ fn packed_input(wit: &Wit9) -> keccak::kec10::PLayer {
     keccak::kec10::PLayer { bits, support: (1 << 25) - 1 }
 }
 
+/// Active-slot sign conversion of the packed trace (hostile gate): unpacking the packed input
+/// layer gives exactly the field-valued input rows (bit 0 -> +1, bit 1 -> -1, padding cells
+/// and dummy slots -> 0). Returns (cells checked, cells equal).
+pub fn sign_conversion_check(wit: &Wit9) -> (usize, usize) {
+    let n = wit.w.n;
+    let f = input_rows(wit);
+    let u = keccak::kec10::unpack(&packed_input(wit), 16 * n, NPERM);
+    (f.len(), f.iter().zip(&u).filter(|(a, b)| a == b).count())
+}
+
 /// The mask sumcheck from the packed output layer; same messages as `mask_prove_lm`. The
 /// summand is linear in the output, so while the signature bits are bound it folds one scalar
 /// per signature, A_i = sum_c w(c) out(i, c), instead of the 16 x 2048 cells; the folded cells
@@ -1745,6 +1756,9 @@ pub struct Opts9 {
     pub shortcut_bits: bool,
     /// Prover only: commit table A with these two columns exchanged.
     pub swap_cols: Option<(usize, usize)>,
+    /// Prover only (hostile gate): after theta, use multiplicities with one unit moved between
+    /// two table entries for the leaves and the table sumcheck (the committed ones unchanged).
+    pub mult_after_theta: bool,
     /// Prover only (Fiat-Shamir tests): derive the coins from this round table instead of the
     /// registered one (another round-1 descriptor, or another profile id in the coin input).
     pub table_override: Option<TableOv>,
@@ -1900,6 +1914,19 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
 
     // 4. theta and the LogUp GKR (leaves use the class of the committed u).
     let (theta, _) = b.theta();
+    let moved;
+    let (w, me, mo) = if o.mult_after_theta {
+        // Hostile gate: multiplicities chosen after theta (one unit moved from entry 0 to 1).
+        let mut wm = w.clone();
+        wm.m[0] -= F::ONE;
+        wm.m[1] += F::ONE;
+        moved = wm;
+        let me2: Vec<F> = moved.m.iter().step_by(2).copied().collect();
+        let mo2: Vec<F> = moved.m.iter().skip(1).step_by(2).copied().collect();
+        (&moved, me2, mo2)
+    } else {
+        (w, me, mo)
+    };
     let (lp, lq) = cert::leaves(&tree, w, theta, &co);
     let (gproof, gout) = gkr::prove(lp, lq, b);
     tm.lap("P3 LogUp leaves and fractional GKR");
@@ -2346,10 +2373,24 @@ fn verify_core9<B: Backend>(b: &mut B, records: &[Record], cert: &Cert9, proof: 
 /// Lab chain manifest "QLYLB10C": the QLYAUTH4 field list with this magic, LE32(lab chain
 /// profile id) and the digest field zero. The production chain verifier rejects the magic.
 pub fn manifest_chain9(net: &[u8; 64], n: usize, parent: &crate::chain::Header, range: &[crate::chain::Header]) -> Vec<u8> {
-    let mut m = crate::chain::manifest_v4(net, n, parent, range);
-    m[..8].copy_from_slice(magics().1);
-    m[8..12].copy_from_slice(&lab_chain_profile9(n).to_le_bytes());
-    m[12..76].fill(0);
+    // The QLYAUTH4 field list, built directly (the QLYAUTH4 parameter digest is defined only for
+    // its own sizes, and this field is zero here anyway).
+    let first = range.first().expect("non-empty range");
+    let last = range.last().unwrap();
+    let mut m = Vec::with_capacity(MANIFEST);
+    m.extend_from_slice(magics().1);
+    m.extend_from_slice(&lab_chain_profile9(n).to_le_bytes());
+    m.extend_from_slice(&[0u8; 64]);
+    m.extend_from_slice(net);
+    m.extend_from_slice(&first.height.to_le_bytes());
+    m.extend_from_slice(&(range.len() as u32).to_le_bytes());
+    m.extend_from_slice(&(n as u32).to_le_bytes());
+    m.extend_from_slice(&parent.id);
+    m.extend_from_slice(&last.id);
+    m.extend_from_slice(&parent.acc);
+    m.extend_from_slice(&last.acc);
+    assert_eq!(m.len(), 348);
+    m.resize(MANIFEST, 0);
     m
 }
 

@@ -629,6 +629,9 @@ pub fn run_all(n: usize) {
     // ---------------------------------------------------------------- F. Fiat-Shamir on GKR
     fs_on_gkr(&mut t, &base, &h.bytes);
 
+    // ---------------------------------------------------------------- G. hostile gates (r10 review E)
+    hostile_gates(&mut t, &base, &h.bytes);
+
     println!("H9 TESTS SUMMARY: {}/{} behave as expected", t.pass, t.total);
     if !t.unexpected.is_empty() {
         println!("unexpected: {:?}", t.unexpected);
@@ -775,6 +778,66 @@ fn fs_on_gkr(t: &mut Tally, base: &Case, honest: &[u8]) {
         t2.profile ^= 0x200;
         let r = prove_with_x(base, &base.records, &x, &Opts9 { table_override: Some(hidden::TableOv(Arc::new(t2))), ..Default::default() }).map(|b| verify(base, &b)).unwrap_or(Ok(()));
         t.expect("T-FS5 coins derived with the other family's profile id in the coin input", &r, false);
+    }
+}
+
+/// Hostile gates of the round-10 review (section E).
+fn hostile_gates(t: &mut Tally, base: &Case, honest: &[u8]) {
+    use p3_field::{Field, TwoAdicField};
+    use std::sync::atomic::Ordering::Relaxed;
+    println!("## G. hostile gates (round-10 review, section E)");
+    let n = base.records.len();
+    let d = Opts9::default();
+    // Coordinated non-Boolean planes: B0 = 1/2 and B1 = (1 + sqrt 2)/2 at one cell, so
+    // (B0^2 - B0) + (B1^2 - B1) = -1/4 + 1/4 = 0: an unweighted sum would not see them.
+    {
+        let z8 = F::two_adic_generator(3);
+        let sqrt2 = z8 + z8.exp_u64(7);
+        let h = F::TWO.inverse();
+        let b0 = h;
+        let b1 = (F::ONE + sqrt2) * h;
+        let cancel = (b0 * b0 - b0) + (b1 * b1 - b1);
+        t.check(&format!("coordinated planes: sqrt2^2 = 2 ({}), B0 = 1/2, B1 = (1 + sqrt 2)/2, unweighted Booleanity sum at the cell = 0 ({})", sqrt2 * sqrt2 == F::TWO, cancel == F::ZERO), sqrt2 * sqrt2 == F::TWO && cancel == F::ZERO);
+        let tw = move |w: &mut Wit9| {
+            w.bits[0][5] = b0;
+            w.bits[1][5] = b1;
+        };
+        t.expect("coordinated non-Boolean planes cancelling under a fixed sum (Booleanity uses four independent weights)", &run(base, Some(&tw), None, &d).res, false);
+    }
+    // Multiplicities chosen after theta.
+    t.expect("multiplicities moved after theta (committed ones unchanged)", &run(base, None, None, &Opts9 { mult_after_theta: true, ..Default::default() }).res, false);
+    // An opened value changed after alpha: the last 40 bytes of the WHIR proof are an opening.
+    {
+        let c = hidden::Cert9::from_bytes(n, honest).unwrap();
+        let off = honest.len() - c.whir.len();
+        for (k, name) in [(1usize, "last opened value"), (41, "second-to-last opened value")] {
+            let mut b = honest.to_vec();
+            b[off + c.whir.len() - k] ^= 1;
+            t.expect(&format!("opening value changed after alpha ({name})"), &verify(base, &b), false);
+        }
+    }
+    // Active-slot sign conversion of the packed trace.
+    {
+        let ntt = Ntt::new();
+        let (wit, _) = hidden::build9(&ntt, &base.records, &base.inputs);
+        let (a, b) = hidden::sign_conversion_check(&wit);
+        t.check(&format!("sign conversion: packed input layer unpacks to the field input rows (bit 0 -> +1, 1 -> -1, padding and dummy slots -> 0): {b}/{a} cells"), a == b);
+    }
+    let (a, b) = crate::keccak::kec10::chi_truth_table(0x51ed);
+    t.check(&format!("chi under A = 1 - 2a: truth table (8 triples) and A(1 - B + C + BC)/2 at 64 random points: {a}/{b}"), a == b);
+    let (a, b) = crate::keccak::kec10::zero_terms();
+    t.check(&format!("every layer term vanishes on the zero vector (skipped dummy pairs contribute 0): {a}/{b}"), a == b);
+    // Per-tree hash domains: every hash of a commitment under its own commit round.
+    {
+        crate::reg7::TREE_COUNTS.lock().unwrap().clear();
+        crate::reg7::COUNT.store(true, Relaxed);
+        let o = run(base, None, None, &d);
+        crate::reg7::COUNT.store(false, Relaxed);
+        let m = std::mem::take(&mut *crate::reg7::TREE_COUNTS.lock().unwrap());
+        let table = hidden::registered_table9(hidden::lab_profile9(n), n).unwrap();
+        let reals: Vec<u32> = table.rounds.iter().enumerate().filter(|(_, x)| x.body == crate::reg7::Body::Real).map(|(i, _)| (i + 1) as u32).collect();
+        let ok = o.res.is_ok() && m.keys().all(|k| reals.contains(k)) && reals.iter().all(|r| m.contains_key(r));
+        t.check(&format!("per-tree hash domains: hashes only under the {} registered commit rounds {:?}, each tree hashed (prover and verifier counted together: {:?})", reals.len(), reals, m), ok);
     }
 }
 
