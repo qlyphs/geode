@@ -113,8 +113,49 @@ pub fn lagrange(vals: &[EF], r: EF) -> EF {
     acc
 }
 
-/// Multilinear evaluation of a dense table at a point (LSB-first convention), for tests.
+/// Multilinear evaluation of a dense table at a point (LSB-first convention).
+///
+/// The eq table is used as the tensor of its low and high halves, eq(b) = lo(b mod 2^s)
+/// hi(b / 2^s), so no table of the full size is built; the value is the same field element
+/// (the MLE at the point is one element, and the sum is exact).
 pub fn mle_eval<T: Copy + Send + Sync>(vals: &[T], point: &[EF]) -> EF
+where
+    EF: core::ops::Mul<T, Output = EF>,
+{
+    let n = point.len();
+    assert_eq!(vals.len(), 1usize << n);
+    let s = n.min(12);
+    let lo = eq_table(&point[..s]);
+    let hi = eq_table(&point[s..]);
+    vals.par_chunks(1usize << s)
+        .zip(hi.par_iter())
+        .map(|(row, &h)| {
+            let inner: EF = lo.iter().zip(row.iter()).map(|(&e, &v)| e * v).sum();
+            <EF as core::ops::Mul<EF>>::mul(h, inner)
+        })
+        .sum()
+}
+
+/// `mle_eval` of the table b -> g(b) of 2^point.len() entries, without storing it.
+pub fn mle_eval_gen<T: Copy + Send + Sync>(g: &(dyn Fn(usize) -> T + Sync), point: &[EF]) -> EF
+where
+    EF: core::ops::Mul<T, Output = EF>,
+{
+    let n = point.len();
+    let s = n.min(12);
+    let lo = eq_table(&point[..s]);
+    let hi = eq_table(&point[s..]);
+    hi.par_iter()
+        .enumerate()
+        .map(|(h, &hv)| {
+            let inner: EF = lo.iter().enumerate().map(|(l, &e)| e * g((h << s) | l)).sum();
+            <EF as core::ops::Mul<EF>>::mul(hv, inner)
+        })
+        .sum()
+}
+
+/// The previous dense-table evaluation (tests compare it with `mle_eval`).
+pub fn mle_eval_dense<T: Copy + Send + Sync>(vals: &[T], point: &[EF]) -> EF
 where
     EF: core::ops::Mul<T, Output = EF>,
 {

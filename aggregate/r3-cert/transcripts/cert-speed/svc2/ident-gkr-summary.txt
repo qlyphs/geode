@@ -1,0 +1,9 @@
+# ident-gkr (commit 8e52d5c, cert-speed-2): summary lines kept before the container was replaced; the full transcript was lost with it
+## SHA256 N=128 ud GKR budget 2^8: IDENTICAL baseline b6e9ad899c6261b11c1ebe17d1
+## SHA256 N=128 ud GKR budget 2^12: IDENTICAL baseline b6e9ad899c6261b11c1ebe17d
+## SHA256 N=2048 ud GKR budget 2^8: IDENTICAL baseline a85c777c8842a9de31a55f469
+## SHA256 N=2048 ud GKR budget 2^12: IDENTICAL baseline a85c777c8842a9de31a55f46
+## SHA256 N=128 johnson GKR budget 2^8: IDENTICAL baseline e06ad4426bbabd23cf22b
+## SHA256 N=128 johnson GKR budget 2^12: IDENTICAL baseline e06ad4426bbabd23cf22
+## SHA256 N=2048 johnson GKR budget 2^8: IDENTICAL baseline ef10168157a665362077
+## SHA256 N=2048 johnson GKR budget 2^12: IDENTICAL baseline ef10168157a66536207

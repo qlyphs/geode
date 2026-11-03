@@ -32,6 +32,10 @@ pub static JMAT: AtomicUsize = AtomicUsize::new(4);
 /// Weighted-histogram rounds (round 9 section D) for the phase-A rounds j < 3 where a term's
 /// table fits (default on: measured faster at N = 2048 and 4096 with byte-identical certificates; H9_K10_HIST=0 turns it off).
 pub static HIST: AtomicBool = AtomicBool::new(true);
+/// Fold each folded-phase-A round inside the next one, and reuse one materialization buffer
+/// across layers (H9_K10_FUSE, default on; H9_K10_FUSE=0 is the round-10 loop). Same field
+/// operations on the same values, so the same messages.
+pub static FUSE: AtomicBool = AtomicBool::new(true);
 /// Test-only challenge injection in the phase-A rounds of every Keccak layer, applied in both
 /// prover paths after the challenge is sampled: 0 off (the protocol), 1 = 0, 2 = 1, 3 = 1/2,
 /// 4 = (1 - x)/(1 - 2x) (eq1(x, r) = 0, exceptional Gruen), 5 = (1 + i)/2, 6 = a base-field
@@ -54,6 +58,9 @@ pub fn configure_from_env() -> String {
     if let Ok(v) = std::env::var("H9_K10_HIST") {
         HIST.store(v == "1", Relaxed);
     }
+    if let Ok(v) = std::env::var("H9_K10_FUSE") {
+        FUSE.store(v != "0", Relaxed);
+    }
     if let Ok(v) = std::env::var("H9_K10_J") {
         JMAT.store(v.parse::<usize>().expect("H9_K10_J").clamp(1, 4), Relaxed);
     }
@@ -62,7 +69,7 @@ pub fn configure_from_env() -> String {
 
 pub fn describe() -> String {
     if ON.load(Relaxed) {
-        format!("round-10 Keccak path (packed trace, selection rounds, materialization at round {}, histogram rounds {})", JMAT.load(Relaxed), if HIST.load(Relaxed) { "on" } else { "off" })
+        format!("round-10 Keccak path (packed trace, selection rounds, materialization at round {}, histogram rounds {}, fused folds {})", JMAT.load(Relaxed), if HIST.load(Relaxed) { "on" } else { "off" }, if FUSE.load(Relaxed) { "on" } else { "off" })
     } else {
         "reference Keccak path (field-valued layers, folded arrays)".into()
     }
@@ -715,29 +722,60 @@ fn round_sel(spec: &Spec, maps: &[GMap], lay: &PLayer, vals_t: &[EF], j: usize, 
 /// The folded layer after jj folds (rows_j x W cells): selection from the packed layer on the
 /// support of real rows, zero elsewhere.
 fn materialize(lay: &PLayer, vals_t: &[EF], jj: usize, rows_j: usize, nreal: usize) -> Vec<EF> {
-    let mut vf = vec![EF::ZERO; rows_j * W];
+    let mut vf = Vec::new();
+    materialize_into(&mut vf, lay, vals_t, jj, rows_j, nreal);
+    vf
+}
+
+/// `materialize` into a buffer reused across layers: every cell is written (zero off the
+/// support and on dummy rows), so the result does not depend on what the buffer held.
+fn materialize_into(vf: &mut Vec<EF>, lay: &PLayer, vals_t: &[EF], jj: usize, rows_j: usize, nreal: usize) {
+    let n = rows_j * W;
+    vf.clear();
+    vf.reserve(n);
     let ident = GMap { words: vec![], src: (0..WORDS).collect(), rot: vec![0; WORDS] };
-    vf.par_chunks_mut(W).enumerate().for_each(|(p, out)| {
+    vf.spare_capacity_mut()[..n].par_chunks_mut(W).enumerate().for_each(|(p, out)| {
         if p % 16 >= nreal {
+            out.iter_mut().for_each(|c| {
+                c.write(EF::ZERO);
+            });
             return;
         }
         for w in 0..WORDS {
             if lay.support >> w & 1 == 0 {
+                out[64 * w..64 * w + 64].iter_mut().for_each(|c| {
+                    c.write(EF::ZERO);
+                });
                 continue;
             }
             let pat = patterns(lay, &ident, w, p, rows_j, jj);
             for z in 0..64 {
-                out[64 * w + z] = vals_t[pat[z] as usize];
+                out[64 * w + z].write(vals_t[pat[z] as usize]);
             }
         }
     });
-    vf
+    // SAFETY: the loop above wrote all n cells.
+    unsafe { vf.set_len(n) };
 }
+
+/// Raw row access for the fused fold: each row is written by exactly one task.
+#[derive(Clone, Copy)]
+struct RowPtr(*mut EF);
+unsafe impl Send for RowPtr {}
+unsafe impl Sync for RowPtr {}
 
 /// Main layer sumcheck from a packed layer; same messages as `main_prove_lm` on the unpacked
 /// layer (dummy rows q >= nreal zero).
 #[allow(clippy::too_many_arguments)]
-pub fn main_prove_k10<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLayer, rp: &[EF], mut w: Vec<Vec<EF>>, mut claim: EF, logp: usize, nreal: usize, tr: &mut T, msgs: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
+pub fn main_prove_k10<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLayer, rp: &[EF], w: Vec<Vec<EF>>, claim: EF, logp: usize, nreal: usize, tr: &mut T, msgs: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
+    let mut buf = Vec::new();
+    main_prove_k10_buf(spec, maps, lay, rp, w, claim, logp, nreal, tr, msgs, &mut buf)
+}
+
+/// `main_prove_k10` with a caller-owned materialization buffer (kept across the 72 layers so the
+/// largest array of the phase is allocated and faulted in once).
+#[allow(clippy::too_many_arguments)]
+pub fn main_prove_k10_buf<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLayer, rp: &[EF], mut w: Vec<Vec<EF>>, mut claim: EF, logp: usize, nreal: usize, tr: &mut T, msgs: &mut Vec<EF>, buf: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
     let nv = logp + LOGW;
     let ng = spec.gathers.len();
     let df = spec.deg_f();
@@ -801,11 +839,23 @@ pub fn main_prove_k10<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLaye
     }
     prof(1, t0);
     let t0 = Instant::now();
-    let mut vf = materialize(lay, &vals_t, jm, rows, nreal);
+    let fuse = FUSE.load(Relaxed);
+    let mut vf = if fuse {
+        materialize_into(buf, lay, &vals_t, jm, rows, nreal);
+        std::mem::take(buf)
+    } else {
+        materialize(lay, &vals_t, jm, rows, nreal)
+    };
     drop(vals_t);
     prof(2, t0);
     let t0 = Instant::now();
     let skip = |rows_now: usize, p: usize| rows_now > 16 && p % 16 >= nreal;
+    if fuse {
+        let (pt2, vals) = folded_fused(spec, &mut vf, &mut ep, &wc, &mut w, &mut pt, rows, rp, df, ng, &mut claim, &send, &skip, tr, msgs);
+        *buf = vf;
+        prof(3, t0);
+        return (pt2, vals);
+    }
     while rows > 1 {
         let var = LOGW + rows.trailing_zeros() as usize - 1;
         let x = rp[var - LOGW];
@@ -909,6 +959,168 @@ pub fn main_prove_k10<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLaye
     msgs.extend_from_slice(&vals);
     prof(3, t0);
     (pt, vals)
+}
+
+/// The folded phase-A rounds and phase B of `main_prove_k10` with each fold done inside the next
+/// round: the task of row pair (p, p + hr) first folds rows p and p + hr of the previous layer
+/// with the previous challenge (a += r (b - a), as the separate pass, on the rows the separate
+/// pass folds), then evaluates the pair exactly as the unfused loop. The fold after the last
+/// round is a separate pass. Every field operation and its operands are those of the unfused
+/// loop, so the messages are identical.
+#[allow(clippy::too_many_arguments)]
+fn folded_fused<T: crate::pcs::Fs>(
+    spec: &Spec,
+    vf: &mut Vec<EF>,
+    ep: &mut Vec<EF>,
+    wc: &[Vec<EF>],
+    w: &mut [Vec<EF>],
+    pt: &mut [EF],
+    mut rows: usize,
+    rp: &[EF],
+    df: usize,
+    ng: usize,
+    claim: &mut EF,
+    send: &dyn Fn(&mut [EF; MAXJ], EF, &mut EF, &mut T, &mut Vec<EF>) -> EF,
+    skip: &(dyn Fn(usize, usize) -> bool + Sync),
+    tr: &mut T,
+    msgs: &mut Vec<EF>,
+) -> (Vec<EF>, Vec<EF>) {
+    // pending = Some(r): vf holds 2 rows layers whose fold by r is still due.
+    let mut pending: Option<EF> = None;
+    while rows > 1 {
+        let var = LOGW + rows.trailing_zeros() as usize - 1;
+        let x = rp[var - LOGW];
+        let hr = rows / 2;
+        let with1 = x == EF::ZERO;
+        let base = RowPtr(vf.as_mut_ptr());
+        let epr = &*ep;
+        let pair = move |p: usize| -> [EF; MAXJ] {
+            let mut acc = [EF::ZERO; MAXJ];
+            if skip(rows, p) {
+                return acc;
+            }
+            let bp = base;
+            if let Some(r0) = pending {
+                // Rows p and p + hr of the current layer = rows of the previous (2 rows) layer
+                // folded with their partners at + rows, unless the previous pass skipped them.
+                for row in [p, p + hr] {
+                    if skip(2 * rows, row) {
+                        continue;
+                    }
+                    // SAFETY: rows p and p + hr belong to this task only; their partners at
+                    // + rows (>= rows) are only read during this round.
+                    unsafe {
+                        let a = std::slice::from_raw_parts_mut(bp.0.add(row * W), W);
+                        let b = std::slice::from_raw_parts(bp.0.add((row + rows) * W), W);
+                        for c in 0..W {
+                            a[c] += r0 * (b[c] - a[c]);
+                        }
+                    }
+                }
+            }
+            // SAFETY: read-only view of the rows this task just wrote (or that no task writes).
+            let get = |row: usize, c: usize| -> EF { unsafe { *bp.0.add(row * W + c) } };
+            let mut vals = [[EF::ZERO; MAXJ]; MAXJ];
+            for (ti, t) in spec.terms.iter().enumerate() {
+                let uses = t.kind.uses();
+                if let Kind::Lin(j) = t.kind {
+                    let (mut sl, mut sh) = (EF::ZERO, EF::ZERO);
+                    for (a, &s) in t.active.iter().enumerate() {
+                        let c = spec.gathers[j][s as usize] as usize;
+                        sl += wc[ti][a] * get(p, c);
+                        sh += wc[ti][a] * get(p + hr, c);
+                    }
+                    let d = sh - sl;
+                    let mut v = sl;
+                    for a in acc.iter_mut().take(df + 1) {
+                        *a += v;
+                        v += d;
+                    }
+                    continue;
+                }
+                for (a, &s) in t.active.iter().enumerate() {
+                    for &j in &uses {
+                        let c = spec.gathers[j][s as usize] as usize;
+                        let (lo, hi) = (get(p, c), get(p + hr, c));
+                        let dl = hi - lo;
+                        vals[0][j] = lo;
+                        vals[1][j] = hi;
+                        let mut v = hi;
+                        for row in vals.iter_mut().take(df + 1).skip(2) {
+                            v += dl;
+                            row[j] = v;
+                        }
+                    }
+                    let ws = wc[ti][a];
+                    acc[0] += ws * eval_f(&t.kind, &vals[0]);
+                    if with1 {
+                        acc[1] += ws * eval_f(&t.kind, &vals[1]);
+                    }
+                    for k in 2..=df {
+                        acc[k] += ws * eval_f(&t.kind, &vals[k]);
+                    }
+                }
+            }
+            let e = epr[p];
+            core::array::from_fn(|k| e * acc[k])
+        };
+        let mut q = (0..hr).into_par_iter().map(pair).reduce(|| [EF::ZERO; MAXJ], |a, b| core::array::from_fn(|k| a[k] + b[k]));
+        if pending.is_some() {
+            // Rows skipped by this round's tasks (skip(rows, p)) are skipped by the previous
+            // fold too (rows > 16 implies 2 rows > 16 and hr a multiple of 16), so every row the
+            // separate pass folds has been folded.
+            vf.truncate(rows * W);
+        }
+        let r = send(&mut q, x, claim, tr, msgs);
+        pt[var] = r;
+        pending = Some(r);
+        if ep.len() > 1 {
+            halve_eq(ep);
+        }
+        rows /= 2;
+    }
+    if let Some(r) = pending {
+        // The fold after the last folded round (2 rows -> 1), as the separate pass.
+        let hr = rows;
+        let (lo, hi) = vf.split_at_mut(hr * W);
+        lo.par_chunks_mut(W).zip(hi.par_chunks(W)).enumerate().for_each(|(p, (a, b))| {
+            if skip(2 * hr, p) {
+                return;
+            }
+            for c in 0..W {
+                a[c] += r * (b[c] - a[c]);
+            }
+        });
+        vf.truncate(hr * W);
+    }
+    let mut g: Vec<Vec<EF>> = (0..ng)
+        .map(|j| {
+            let mut full = vec![EF::ZERO; W];
+            for &s in &spec.terms[spec.owner[j]].active {
+                full[s as usize] = vf[spec.gathers[j][s as usize] as usize];
+            }
+            full
+        })
+        .collect();
+    let mut cols = W;
+    let mut claim_v = *claim;
+    while cols > 1 {
+        let h = round_b(spec, &g, w, cols);
+        tr.absorb_efs(&h);
+        msgs.extend_from_slice(&h);
+        let r = tr.sample_ef();
+        claim_v = interp(&h, claim_v, r);
+        pt[cols.trailing_zeros() as usize - 1] = r;
+        g.iter_mut().for_each(|c| fold_half(c, r));
+        w.iter_mut().for_each(|c| fold_half(c, r));
+        cols /= 2;
+    }
+    *claim = claim_v;
+    let vals: Vec<EF> = g.iter().map(|c| c[0]).collect();
+    debug_assert_eq!(*claim, spec.terms.iter().enumerate().map(|(ti, t)| w[ti][0] * eval_f(&t.kind, &vals)).sum::<EF>());
+    tr.absorb_efs(&vals);
+    msgs.extend_from_slice(&vals);
+    (pt.to_vec(), vals)
 }
 
 // ---------------------------------------------------------------- wiring

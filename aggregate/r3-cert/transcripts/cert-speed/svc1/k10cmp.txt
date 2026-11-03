@@ -1,0 +1,115 @@
+# job k10cmp | commit 116da8d2381e0a1428719c431e86769796ce52f8 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
+# BASE /data/bin/r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 sha256 4a1ff4f062643376aee2321318dad98bfe281dfbc10c6f988de4aa39811df048
+# NEW /data/bin/r3-cert-116da8d2381e0a1428719c431e86769796ce52f8 sha256 6844530ec05126e79a00e8269bd4035f95c71dc96eac6a6ba3f7589843fda19f
+# LAB /data/bin/r3-cert-lab-116da8d2381e0a1428719c431e86769796ce52f8 sha256 e1b1f27bfa3d412f46712b0579587e986e386a7e6334359d1ca5c2cbd69e2f69
+# host: INTEL(R) XEON(R) PLATINUM 8581C CPU @ 2.10GHz, nproc 32, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## k10cmp-small | 2026-10-24T17:19:01Z | load 40.07 27.35 19.90 | bin r3-cert-lab-116da8d2381e0a1428719c431e86769796ce52f8 | env H9_K10_HIST=1 | r3-cert k10cmp 32,128 2 0,1,2,3,4,5,6,7
+# round-10 Keccak prover path: byte equality of complete hidden-u certificates with the reference prover
+host: cpu INTEL(R) XEON(R) PLATINUM 8581C CPU @ 2.10GHz; 24 logical CPUs visible; MemTotal:       263923416 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on, fused folds on)
+uptime at start: 17:19:01 up 157 days, 15:02,  0 users,  load average: 40.07, 27.35, 19.90
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 0): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 1): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 2): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 3): 144/144
+N = 32, seed 0, challenges protocol (random extension challenges): r10 756538 B in 3.1 s, reference (low-memory) 756538 B in 3.6 s: IDENTICAL; reference (stored layers) 4.0 s: IDENTICAL; r10 certificate verifies: true
+N = 32, seed 0, challenges 0: r10 757882 B in 2.8 s, reference (low-memory) 757882 B in 4.1 s: IDENTICAL; reference (stored layers) 4.4 s: IDENTICAL
+N = 32, seed 0, challenges 1: r10 757562 B in 2.9 s, reference (low-memory) 757562 B in 3.3 s: IDENTICAL; reference (stored layers) 3.7 s: IDENTICAL
+N = 32, seed 0, challenges 1/2: r10 759226 B in 2.8 s, reference (low-memory) 759226 B in 4.0 s: IDENTICAL; reference (stored layers) 3.8 s: IDENTICAL
+N = 32, seed 0, challenges eq1(x,r)=0 (exceptional Gruen): r10 756858 B in 2.8 s, reference (low-memory) 756858 B in 3.4 s: IDENTICAL; reference (stored layers) 3.7 s: IDENTICAL
+N = 32, seed 0, challenges (1+i)/2: r10 757178 B in 3.0 s, reference (low-memory) 757178 B in 4.0 s: IDENTICAL; reference (stored layers) 3.8 s: IDENTICAL
+N = 32, seed 0, challenges base field: r10 758906 B in 2.8 s, reference (low-memory) 758906 B in 3.4 s: IDENTICAL; reference (stored layers) 3.8 s: IDENTICAL
+N = 32, seed 0, challenges mixed per round: r10 758010 B in 2.8 s, reference (low-memory) 758010 B in 3.3 s: IDENTICAL; reference (stored layers) 3.6 s: IDENTICAL
+N = 32 seed 0 done: 21/21 so far | 17:20:26 up 157 days, 15:03,  0 users,  load average: 38.74, 29.50, 21.29
+N = 32, seed 1, challenges protocol (random extension challenges): r10 757690 B in 2.7 s, reference (low-memory) 757690 B in 3.4 s: IDENTICAL; reference (stored layers) 3.5 s: IDENTICAL; r10 certificate verifies: true
+N = 32, seed 1, challenges 0: r10 758394 B in 2.9 s, reference (low-memory) 758394 B in 3.9 s: IDENTICAL; reference (stored layers) 4.6 s: IDENTICAL
+N = 32, seed 1, challenges 1: r10 759674 B in 3.2 s, reference (low-memory) 759674 B in 3.8 s: IDENTICAL; reference (stored layers) 4.2 s: IDENTICAL
+N = 32, seed 1, challenges 1/2: r10 758842 B in 2.9 s, reference (low-memory) 758842 B in 3.7 s: IDENTICAL; reference (stored layers) 3.8 s: IDENTICAL
+N = 32, seed 1, challenges eq1(x,r)=0 (exceptional Gruen): r10 756794 B in 2.7 s, reference (low-memory) 756794 B in 3.4 s: IDENTICAL; reference (stored layers) 3.9 s: IDENTICAL
+N = 32, seed 1, challenges (1+i)/2: r10 758074 B in 2.7 s, reference (low-memory) 758074 B in 3.5 s: IDENTICAL; reference (stored layers) 3.7 s: IDENTICAL
+N = 32, seed 1, challenges base field: r10 756154 B in 2.7 s, reference (low-memory) 756154 B in 3.4 s: IDENTICAL; reference (stored layers) 3.6 s: IDENTICAL
+N = 32, seed 1, challenges mixed per round: r10 759162 B in 2.7 s, reference (low-memory) 759162 B in 3.6 s: IDENTICAL; reference (stored layers) 3.9 s: IDENTICAL
+N = 32 seed 1 done: 38/38 so far | 17:21:48 up 157 days, 15:05,  0 users,  load average: 27.36, 28.40, 21.59
+N = 128, seed 0, challenges protocol (random extension challenges): r10 880263 B in 5.1 s, reference (low-memory) 880263 B in 9.1 s: IDENTICAL; reference (stored layers) 10.3 s: IDENTICAL; r10 certificate verifies: true
+N = 128, seed 0, challenges 0: r10 881927 B in 6.1 s, reference (low-memory) 881927 B in 11.3 s: IDENTICAL; reference (stored layers) 11.0 s: IDENTICAL
+N = 128, seed 0, challenges 1: r10 878919 B in 5.3 s, reference (low-memory) 878919 B in 12.0 s: IDENTICAL; reference (stored layers) 10.4 s: IDENTICAL
+N = 128, seed 0, challenges 1/2: r10 880903 B in 5.2 s, reference (low-memory) 880903 B in 9.4 s: IDENTICAL; reference (stored layers) 10.3 s: IDENTICAL
+N = 128, seed 0, challenges eq1(x,r)=0 (exceptional Gruen): r10 879495 B in 5.1 s, reference (low-memory) 879495 B in 9.0 s: IDENTICAL; reference (stored layers) 10.0 s: IDENTICAL
+N = 128, seed 0, challenges (1+i)/2: r10 881351 B in 5.0 s, reference (low-memory) 881351 B in 9.0 s: IDENTICAL; reference (stored layers) 9.8 s: IDENTICAL
+N = 128, seed 0, challenges base field: r10 882119 B in 5.4 s, reference (low-memory) 882119 B in 10.8 s: IDENTICAL; reference (stored layers) 10.4 s: IDENTICAL
+N = 128, seed 0, challenges mixed per round: r10 881735 B in 5.9 s, reference (low-memory) 881735 B in 11.5 s: IDENTICAL; reference (stored layers) 11.1 s: IDENTICAL
+N = 128 seed 0 done: 55/55 so far | 17:25:17 up 157 days, 15:08,  0 users,  load average: 37.82, 32.79, 24.78
+N = 128, seed 1, challenges protocol (random extension challenges): r10 883335 B in 5.9 s, reference (low-memory) 883335 B in 10.6 s: IDENTICAL; reference (stored layers) 10.6 s: IDENTICAL; r10 certificate verifies: true
+N = 128, seed 1, challenges 0: r10 881543 B in 5.4 s, reference (low-memory) 881543 B in 9.5 s: IDENTICAL; reference (stored layers) 10.8 s: IDENTICAL
+N = 128, seed 1, challenges 1: r10 882311 B in 4.9 s, reference (low-memory) 882311 B in 8.9 s: IDENTICAL; reference (stored layers) 9.6 s: IDENTICAL
+N = 128, seed 1, challenges 1/2: r10 878983 B in 4.9 s, reference (low-memory) 878983 B in 9.1 s: IDENTICAL; reference (stored layers) 10.9 s: IDENTICAL
+N = 128, seed 1, challenges eq1(x,r)=0 (exceptional Gruen): r10 883079 B in 5.5 s, reference (low-memory) 883079 B in 9.5 s: IDENTICAL; reference (stored layers) 10.4 s: IDENTICAL
+N = 128, seed 1, challenges (1+i)/2: r10 880391 B in 5.1 s, reference (low-memory) 880391 B in 9.5 s: IDENTICAL; reference (stored layers) 10.6 s: IDENTICAL
+N = 128, seed 1, challenges base field: r10 880391 B in 5.7 s, reference (low-memory) 880391 B in 9.2 s: IDENTICAL; reference (stored layers) 10.8 s: IDENTICAL
+N = 128, seed 1, challenges mixed per round: r10 881671 B in 5.0 s, reference (low-memory) 881671 B in 9.2 s: IDENTICAL; reference (stored layers) 9.9 s: IDENTICAL
+N = 128 seed 1 done: 72/72 so far | 17:28:39 up 157 days, 15:11,  0 users,  load average: 34.34, 33.36, 26.52
+K10 EQUALITY SUMMARY: 72/72
+uptime at end: 17:28:39 up 157 days, 15:11,  0 users,  load average: 34.34, 33.36, 26.52
+	Command being timed: "/data/bin/r3-cert-lab k10cmp 32,128 2 0,1,2,3,4,5,6,7"
+	User time (seconds): 6241.90
+	System time (seconds): 747.51
+	Percent of CPU this job got: 1209%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 9:37.74
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4331308
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 81342193
+	Voluntary context switches: 11386929
+	Involuntary context switches: 21598528
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 112
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 7964 MiB (container lifetime); sampled max memory.current 5350 MiB, anon 4160 MiB
+## end k10cmp-small | exit 0 | 2026-10-24T17:28:39Z | load 34.34 33.36 26.52
+## k10cmp-2048 | 2026-10-24T17:28:39Z | load 34.34 33.36 26.52 | bin r3-cert-lab-116da8d2381e0a1428719c431e86769796ce52f8 | env H9_K10_HIST=1 | r3-cert k10cmp 2048 1 0,4,7
+# round-10 Keccak prover path: byte equality of complete hidden-u certificates with the reference prover
+host: cpu INTEL(R) XEON(R) PLATINUM 8581C CPU @ 2.10GHz; 24 logical CPUs visible; MemTotal:       263923416 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on, fused folds on)
+uptime at start: 17:28:39 up 157 days, 15:11,  0 users,  load average: 34.34, 33.36, 26.52
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 0): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 1): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 2): 144/144
+packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed 3): 144/144
+N = 2048, seed 0, challenges protocol (random extension challenges): r10 1428577 B in 30.3 s, reference (low-memory) 1428577 B in 153.5 s: IDENTICAL; r10 certificate verifies: true
+N = 2048, seed 0, challenges eq1(x,r)=0 (exceptional Gruen): r10 1431649 B in 25.7 s, reference (low-memory) 1431649 B in 132.3 s: IDENTICAL
+N = 2048, seed 0, challenges mixed per round: r10 1429537 B in 25.7 s, reference (low-memory) 1429537 B in 124.0 s: IDENTICAL
+N = 2048 seed 0 done: 8/8 so far | 17:36:53 up 157 days, 15:20,  0 users,  load average: 37.07, 34.20, 29.57
+K10 EQUALITY SUMMARY: 8/8
+uptime at end: 17:36:53 up 157 days, 15:20,  0 users,  load average: 37.07, 34.20, 29.57
+	Command being timed: "/data/bin/r3-cert-lab k10cmp 2048 1 0,4,7"
+	User time (seconds): 5137.85
+	System time (seconds): 321.77
+	Percent of CPU this job got: 1105%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 8:13.92
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 7118872
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 65801348
+	Voluntary context switches: 1394126
+	Involuntary context switches: 5732007
+	Swaps: 0
+	File system inputs: 48
+	File system outputs: 24
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 7964 MiB (container lifetime); sampled max memory.current 7465 MiB, anon 6937 MiB
+## end k10cmp-2048 | exit 0 | 2026-10-24T17:36:53Z | load 37.07 34.20 29.57

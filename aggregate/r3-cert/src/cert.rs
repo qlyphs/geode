@@ -148,6 +148,69 @@ pub(crate) fn leaves(tree: &Tree, w: &Witness, theta: EF, co: &[Coeffs; 3]) -> (
     (p, q)
 }
 
+/// One leaf of `leaves` (the same expressions on the same inputs), for provers that never store
+/// the leaf arrays. Indices outside every region are the padding (0, 1).
+pub(crate) struct LeafFn<'a> {
+    tree: &'a Tree,
+    w: &'a Witness,
+    co: &'a [Coeffs; 3],
+    theta: EF,
+    th2: EF,
+    kx: F,
+    px: EF,
+    qx0: EF,
+}
+
+impl<'a> LeafFn<'a> {
+    pub(crate) fn new(tree: &'a Tree, w: &'a Witness, theta: EF, co: &'a [Coeffs; 3]) -> Self {
+        let th2 = theta * theta;
+        let kx = F::from_u64(XK as u64);
+        LeafFn { tree, w, co, theta, th2, kx, px: theta.double() - efb(kx), qx0: th2 - theta * kx }
+    }
+
+    /// Leaves at indices >= used() are all (0, 1).
+    pub(crate) fn used(&self) -> usize {
+        let dc = 1usize << self.tree.log_dc;
+        let mut u = (self.tree.x_off + dc).max(self.tree.y_off + dc);
+        if !self.tree.embedded {
+            u = u.max(self.tree.t_off + (1usize << LOG_TAB));
+        }
+        u
+    }
+
+    #[inline]
+    pub(crate) fn at(&self, idx: usize) -> (EF, EF) {
+        let t = self.tree;
+        let dc = 1usize << t.log_dc;
+        let (theta, th2, w) = (self.theta, self.th2, self.w);
+        if idx >= t.x_off && idx < t.x_off + dc {
+            let b = idx - t.x_off;
+            let slot = b & (SLOTS - 1);
+            return if slot < L * N {
+                let x = w.x[b];
+                (self.px, self.qx0 + efb(x * (self.kx - x)))
+            } else if t.embedded {
+                let j = ((b >> 11) << 8) | (b & 255);
+                table_leaf(theta, th2, j, w.m[2 * j], w.m[2 * j + 1])
+            } else {
+                (EF::ZERO, EF::ONE)
+            };
+        }
+        if idx >= t.y_off && idx < t.y_off + dc {
+            let b = idx - t.y_off;
+            let c = &self.co[w.class[b] as usize];
+            let (y, s) = (w.y[b], w.s[b]);
+            let kk = c.k[0] + (c.k[1] + c.k[2] * s) * s;
+            return (theta.double() - efb(kk), th2 - theta * kk + efb(y * (kk - y)));
+        }
+        if !t.embedded && idx >= t.t_off && idx < t.t_off + (1usize << LOG_TAB) {
+            let j = idx - t.t_off;
+            return table_leaf(theta, th2, j, w.m[2 * j], w.m[2 * j + 1]);
+        }
+        (EF::ZERO, EF::ONE)
+    }
+}
+
 // ---------------------------------------------------------------- statement and manifest
 
 pub fn statement_digest(records: &[Record]) -> [u8; 64] {
@@ -441,13 +504,28 @@ pub struct Timer {
     /// Per phase: (bytes read, bytes written) from storage within the phase, live SSD-backed
     /// bytes at the end, and the process resident peak so far.
     pub io: Vec<(u64, u64, usize, u64)>,
+    /// Per phase: process CPU seconds (user + system) within the phase.
+    pub cpu: Vec<f64>,
     t: Instant,
     io0: (u64, u64),
+    cpu0: f64,
 }
+
+/// Process CPU time, user + system, in seconds.
+pub fn cpu_seconds() -> f64 {
+    let mut u: libc::rusage = unsafe { std::mem::zeroed() };
+    // SAFETY: getrusage writes the struct it is given.
+    if unsafe { libc::getrusage(libc::RUSAGE_SELF, &mut u) } != 0 {
+        return 0.0;
+    }
+    let tv = |t: libc::timeval| t.tv_sec as f64 + t.tv_usec as f64 * 1e-6;
+    tv(u.ru_utime) + tv(u.ru_stime)
+}
+
 impl Timer {
     pub fn new() -> Self {
         crate::alloc::reset_peak();
-        Timer { phases: vec![], io: vec![], t: Instant::now(), io0: disk_io() }
+        Timer { phases: vec![], io: vec![], cpu: vec![], t: Instant::now(), io0: disk_io(), cpu0: cpu_seconds() }
     }
     pub fn lap(&mut self, name: &str) {
         let ms = self.t.elapsed().as_secs_f64() * 1e3;
@@ -461,6 +539,9 @@ impl Timer {
             eprintln!("progress: {ms:.0} ms, live {} MiB, disk-backed {} MiB, read {} MiB, written {} MiB: {name}", live >> 20, crate::alloc::spill().0 >> 20, (io.0.saturating_sub(self.io0.0)) >> 20, (io.1.saturating_sub(self.io0.1)) >> 20);
         }
         self.io0 = io;
+        let c = cpu_seconds();
+        self.cpu.push(c - self.cpu0);
+        self.cpu0 = c;
         crate::alloc::reset_peak();
         self.t = Instant::now();
     }

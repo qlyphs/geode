@@ -53,6 +53,7 @@ fn print_timer(label: &str, t: &Timer) {
         let io = t.io.get(k).map(|&(r, w, sp, pk)| format!(" | {:>8.0} | {:>8.0} | {:>7.0} | {:>7.0}", r as f64 / 1048576.0, w as f64 / 1048576.0, sp as f64 / 1048576.0, pk as f64 / 1048576.0)).unwrap_or_default();
         println!("  {ms:>10.1} | {:>7.0} | {:>7.0} | {:>7.0}{io}  {name}", *hpeak as f64 / 1048576.0, *hlive as f64 / 1048576.0, *cur as f64 / 1048576.0);
     }
+    println!("  CPU seconds (user + system) per phase, and the mean number of busy cores: {}", t.phases.iter().zip(&t.cpu).map(|(p, c)| format!("{} {c:.1} s / {:.1}", p.0.split(' ').next().unwrap_or(""), c / (p.1 / 1e3).max(1e-9))).collect::<Vec<_>>().join("; "));
     let (rd, wr) = t.io.iter().fold((0u64, 0u64), |a, x| (a.0 + x.0, a.1 + x.1));
     println!("  storage traffic over all {label} phases: read {:.2} GiB, written {:.2} GiB; SSD-backed peak {:.2} GiB", rd as f64 / 1073741824.0, wr as f64 / 1073741824.0, alloc::spill().1 as f64 / 1073741824.0);
     let hp = t.phases.iter().map(|p| p.4).max().unwrap_or(0);
@@ -1400,6 +1401,35 @@ fn main() {
     match args.get(1).map(|s| s.as_str()) {
         Some("selftest") => selftest(),
         Some("h9self") => h9_self(),
+        Some("gkrlazy") => {
+            let dmax: usize = args.get(2).map_or(12, |s| s.parse().unwrap());
+            let mut all = true;
+            for seed in [1u64, 2, 3] {
+                let (ok, tot) = gkr::lazy_selfcheck(dmax, seed);
+                println!("lazy-leaf GKR prover = stored-leaf prover (proof, point, claims), depths 2..={dmax}, five padding tails, every budget, seed {seed}: {ok}/{tot}");
+                all &= ok == tot;
+            }
+            // Tensor-eq MLE evaluation against the dense-table one, sizes 2^0 .. 2^16.
+            let mut tr = pcs::Tr::new();
+            let (mut ok, mut tot) = (0, 0);
+            for n in 0..=16usize {
+                let pt = tr.sample_efs(n);
+                let ev = tr.sample_efs(1 << n);
+                let bv: Vec<F> = ev.iter().map(|e| <EF as p3_field::BasedVectorSpace<F>>::as_basis_coefficients_slice(e)[0]).collect();
+                tot += 2;
+                ok += (field::mle_eval(&ev, &pt) == field::mle_eval_dense(&ev, &pt)) as usize;
+                ok += (field::mle_eval(&bv, &pt) == field::mle_eval_dense(&bv, &pt)) as usize;
+                tot += 1;
+                let g = |j: usize| bv[j];
+                ok += (field::mle_eval_gen(&g, &pt) == field::mle_eval_dense(&bv, &pt)) as usize;
+            }
+            println!("tensor-eq MLE evaluation = dense-table evaluation, extension, base and generated tables, 2^0 .. 2^16: {ok}/{tot}");
+            all &= ok == tot;
+            let (ok, tot) = hidden::gen_cols_selfcheck(12);
+            println!("column-source sumcheck = gen_prove (messages, point, finals), base / extension / tensor / generated columns, 2^2 .. 2^12, degrees 2, 3, 8, every budget: {ok}/{tot}");
+            all &= ok == tot;
+            println!("GKRLAZY: {}", if all { "PASS" } else { "FAIL" });
+        }
         Some("digests") => digests(),
         Some("whirbench") => {
             let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };

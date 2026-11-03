@@ -173,6 +173,27 @@ unsafe fn spill_unmap(p: *mut u8, size: usize) -> bool {
 /// and rewritten every round, where writeback to the file would only add traffic).
 static SUPPRESS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
+/// Access-pattern hint for a range of memory (page-aligned outward): random (no readahead) or the
+/// mapping default (sequential readahead when H9_SPILL_SEQ=1). Only page-cache behaviour changes;
+/// on anonymous memory it is a no-op in effect.
+pub fn advise_random(ptr: *const u8, len: usize, random: bool) {
+    if len == 0 {
+        return;
+    }
+    let pg = 4096usize;
+    let start = (ptr as usize) & !(pg - 1);
+    let end = (ptr as usize + len).div_ceil(pg) * pg;
+    let adv = if random {
+        libc::MADV_RANDOM
+    } else if SEQUENTIAL.load(Ordering::Relaxed) {
+        libc::MADV_SEQUENTIAL
+    } else {
+        libc::MADV_NORMAL
+    };
+    // SAFETY: madvise only changes kernel paging hints for pages of this process.
+    unsafe { libc::madvise(start as *mut libc::c_void, end - start, adv) };
+}
+
 pub fn suppress(on: bool) {
     SUPPRESS.store(on, Ordering::Relaxed);
 }

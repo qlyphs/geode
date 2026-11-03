@@ -26,6 +26,12 @@ use crate::field::F;
 pub static MIN_BYTES: AtomicUsize = AtomicUsize::new(4 << 30);
 
 pub fn configure_from_env() {
+    if let Ok(v) = std::env::var("H9_BIGDFT_ADVISE") {
+        ADVISE.store(v != "0", Ordering::Relaxed);
+    }
+    if let Ok(v) = std::env::var("H9_BIGDFT_INPLACE") {
+        INPLACE.store(v != "0", Ordering::Relaxed);
+    }
     if let Ok(v) = std::env::var("H9_BIGDFT_MIN") {
         MIN_BYTES.store(v.parse().expect("H9_BIGDFT_MIN"), Ordering::Relaxed);
     }
@@ -60,16 +66,40 @@ fn batch_rows(w: usize) -> usize {
     (4096 / w).clamp(1, 256).next_power_of_two()
 }
 
+/// In-place four-step, on by default (H9_BIGDFT_INPLACE=0 turns it off): step 1 writes Z over
+/// the input (Z[k1, n2] where x[M2 n1 + n2] was), step 3 writes each row's DFT back into the row
+/// (W[k1, k2] at k1 M2 + k2), and an in-place transpose (blocked; for M1 = 2 M2, two square
+/// transposes and a perfect shuffle of rows) moves W[k1, k2] to k1 + M1 k2 = X[k1 + M1 k2]. Same
+/// transform, no second array of the size of the codeword.
+pub static INPLACE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+/// Page-cache hints around the strided passes (H9_BIGDFT_ADVISE, default on): the arrays read or
+/// written in runs of B rows at a large stride are marked random-access for that pass, so the
+/// kernel does not read ahead pages the pass skips. Hints only; the values are unchanged.
+pub static ADVISE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+fn advise(v: &[F], random: bool) {
+    if ADVISE.load(Ordering::Relaxed) {
+        crate::alloc::advise_random(v.as_ptr() as *const u8, std::mem::size_of_val(v), random);
+    }
+}
+
 pub fn four_step(inner: &Radix2DFTSmallBatch<F>, mut mat: RowMajorMatrix<F>) -> RowMajorMatrix<F> {
     let h = mat.height();
     let w = mat.width();
     let lg = h.trailing_zeros() as usize;
+    if INPLACE.load(Ordering::Relaxed) {
+        four_step_inplace(inner, &mut mat.values, h, w);
+        return mat;
+    }
     let (l1, l2) = (lg.div_ceil(2), lg / 2);
     let (m1, m2) = (1usize << l1, 1usize << l2);
     let b = batch_rows(w).min(m2).min(m1);
     let g = F::two_adic_generator(lg);
     // Intermediate Z, row (k1 M2 + n2), w columns.
     let mut z = F::zero_vec(h * w);
+    advise(&mat.values, true);
+    advise(&z, true);
     // Step 1 and 2, for B consecutive n2 at a time.
     for n2s in (0..m2).step_by(b) {
         let mut blk = vec![F::ZERO; m1 * b * w];
@@ -93,6 +123,8 @@ pub fn four_step(inner: &Radix2DFTSmallBatch<F>, mut mat: RowMajorMatrix<F>) -> 
             }
         });
     }
+    // Step 3 reads Z row by row (sequential) and writes the output at a stride (random).
+    advise(&z, false);
     // The input is no longer needed: reuse it for the output.
     let out = &mut mat.values;
     // Step 3, for B consecutive k1 at a time.
@@ -111,8 +143,129 @@ pub fn four_step(inner: &Radix2DFTSmallBatch<F>, mut mat: RowMajorMatrix<F>) -> 
         });
     }
     drop(z);
+    advise(&mat.values, false);
     mat
 }
+
+/// The four-step transform in place (see INPLACE). Height h = M1 M2 with M1 = M2 = M (log2 h
+/// even) or M1 = 2 M2 (log2 h odd).
+fn four_step_inplace(inner: &Radix2DFTSmallBatch<F>, v: &mut [F], h: usize, w: usize) {
+    let lg = h.trailing_zeros() as usize;
+    let (m1, m2) = (1usize << lg.div_ceil(2), 1usize << (lg / 2));
+    let b = batch_rows(w).min(m2);
+    let g = F::two_adic_generator(lg);
+    advise(v, true);
+    // Step 1 and 2 for B consecutive n2 at a time: gather the M1 x B block, DFT over n1, twiddle
+    // w^(k1 n2), and scatter back to the same positions (row k1 now holds Z[k1, .]).
+    for n2s in (0..m2).step_by(b) {
+        let mut blk = vec![F::ZERO; m1 * b * w];
+        {
+            let src: &[F] = v;
+            blk.par_chunks_mut(b * w).enumerate().for_each(|(n1, row)| {
+                let o = (m2 * n1 + n2s) * w;
+                row.copy_from_slice(&src[o..o + b * w]);
+            });
+        }
+        let y = inner.dft_batch(RowMajorMatrix::new(blk, b * w)).values;
+        v.par_chunks_mut(m2 * w).enumerate().for_each(|(k1, zrow)| {
+            let step = g.exp_u64(k1 as u64);
+            let mut t = step.exp_u64(n2s as u64);
+            let src = &y[k1 * b * w..(k1 + 1) * b * w];
+            let dst = &mut zrow[n2s * w..(n2s + b) * w];
+            for j in 0..b {
+                for c in 0..w {
+                    dst[j * w + c] = src[j * w + c] * t;
+                }
+                t *= step;
+            }
+        });
+    }
+    // Step 3: each row k1 (M2 rows of the matrix, contiguous) is replaced by its DFT over n2:
+    // W[k1, k2] at k1 M2 + k2.
+    advise(v, false);
+    for k1s in (0..m1).step_by(b) {
+        let rows = &mut v[k1s * m2 * w..(k1s + b) * m2 * w];
+        let outs: Vec<Vec<F>> = rows.chunks(m2 * w).map(|r| inner.dft_batch(RowMajorMatrix::new(r.to_vec(), w)).values).collect();
+        for (r, o) in rows.chunks_mut(m2 * w).zip(outs) {
+            r.copy_from_slice(&o);
+        }
+    }
+    // X[k1 + M1 k2] = W[k1, k2]: the transpose of the M1 x M2 matrix W.
+    advise(v, true);
+    if m1 == m2 {
+        transpose_square(v, m2, w, b);
+    } else {
+        // W = [A; B] with A, B the M2 x M2 halves (k1 < M2, k1 >= M2). Row k2 of the result is
+        // (A^T row k2, B^T row k2): transpose both halves in place, then move block i of M2
+        // records (A^T row i for i < M2, B^T row i - M2 otherwise) to block 2i or 2(i - M2) + 1.
+        let half = m2 * m2 * w;
+        let (a, bh) = v.split_at_mut(half);
+        transpose_square(a, m2, w, b);
+        transpose_square(bh, m2, w, b);
+        shuffle_blocks(v, m2, m2 * w);
+    }
+    advise(v, false);
+}
+
+/// In-place transpose of an M x M matrix of w-wide records, in tiles of B x B.
+fn transpose_square(v: &mut [F], m: usize, w: usize, b: usize) {
+    let b = b.min(m);
+    let tiles = m / b;
+    let pairs: Vec<(usize, usize)> = (0..tiles).flat_map(|ti| (ti..tiles).map(move |tj| (ti, tj))).collect();
+    let base = SendSlice(v.as_mut_ptr());
+    pairs.par_iter().for_each(|&(ti, tj)| {
+        let at = |i: usize, j: usize| -> usize { (i * m + j) * w };
+        let p = base;
+        for i in 0..b {
+            for j in 0..b {
+                let (r, c) = (ti * b + i, tj * b + j);
+                // Each unordered pair {(r, c), (c, r)} with r < c is swapped once, by the task of
+                // the tile pair that holds (r, c) with ti <= tj.
+                if ti == tj && c <= r {
+                    continue;
+                }
+                // SAFETY: tasks own disjoint tile pairs {(ti, tj), (tj, ti)}.
+                unsafe {
+                    let x = std::slice::from_raw_parts_mut(p.0.add(at(r, c)), w);
+                    let y = std::slice::from_raw_parts_mut(p.0.add(at(c, r)), w);
+                    x.swap_with_slice(y);
+                }
+            }
+        }
+    });
+}
+
+/// Perfect shuffle of 2 n blocks of `len` elements in place: block i goes to 2 i (i < n) or to
+/// 2 (i - n) + 1 (i >= n), by cycle following with two block buffers.
+fn shuffle_blocks(v: &mut [F], n: usize, len: usize) {
+    let dest = |i: usize| if i < n { 2 * i } else { 2 * (i - n) + 1 };
+    let mut done = vec![false; 2 * n];
+    let mut carry = vec![F::ZERO; len];
+    let mut tmp = vec![F::ZERO; len];
+    for s in 0..2 * n {
+        if done[s] {
+            continue;
+        }
+        carry.copy_from_slice(&v[s * len..(s + 1) * len]);
+        let mut pos = s;
+        loop {
+            let d = dest(pos);
+            tmp.copy_from_slice(&v[d * len..(d + 1) * len]);
+            v[d * len..(d + 1) * len].copy_from_slice(&carry);
+            std::mem::swap(&mut carry, &mut tmp);
+            done[d] = true;
+            pos = d;
+            if d == s {
+                break;
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+struct SendSlice(*mut F);
+unsafe impl Send for SendSlice {}
+unsafe impl Sync for SendSlice {}
 
 /// The four-step path against p3's transform on random matrices (exact equality).
 pub fn selfcheck() -> Vec<(String, bool)> {
@@ -125,7 +278,7 @@ pub fn selfcheck() -> Vec<(String, bool)> {
         s
     };
     let mut v = vec![];
-    for &(lg, w, zero_tail) in &[(10usize, 1usize, 0usize), (11, 3, 1), (12, 64, 1), (13, 8, 2), (16, 64, 1), (17, 5, 0), (18, 64, 1), (20, 2, 3)] {
+    for &(lg, w, zero_tail) in &[(10usize, 1usize, 0usize), (11, 3, 1), (12, 64, 1), (13, 8, 2), (14, 3, 0), (16, 64, 1), (17, 5, 0), (18, 64, 1), (20, 2, 3), (20, 64, 1), (22, 5, 2)] {
         let h = 1usize << lg;
         let mut vals: Vec<F> = (0..h * w).map(|_| F::from_u64(next())).collect();
         for x in vals[(h >> zero_tail) * w..].iter_mut() {
@@ -133,8 +286,14 @@ pub fn selfcheck() -> Vec<(String, bool)> {
         }
         let m = RowMajorMatrix::new(vals, w);
         let a = inner.dft_batch(m.clone());
-        let bm = four_step(&inner, m);
+        INPLACE.store(false, Ordering::Relaxed);
+        let bm = four_step(&inner, m.clone());
+        INPLACE.store(true, Ordering::Relaxed);
+        let cm = four_step(&inner, m);
         v.push((format!("four-step DFT = p3 Radix2DFTSmallBatch: height 2^{lg}, width {w}, zero tail 1 - 2^-{zero_tail}"), a.values == bm.values));
+        {
+            v.push((format!("in-place four-step DFT = p3 Radix2DFTSmallBatch: height 2^{lg}, width {w}, zero tail 1 - 2^-{zero_tail}"), a.values == cm.values));
+        }
     }
     v
 }

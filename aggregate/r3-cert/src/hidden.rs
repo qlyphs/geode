@@ -997,6 +997,252 @@ pub fn gen_prove<T: Fs>(base: &[&[F]], ext: Vec<Vec<EF>>, deg: usize, mut claim:
     (point, finals)
 }
 
+/// A column of `gen_prove_cols`, given without its folded arrays.
+pub enum Col<'a> {
+    /// Base-field values.
+    Base(&'a [F]),
+    /// Extension-field values.
+    Ext(Vec<EF>),
+    /// value(b) = hi[b >> s] * lo[b mod 2^s], kept as its two factors while the top variables
+    /// fold (folding the top variables of a tensor folds hi).
+    Tensor { hi: Vec<EF>, lo: Vec<EF>, s: usize },
+    /// Values generated on demand.
+    Gen(&'a (dyn Fn(usize) -> EF + Sync)),
+}
+
+/// The column-source sumchecks (H9_SC_LAZY, default on; H9_SC_LAZY=0 keeps the materialized
+/// public columns and gen_prove).
+pub fn sc_lazy() -> bool {
+    std::env::var("H9_SC_LAZY").map(|v| v != "0").unwrap_or(true)
+}
+
+/// Memory budget of `gen_prove_cols` in entries of one folded column (default 2^23;
+/// H9_SC_LOG_BUDGET).
+fn sc_log_budget() -> usize {
+    std::env::var("H9_SC_LOG_BUDGET").ok().and_then(|v| v.parse().ok()).unwrap_or(23)
+}
+
+/// The proof of `gen_prove` (same messages, point and final values) for columns given as
+/// `Col`: no column is stored at more than 2^budget entries. While the folded columns are
+/// larger, a round reads each value after t folds by the fold recursion of `gen_prove`
+/// (a + r (b - a)) from the round-0 values, and a tensor column folds its hi factor; then every
+/// column is materialized and the rounds are those of `gen_prove`. Exact field arithmetic on
+/// the same values, so the same elements.
+#[allow(clippy::too_many_arguments)]
+pub fn gen_prove_cols<T: Fs>(cols: Vec<Col>, deg: usize, claim: EF, f: &(dyn Fn(&[EF]) -> EF + Sync), tr: &mut T, msgs: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
+    gen_prove_cols_with(cols, deg, claim, f, tr, msgs, sc_log_budget())
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn gen_prove_cols_with<T: Fs>(mut cols: Vec<Col>, deg: usize, mut claim: EF, f: &(dyn Fn(&[EF]) -> EF + Sync), tr: &mut T, msgs: &mut Vec<EF>, log_budget: usize) -> (Vec<EF>, Vec<EF>) {
+    let nc = cols.len();
+    assert!(nc <= MAXC && deg < 16 && nc > 0);
+    let len0 = cols
+        .iter()
+        .find_map(|c| match c {
+            Col::Base(v) => Some(v.len()),
+            Col::Ext(v) => Some(v.len()),
+            Col::Tensor { hi, s, .. } => Some(hi.len() << s),
+            Col::Gen(_) => None,
+        })
+        .expect("at least one column with a length");
+    for c in &cols {
+        match c {
+            Col::Base(v) => assert_eq!(v.len(), len0),
+            Col::Ext(v) => assert_eq!(v.len(), len0),
+            Col::Tensor { hi, lo, s } => assert!(lo.len() == 1 << s && hi.len() << s == len0),
+            Col::Gen(_) => {}
+        }
+    }
+    let nv = len0.trailing_zeros() as usize;
+    let mut point = vec![EF::ZERO; nv];
+    let mut round = 0usize;
+    // Lazy rounds: rs holds the challenges so far.
+    let mut rs: Vec<EF> = Vec::new();
+    let v0 = |c: &Col, j: usize| -> EF {
+        match c {
+            Col::Base(v) => efb(v[j]),
+            Col::Ext(v) => v[j],
+            Col::Gen(g) => g(j),
+            Col::Tensor { .. } => unreachable!(),
+        }
+    };
+    fn fv(v0: &(dyn Fn(usize) -> EF + Sync), len0: usize, t: usize, j: usize, rs: &[EF]) -> EF {
+        if t == 0 {
+            return v0(j);
+        }
+        let a = fv(v0, len0, t - 1, j, rs);
+        let b = fv(v0, len0, t - 1, j + (len0 >> t), rs);
+        a + rs[t - 1] * (b - a)
+    }
+    // Lazy rounds bind hi variables of every tensor column only.
+    let smax = cols.iter().map(|c| if let Col::Tensor { s, .. } = c { *s } else { 0 }).max().unwrap_or(0);
+    while round < nv && (len0 >> round) > (1usize << log_budget.max(smax)) {
+        let t = round;
+        let h = (len0 >> round) / 2;
+        let colsr = &cols;
+        let rsr = &rs;
+        let get = |c: usize, j: usize| -> EF {
+            match &colsr[c] {
+                Col::Tensor { hi, lo, s } => hi[j >> s] * lo[j & ((1usize << s) - 1)],
+                other => fv(&|jj| v0(other, jj), len0, t, j, rsr),
+            }
+        };
+        let acc = (0..h)
+            .into_par_iter()
+            .with_min_len(256)
+            .fold(
+                || [EF::ZERO; 16],
+                |mut acc, i| {
+                    let mut lo = [EF::ZERO; MAXC];
+                    let mut d = [EF::ZERO; MAXC];
+                    for c in 0..nc {
+                        let (a, b) = (get(c, i), get(c, i + h));
+                        lo[c] = a;
+                        d[c] = b - a;
+                    }
+                    acc[0] += f(&lo[..nc]);
+                    let mut v = lo;
+                    for c in 0..nc {
+                        v[c] += d[c];
+                    }
+                    for t in 2..=deg {
+                        for c in 0..nc {
+                            v[c] += d[c];
+                        }
+                        acc[t] += f(&v[..nc]);
+                    }
+                    acc
+                },
+            )
+            .reduce(|| [EF::ZERO; 16], |a, b| core::array::from_fn(|k| a[k] + b[k]));
+        let mut msg = Vec::with_capacity(deg);
+        msg.push(acc[0]);
+        msg.extend_from_slice(&acc[2..=deg]);
+        tr.absorb_efs(&msg);
+        msgs.extend_from_slice(&msg);
+        let r = tr.sample_ef();
+        claim = gen_next(&msg, claim, r);
+        point[nv - 1 - round] = r;
+        rs.push(r);
+        // Tensor columns: the round variable is a hi variable while 2^s < the current length.
+        for c in cols.iter_mut() {
+            if let Col::Tensor { hi, s, .. } = c {
+                assert!((len0 >> round) > (1usize << *s), "lazy rounds stop before the lo variables");
+                fold_ext(hi, r);
+            }
+        }
+        round += 1;
+    }
+    if round == nv {
+        let finals: Vec<EF> = (0..nc)
+            .map(|c| match &cols[c] {
+                Col::Tensor { hi, lo, .. } => hi[0] * lo[0],
+                other => fv(&|jj| v0(other, jj), len0, round, 0, &rs),
+            })
+            .collect();
+        return (point, finals);
+    }
+    // Materialize every column at the current length and continue as gen_prove.
+    let len = len0 >> round;
+    let mut cols: Vec<Vec<EF>> = cols
+        .into_iter()
+        .map(|c| match c {
+            Col::Tensor { hi, lo, s } => (0..len).into_par_iter().with_min_len(1 << 12).map(|j| hi[j >> s] * lo[j & ((1usize << s) - 1)]).collect(),
+            Col::Ext(v) if round == 0 => v,
+            other => (0..len).into_par_iter().with_min_len(1 << 12).map(|j| fv(&|jj| v0(&other, jj), len0, round, j, &rs)).collect(),
+        })
+        .collect();
+    while round < nv {
+        let h = (len0 >> round) / 2;
+        let colsr = &cols;
+        let acc = (0..h)
+            .into_par_iter()
+            .with_min_len(256)
+            .fold(
+                || [EF::ZERO; 16],
+                |mut acc, i| {
+                    let mut lo = [EF::ZERO; MAXC];
+                    let mut d = [EF::ZERO; MAXC];
+                    for c in 0..nc {
+                        let (a, b) = (colsr[c][i], colsr[c][i + h]);
+                        lo[c] = a;
+                        d[c] = b - a;
+                    }
+                    acc[0] += f(&lo[..nc]);
+                    let mut v = lo;
+                    for c in 0..nc {
+                        v[c] += d[c];
+                    }
+                    for t in 2..=deg {
+                        for c in 0..nc {
+                            v[c] += d[c];
+                        }
+                        acc[t] += f(&v[..nc]);
+                    }
+                    acc
+                },
+            )
+            .reduce(|| [EF::ZERO; 16], |a, b| core::array::from_fn(|k| a[k] + b[k]));
+        let mut msg = Vec::with_capacity(deg);
+        msg.push(acc[0]);
+        msg.extend_from_slice(&acc[2..=deg]);
+        tr.absorb_efs(&msg);
+        msgs.extend_from_slice(&msg);
+        let r = tr.sample_ef();
+        claim = gen_next(&msg, claim, r);
+        point[nv - 1 - round] = r;
+        cols.iter_mut().for_each(|c| fold_ext(c, r));
+        round += 1;
+    }
+    let finals: Vec<EF> = cols.iter().map(|c| c[0]).collect();
+    debug_assert_eq!(claim, f(&finals));
+    (point, finals)
+}
+
+/// gen_prove_cols against gen_prove on random columns of every kind (base, extension, tensor,
+/// generated), sizes 2^2 .. 2^nmax, degrees 2, 3 and 8, every budget: (equal, total).
+pub fn gen_cols_selfcheck(nmax: usize) -> (usize, usize) {
+    let mut tr = crate::pcs::Tr::new();
+    let (mut ok, mut tot) = (0, 0);
+    for nv in 2..=nmax {
+        let len = 1usize << nv;
+        let s = nv / 2;
+        let b1: Vec<F> = tr.sample_efs(len).iter().map(|e| <EF as p3_field::BasedVectorSpace<F>>::as_basis_coefficients_slice(e)[1]).collect();
+        let b2: Vec<F> = (0..len).map(|i| F::from_usize(i % 3)).collect();
+        let e1 = tr.sample_efs(len);
+        let hi = tr.sample_efs(len >> s);
+        let lo = tr.sample_efs(1 << s);
+        let g: Vec<EF> = tr.sample_efs(len);
+        let tens: Vec<EF> = (0..len).map(|j| hi[j >> s] * lo[j & ((1 << s) - 1)]).collect();
+        for deg in [2usize, 3, 8] {
+            let f = move |v: &[EF]| -> EF {
+                let mut p = v[0] * v[1] + v[2];
+                for _ in 2..deg {
+                    p *= v[3] + v[4];
+                }
+                p + v[3] * v[4]
+            };
+            let claim: EF = (0..len).map(|j| f(&[efb(b1[j]), efb(b2[j]), e1[j], tens[j], g[j]])).sum();
+            let mut t0 = crate::pcs::Tr::new();
+            let mut m0 = vec![];
+            let r0 = gen_prove(&[&b1, &b2], vec![e1.clone(), tens.clone(), g.clone()], deg, claim, &f, &mut t0, &mut m0);
+            for lb in 0..=nv {
+                let gg = |j: usize| g[j];
+                let cols = vec![Col::Base(&b1), Col::Base(&b2), Col::Ext(e1.clone()), Col::Tensor { hi: hi.clone(), lo: lo.clone(), s }, Col::Gen(&gg)];
+                let mut t1 = crate::pcs::Tr::new();
+                let mut m1 = vec![];
+                // A budget below 2^s would fold a tensor's lo variables lazily; the prover
+                // materializes before that, so the smallest budget tested is s.
+                let r1 = gen_prove_cols_with(cols, deg, claim, &f, &mut t1, &mut m1, lb.max(s));
+                tot += 1;
+                ok += (r1 == r0 && m1 == m0) as usize;
+            }
+        }
+    }
+    (ok, tot)
+}
+
 fn fold_ext(v: &mut Vec<EF>, r: EF) {
     let h = v.len() / 2;
     let (lo, hi) = v.split_at_mut(h);
@@ -1832,7 +2078,7 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let log_n = n.trailing_zeros() as usize;
 
     // 1. One commitment: table A = X | Y | S | B0..B3 | T1..T8, table B = m_even | m_odd.
-    let tcols = t_columns(wit);
+    let mut tcols = t_columns(wit);
     let nv = stacked_vars9(n);
     let mut order: Vec<&[F]> = vec![&w.x, &w.y, &w.s];
     for bp in &wit.bits {
@@ -1857,6 +2103,15 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let wit3 = Layout::new_witness(vec![Table::new(RowMajorMatrix::new(ta, dc)), Table::new(RowMajorMatrix::new(tb, 1 << LOG_TAB))], b.fold0());
     assert_eq!(wit3.num_variables(), nv);
     let (comm, pdata) = b.commit(wit3);
+    // After the commitment the T columns are read through generators over the committed states
+    // (the values of t_columns) instead of being kept; tests that override cells keep them.
+    let tgen = sc_lazy() && wit.t_extra.is_empty();
+    if tgen {
+        tcols = vec![];
+    }
+    let tg: Vec<Box<dyn Fn(usize) -> F + Sync>> = (0..8)
+        .map(|k| Box::new(move |x: usize| -> F { let (i, s) = (x >> LOGW, x & (SLOTS - 1)); if s < STATE { pm(state_bit(&wit.t_states[i][k], s)) } else { F::ZERO } }) as Box<dyn Fn(usize) -> F + Sync>)
+        .collect();
     tm.lap("P1 WHIR commit (one table of 15 columns + multiplicities)");
 
     // 2-3. Projections and integer lifts with the u term in the witness.
@@ -1932,8 +2187,16 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     } else {
         (w, me, mo)
     };
-    let (lp, lq) = cert::leaves(&tree, w, theta, &co);
-    let (gproof, gout) = gkr::prove(lp, lq, b);
+    // Round cert-speed: the leaves are computed on demand and only layers of at most
+    // 2^H9_GKR_LOG_BUDGET entries are stored (H9_GKR_LAZY=0: the stored-leaf prover).
+    let (gproof, gout) = if std::env::var("H9_GKR_LAZY").map(|v| v != "0").unwrap_or(true) {
+        let lf = cert::LeafFn::new(&tree, w, theta, &co);
+        let f = |i: usize| lf.at(i);
+        gkr::prove_lazy(&gkr::LazyLeaves { d: tree.d, used: lf.used(), leaf: &f }, b)
+    } else {
+        let (lp, lq) = cert::leaves(&tree, w, theta, &co);
+        gkr::prove(lp, lq, b)
+    };
     tm.lap("P3 LogUp leaves and fractional GKR");
 
     // 5. Leaf pair, T, and the joint block of weights.
@@ -1961,15 +2224,73 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let sums: Vec<Sums9> = (0..n).into_par_iter().map(|i| sums9(i, &s_all[i * per..(i + 1) * per], &ch, &pubs[i].bc, &eq_rho, None)).collect();
     let agg = aggregate9(&sums, n);
     let claim = claimed_sum9(&cx, &agg);
-    let pubcols = build_public9(&cx, &s_all, &ch, &eq_rho);
+    let lazy = sc_lazy();
+    let pubcols = if lazy { vec![] } else { build_public9(&cx, &s_all, &ch, &eq_rho) };
     drop(eq_rho);
-    drop(s_all);
     tm.lap("P4a master weights, public columns, claimed sum");
 
     // 6. Master sumcheck, degree 8, over X, Y, S, B0..B3 and seven public columns.
     let mut mmsgs = Vec::new();
     let fm = |v: &[EF]| master_f9(&mk, v);
-    let (mpoint, _mfin) = gen_prove(&[&w.x, &w.y, &w.s, &wit.bits[0], &wit.bits[1], &wit.bits[2], &wit.bits[3]], pubcols, MASTER_DEG, claim, &fm, b, &mut mmsgs);
+    let (mpoint, _mfin) = if lazy {
+        // The public columns of build_public9 as factors and generators (same values).
+        let (kx, ky) = (cx.tree.kx(&cx.rho), cx.tree.ky(&cx.rho));
+        let lr = eq_table(&cx.rho[..LOGW]);
+        let hr = eq_table(&cx.rho[LOGW..cx.tree.log_dc]);
+        let lwx: Vec<EF> = (0..SLOTS).map(|t| if t < L * N { kx * lr[t] } else { EF::ZERO }).collect();
+        let lwy: Vec<EF> = (0..SLOTS).map(|t| ky * lr[t]).collect();
+        let (ct, cs) = (&cx, &s_all);
+        let chr = &ch;
+        let ze = move |b: usize| -> EF {
+            let (i, t) = (b >> LOGW, b & (SLOTS - 1));
+            let mut zp = EF::ZERO;
+            if t < L * N {
+                let mu = &ct.mu[i / CHUNK];
+                for j in 0..TRIALS {
+                    zp += mu[j] * fi(cs[i * per + j * L * N + t] as i64);
+                }
+            }
+            zp
+        };
+        let rh = move |b: usize| -> EF {
+            let (i, t) = (b >> LOGW, b & (SLOTS - 1));
+            let mu = &ct.mu[i / CHUNK];
+            let mut a1 = EF::ZERO;
+            for j in 0..TRIALS {
+                a1 += mu[j] * fi(chr.r_centered(j, i, t));
+            }
+            a1
+        };
+        let rp = move |b: usize| -> EF {
+            let (i, t) = (b >> LOGW, b & (SLOTS - 1));
+            let mu = &ct.mu[i / CHUNK];
+            let mut a2 = EF::ZERO;
+            for j in 0..TRIALS {
+                a2 += mu[j] * fi(r_prime(chr, j, i, t));
+            }
+            a2
+        };
+        let cols = vec![
+            Col::Base(&w.x),
+            Col::Base(&w.y),
+            Col::Base(&w.s),
+            Col::Base(&wit.bits[0]),
+            Col::Base(&wit.bits[1]),
+            Col::Base(&wit.bits[2]),
+            Col::Base(&wit.bits[3]),
+            Col::Tensor { hi: hr.clone(), lo: lwx, s: LOGW },
+            Col::Tensor { hi: hr, lo: lwy, s: LOGW },
+            Col::Gen(&ze),
+            Col::Gen(&rh),
+            Col::Gen(&rp),
+            Col::Tensor { hi: eq_table(&cx.tau[LOGW..]), lo: eq_table(&cx.tau[..LOGW]), s: LOGW },
+            Col::Tensor { hi: cx.omega.clone(), lo: vec![EF::ONE; SLOTS], s: LOGW },
+        ];
+        gen_prove_cols(cols, MASTER_DEG, claim, &fm, b, &mut mmsgs)
+    } else {
+        gen_prove(&[&w.x, &w.y, &w.s, &wit.bits[0], &wit.bits[1], &wit.bits[2], &wit.bits[3]], pubcols, MASTER_DEG, claim, &fm, b, &mut mmsgs)
+    };
+    drop(s_all);
     let master: Vec<Vec<EF>> = mmsgs.chunks(MASTER_DEG).map(|c| c.to_vec()).collect();
     tm.lap("P4b master sumcheck (degree 8)");
     let tout = sumcheck::table_prove(&rt, ta_, tb_, &me, &mo, t_claim, b);
@@ -1987,7 +2308,11 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let mut kmsgs: Vec<EF> = Vec::new();
     let (r0s, _, r0i) = split_k(&r0);
     let tpt: Vec<EF> = r0s.iter().chain(r0i.iter()).copied().collect();
-    let o_vals: Vec<EF> = tcols.par_iter().map(|c| crate::field::mle_eval(c, &tpt)).collect();
+    let o_vals: Vec<EF> = if tgen {
+        tg.iter().map(|g| crate::field::mle_eval_gen(&**g, &tpt)).collect()
+    } else {
+        tcols.par_iter().map(|c| crate::field::mle_eval(c, &tpt)).collect()
+    };
     let ctb: Vec<u8> = wit.ct.iter().flatten().copied().collect();
     let mclaim = masked_claim(&o_vals, &r0, &ctb);
     if k10 {
@@ -2002,17 +2327,19 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
         kmsgs.push(v1);
         tm.lap("P5b masked output and mask sumcheck");
         let (mut pt, mut v) = (r1, v1);
+        let mut kbuf: Vec<EF> = Vec::new();
         for k in (0..sp.len()).rev() {
             let s = &sp[k];
             let eqs = eq_table(&pt[..LOGW]);
             let wts: Vec<Vec<EF>> = s.terms.iter().map(|t| (0..W).map(|i| match t.sel[i] { 0 => EF::ZERO, 1 => eqs[i], _ => -eqs[i] }).collect()).collect();
             let vin = tr10.input(k, &sp);
             let maps = keccak::kec10::gmaps(s);
-            let (pt2, vals) = keccak::kec10::main_prove_k10(s, &maps, vin, &pt[LOGW..], wts, v, logp, NPERM, b, &mut kmsgs);
+            let (pt2, vals) = keccak::kec10::main_prove_k10_buf(s, &maps, vin, &pt[LOGW..], wts, v, logp, NPERM, b, &mut kmsgs, &mut kbuf);
             pt = keccak::kec10::wiring_prove_k10(s, vin, &pt2, &vals, logp, NPERM, b, &mut kmsgs);
             v = *kmsgs.last().unwrap();
         }
         drop(tr10);
+        drop(kbuf);
         crate::alloc::suppress(false);
         r2_v = (pt, v);
     } else {
@@ -2086,29 +2413,21 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let lclaim = v - link_public(&r2, &mus);
     let e9: [EF; 9] = core::array::from_fn(|q| eq_q(r2q, q));
     let xpt: Vec<EF> = r2s.iter().chain(r2i.iter()).copied().collect();
-    let weq = eq_table(&xpt);
     let pats = link_patterns();
-    let ub = reindexed_bits(&wit.bits, n);
-    // Shortcut probe (tests): the input claim against the false shortcut that evaluates the
-    // XOR link on multilinear evaluations of T, U and the patterns at the same point.
-    let probe = {
-        let tv: Vec<EF> = tcols.iter().map(|c| crate::field::mle_eval(c, &xpt)).collect();
+    // Shortcut probe (tests only): the input claim against the false shortcut that evaluates
+    // the XOR link on multilinear evaluations of T, U and the patterns at the same point.
+    let probe = if cfg!(feature = "lab-hooks") || !lazy {
+        let ub = reindexed_bits(&wit.bits, n);
+        let tv: Vec<EF> = if tgen { tg.iter().map(|g| crate::field::mle_eval_gen(&**g, &xpt)).collect() } else { tcols.iter().map(|c| crate::field::mle_eval(c, &xpt)).collect() };
         let uv: Vec<EF> = ub.iter().map(|c| crate::field::mle_eval(c, &xpt)).collect();
         let es = eq_table(r2s);
         let mut vals: Vec<EF> = pats.iter().map(|p| (0..W).map(|s| es[s] * p[s]).sum()).collect();
         vals.extend_from_slice(&tv);
         vals.extend_from_slice(&uv);
         Some((v, link_public(&r2, &mus) + link_f(&e9, &vals)))
+    } else {
+        None
     };
-    let ext: Vec<Vec<EF>> = pats.iter().map(|p| (0..n * SLOTS).into_par_iter().map(|x| weq[x] * p[x % SLOTS]).collect()).collect();
-    drop(weq);
-    let mut base: Vec<&[F]> = vec![];
-    for c in &tcols {
-        base.push(c);
-    }
-    for c in &ub {
-        base.push(c);
-    }
     // f receives base (T1..T8, U0..U7) first, then ext (Wa, Wa8, Wb, Wc).
     let fl = |vv: &[EF]| {
         let mut r = [EF::ZERO; 20];
@@ -2116,7 +2435,48 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
         r[4..20].copy_from_slice(&vv[..16]);
         link_f(&e9, &r)
     };
-    let (rho_x, lfin) = gen_prove(&base, ext, 3, lclaim, &fl, b, &mut kmsgs);
+    let (rho_x, lfin) = if lazy {
+        // U_q as generators over the bit planes (the values of reindexed_bits) and the pattern
+        // columns eq(xpt, x) p(s) as eq(r2i, i) times eq(r2s, s) p(s).
+        let umap: Vec<Vec<i64>> = (0..8)
+            .map(|q| (0..SLOTS).map(|s| match src_of(q, s) { Src::U { plane, coef } if s < RATE_BITS => (plane * SLOTS + coef) as i64, _ => -1 }).collect())
+            .collect();
+        let bits = &wit.bits;
+        let gens: Vec<Box<dyn Fn(usize) -> EF + Sync>> = (0..8)
+            .map(|q| {
+                let m = umap[q].clone();
+                Box::new(move |x: usize| -> EF {
+                    let (i, s) = (x >> LOGW, x & (SLOTS - 1));
+                    let k = m[s];
+                    if k < 0 { EF::ZERO } else { efb(bits[k as usize / SLOTS][i * SLOTS + k as usize % SLOTS]) }
+                }) as Box<dyn Fn(usize) -> EF + Sync>
+            })
+            .collect();
+        let es = eq_table(r2s);
+        let ei = eq_table(r2i);
+        let tge: Vec<Box<dyn Fn(usize) -> EF + Sync>> = tg.iter().map(|g| Box::new(move |x: usize| efb(g(x))) as Box<dyn Fn(usize) -> EF + Sync>).collect();
+        let mut cols: Vec<Col> = if tgen { tge.iter().map(|g| Col::Gen(&**g)).collect() } else { tcols.iter().map(|c| Col::Base(c)).collect() };
+        for g in &gens {
+            cols.push(Col::Gen(&**g));
+        }
+        for p in &pats {
+            cols.push(Col::Tensor { hi: ei.clone(), lo: (0..W).map(|s| es[s] * p[s]).collect(), s: LOGW });
+        }
+        gen_prove_cols(cols, 3, lclaim, &fl, b, &mut kmsgs)
+    } else {
+        let weq = eq_table(&xpt);
+        let ub = reindexed_bits(&wit.bits, n);
+        let ext: Vec<Vec<EF>> = pats.iter().map(|p| (0..n * SLOTS).into_par_iter().map(|x| weq[x] * p[x % SLOTS]).collect()).collect();
+        drop(weq);
+        let mut base: Vec<&[F]> = vec![];
+        for c in &tcols {
+            base.push(c);
+        }
+        for c in &ub {
+            base.push(c);
+        }
+        gen_prove(&base, ext, 3, lclaim, &fl, b, &mut kmsgs)
+    };
     let mut uvals: Vec<EF> = lfin[8..16].to_vec();
     if o.shortcut_bits {
         // False shortcut: U_q(rho) replaced by the bit-plane evaluation at rho (product of MLEs).
