@@ -1,0 +1,22 @@
+p3-challenger 0.8.0, vendored for r3-cert profile 0x00070001 (QLYAUTH7).
+
+Source: the crates.io package p3-challenger-0.8.0 (Plonky3, released source commit
+a21e3ed42905040ad49c519e402f018381c12d0c), unchanged except for the two edits below.
+License: MIT OR Apache-2.0, as declared in Cargo.toml; the MIT text is in LICENSE-MIT.
+Cargo.lock of the package was removed. Exact diff: r3-cert.patch.
+
+Why: the round-7 specification (§6.2) requires that p3 DomainSeparator seed bytes never enter
+the new hash transcript while the interaction-pattern checks stay. Every p3 driver (ProverState::new,
+VerifierState::new, the sumcheck, layout and WHIR transcripts) seeds through
+DomainSeparator::seed, so the hook sits there, once:
+
+1. src/lib.rs, trait CanObserve<T>: new provided method
+       fn absorb_domain_seed(&mut self) -> bool { true }
+   and its forwarding in `impl CanObserve<T> for &mut C`.
+2. src/fs/domain_separator.rs, DomainSeparator::seed: absorbs the seed bytes only if
+   challenger.absorb_domain_seed() returns true.
+
+Every upstream challenger keeps the default (true), so the QLYAUTH4 profile is byte-identical.
+The r3-cert registered-round adapter returns false and counts the declined seeds.
+The PatternPlayer is still built from ds.pattern() in every driver, so cursor checks, errors
+and finalization are unchanged.

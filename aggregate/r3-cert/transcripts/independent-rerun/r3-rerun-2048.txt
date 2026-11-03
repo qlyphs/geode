@@ -1,0 +1,69 @@
+# r3-cert run N = 2048
+uptime at start: 7:37  up 11 days,  5:34, 1 user, load averages: 14.16 12.06 13.34
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 2048 distinct keys, pure-mode signatures with contexts of 1..255 B (142 ms incl. keygen and u derivation)
+distinct public keys 2048; libcrux verify of the originals 2048/2048
+witness: X, Y, S 4194304 cells each, m 2^20 (117 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 50
+reconstructed from witness: byte-identical 2048/2048, libcrux accepts 2048/2048, hint count = FIPS hint count 2048/2048
+uptime before prove: 7:37  up 11 days,  5:34, 1 user, load averages: 14.16 12.06 13.34
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       103.5 |     349 |     319 |     348  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+        22.7 |     335 |     325 |     354  P0 statement digest, manifest, transcript init
+      3413.4 |    3061 |    3061 |    3092  P1 WHIR commit (2^nv cells)
+       199.1 |    3257 |    3257 |    3288  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       224.9 |    3258 |    3258 |    3289  P3 integer lifts and quotients
+       261.8 |    3898 |    3898 |    3929  P4a paired leaves
+      1155.5 |    4538 |    3258 |    3289  P4b fractional GKR
+       820.4 |    5084 |    4764 |    4796  P5a master weights, public coefficient columns, claimed sum
+      1013.2 |    5004 |    3324 |    3356  P5b master sumcheck (degree 4)
+        32.5 |    3359 |    3264 |    3295  P5c table sumcheck (degree 2)
+      1343.6 |    4600 |     601 |     632  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5084 MiB = 4.96 GiB
+      8590.6  TOTAL prover
+prover report: stacked PCS domain 2^24, GKR leaves 2^23, theta rejections 0, inexact quotients 0, max |V| 289668986 (2^28.11), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        18.4 |      74 |      69 |      81  V0 parse, manifest, statement digest, byte checks
+         3.5 |      69 |      69 |      81  V1 transcript replay, fractional GKR verification
+        24.3 |     133 |     133 |     146  V2 WHIR verification (5 claims)
+        91.8 |     533 |     453 |     466  V3a projection challenges, eq tables
+       286.7 |     461 |     459 |     472  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     459 |     459 |     472  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       424.9  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  frontend GKR             23920  (598 extension elements)
+  frontend T claim            40
+  frontend master           3520  (22 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     552909
+  frontend subtotal        29000
+  TOTAL                  2681969  = 1309.6 B/signature (raw signatures 9476096 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 269.97354 bits (log2 candidates 7.322)
+certificate written to /tmp/r3out/cert-2048.bin (2681969 B)
+uptime at end: 7:37  up 11 days,  5:34, 1 user, load averages: 18.40 13.06 13.68
+        9.90 real        38.56 user         6.57 sys
+          2302033920  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1210968  page reclaims
+                  11  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  24  voluntary context switches
+              440983  involuntary context switches
+        527631068128  instructions retired
+        141108017566  cycles elapsed
+          5365141680  peak memory footprint

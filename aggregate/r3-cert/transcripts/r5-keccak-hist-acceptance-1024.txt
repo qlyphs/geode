@@ -1,0 +1,9 @@
+# keccak first-round histogram acceptance, P = 1024
+uptime at start: 10:08  up 11 days,  8:06, 1 user, load averages: 13.51 10.67 9.62
+direct comparison of the first round (q at t = 0..deg) and the first fold on synthetic gathers: 36/36 identical
+honest: baseline 773833 B (6875 ms), optimized 773833 B (6735 ms); frontend (all round polynomials, 8335 elements) identical: true; complete proof identical: true; first differing byte: None
+optimized proof verifies: Ok(())
+non-boolean input cell: complete proof identical: true
+non-canonical padding cell: complete proof identical: true
+one output bit flipped: complete proof identical: true
+uptime at end: 10:09  up 11 days,  8:06, 1 user, load averages: 20.36 13.31 10.67

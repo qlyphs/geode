@@ -1,0 +1,93 @@
+# lab commit b1e3d17; binary sha256 22adc40db9cc7754; Apple M3 Pro, 11 CPUs; rustc 1.96.0 (ac68faa20 2026-05-25)
+## run 1
+# keccak kernel: 1024 Keccak-f[1600] permutations, GKR over Goldilocks^5 + WHIR (p3-whir 0.8.0), SHAKE256 transcript
+uptime at start: 9:11  up 11 days,  7:09, 1 user, load averages: 9.93 10.07 9.09
+rayon threads: 11
+native keccak::f1600 (crate keccak 0.1.6) on 1024 states: 0.17 ms
+layer circuit (72 layers) output = native Keccak-f[1600]: 1024/1024
+round polynomial degrees per round (theta-a, theta-b, chi): [6, 4, 4]; gathers [6, 3, 3]
+uptime before prove: 9:11  up 11 days,  7:09, 1 user, load averages: 9.93 10.07 9.09
+-- keccak prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       319.7 |    1188 |    1188 |    1196  K0 witness: 72 layers (native, field values)
+       528.3 |    1876 |    1876 |    1885  K1 WHIR commit [in, out]
+        85.6 |    2197 |    2196 |    2005  K2 output claim, canonical-input zerocheck
+         0.0 |       0 |       0 |       0  K3a GKR main sumchecks (72 layers, 3256 ms of the next line)
+         0.0 |       0 |       0 |       0  K3b GKR wiring sumchecks (166 ms of the next line)
+      3445.2 |    2200 |    1045 |     933  K3 GKR (72 layer reductions)
+       468.3 |    1053 |      22 |      29  K4 WHIR opening (3 claims)
+  peak live heap over all keccak prover phases: 2200 MiB = 2.15 GiB
+      4847.1  TOTAL keccak prover
+  main-sumcheck split (ms, summed over 73 sumchecks): round 1 (base) 305, phase-A EF rounds 1787, phase-A folds 922, phase B 86
+-- keccak verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        26.9 |       6 |       5 |      12  KV1 transcript replay, 72 layer checks
+         6.8 |      22 |      22 |      29  KV2 WHIR verification (3 claims)
+  peak live heap over all keccak verifier phases: 22 MiB = 0.02 GiB
+        33.7  TOTAL keccak verifier
+VERIFY: ACCEPT
+-- proof bytes: total 773833 = commitment 64 + count 4 + frontend 8335 elements x 40 = 333400 + WHIR 440365 ; 755.7 B/permutation
+-- prover 4847.1 ms per 1024 permutations = 4847.1 ms per 1024
+uptime at end: 9:12  up 11 days,  7:09, 1 user, load averages: 10.50 10.18 9.14
+        5.17 real        34.94 user         4.05 sys
+          2044788736  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              343518  page reclaims
+                  12  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+              360282  involuntary context switches
+        411147249425  instructions retired
+        122107031616  cycles elapsed
+          2173290368  peak memory footprint
+## run 2
+# keccak kernel: 1024 Keccak-f[1600] permutations, GKR over Goldilocks^5 + WHIR (p3-whir 0.8.0), SHAKE256 transcript
+uptime at start: 9:12  up 11 days,  7:09, 1 user, load averages: 10.50 10.18 9.14
+rayon threads: 11
+native keccak::f1600 (crate keccak 0.1.6) on 1024 states: 0.16 ms
+layer circuit (72 layers) output = native Keccak-f[1600]: 1024/1024
+round polynomial degrees per round (theta-a, theta-b, chi): [6, 4, 4]; gathers [6, 3, 3]
+uptime before prove: 9:12  up 11 days,  7:09, 1 user, load averages: 10.50 10.18 9.14
+-- keccak prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       235.2 |    1188 |    1188 |    1196  K0 witness: 72 layers (native, field values)
+       371.6 |    1876 |    1876 |    1885  K1 WHIR commit [in, out]
+        56.6 |    2197 |    2196 |    2005  K2 output claim, canonical-input zerocheck
+         0.0 |       0 |       0 |       0  K3a GKR main sumchecks (72 layers, 3149 ms of the next line)
+         0.0 |       0 |       0 |       0  K3b GKR wiring sumchecks (161 ms of the next line)
+      3328.1 |    2200 |    1045 |     933  K3 GKR (72 layer reductions)
+       462.4 |    1053 |      22 |      29  K4 WHIR opening (3 claims)
+  peak live heap over all keccak prover phases: 2200 MiB = 2.15 GiB
+      4454.0  TOTAL keccak prover
+  main-sumcheck split (ms, summed over 73 sumchecks): round 1 (base) 294, phase-A EF rounds 1762, phase-A folds 921, phase B 85
+-- keccak verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        30.0 |       6 |       5 |      12  KV1 transcript replay, 72 layer checks
+         7.2 |      22 |      22 |      29  KV2 WHIR verification (3 claims)
+  peak live heap over all keccak verifier phases: 22 MiB = 0.02 GiB
+        37.2  TOTAL keccak verifier
+VERIFY: ACCEPT
+-- proof bytes: total 773833 = commitment 64 + count 4 + frontend 8335 elements x 40 = 333400 + WHIR 440365 ; 755.7 B/permutation
+-- prover 4454.0 ms per 1024 permutations = 4454.0 ms per 1024
+uptime at end: 9:12  up 11 days,  7:09, 1 user, load averages: 10.78 10.25 9.16
+        4.77 real        34.79 user         3.55 sys
+          2174222336  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              319646  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+              277392  involuntary context switches
+        410554241111  instructions retired
+        119807874072  cycles elapsed
+          2172864384  peak memory footprint

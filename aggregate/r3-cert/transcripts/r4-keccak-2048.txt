@@ -1,0 +1,46 @@
+# lab commit b1e3d17; binary sha256 22adc40db9cc7754; Apple M3 Pro, 11 CPUs; rustc 1.96.0 (ac68faa20 2026-05-25)
+# keccak kernel: 2048 Keccak-f[1600] permutations, GKR over Goldilocks^5 + WHIR (p3-whir 0.8.0), SHAKE256 transcript
+uptime at start: 9:12  up 11 days,  7:09, 1 user, load averages: 10.78 10.25 9.16
+rayon threads: 11
+native keccak::f1600 (crate keccak 0.1.6) on 2048 states: 0.40 ms
+layer circuit (72 layers) output = native Keccak-f[1600]: 2048/2048
+round polynomial degrees per round (theta-a, theta-b, chi): [6, 4, 4]; gathers [6, 3, 3]
+uptime before prove: 9:12  up 11 days,  7:09, 1 user, load averages: 10.78 10.25 9.16
+-- keccak prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       524.8 |    2373 |    2373 |    2381  K0 witness: 72 layers (native, field values)
+      1150.5 |    3749 |    3749 |    3759  K1 WHIR commit [in, out]
+       170.9 |    4389 |    4389 |    3999  K2 output claim, canonical-input zerocheck
+         0.0 |       0 |       0 |       0  K3a GKR main sumchecks (72 layers, 6082 ms of the next line)
+         0.0 |       0 |       0 |       0  K3b GKR wiring sumchecks (233 ms of the next line)
+      6340.9 |    4393 |    2085 |    1856  K3 GKR (72 layer reductions)
+       620.9 |    2085 |      38 |      47  K4 WHIR opening (3 claims)
+  peak live heap over all keccak prover phases: 4393 MiB = 4.29 GiB
+      8807.9  TOTAL keccak prover
+  main-sumcheck split (ms, summed over 73 sumchecks): round 1 (base) 570, phase-A EF rounds 3311, phase-A folds 1580, phase B 85
+-- keccak verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        26.9 |       6 |       6 |      14  KV1 transcript replay, 72 layer checks
+        11.0 |      39 |      38 |      47  KV2 WHIR verification (3 claims)
+  peak live heap over all keccak verifier phases: 39 MiB = 0.04 GiB
+        37.9  TOTAL keccak verifier
+VERIFY: ACCEPT
+-- proof bytes: total 843305 = commitment 64 + count 4 + frontend 8601 elements x 40 = 344040 + WHIR 499197 ; 411.8 B/permutation
+-- prover 8807.9 ms per 2048 permutations = 4404.0 ms per 1024
+uptime at end: 9:12  up 11 days,  7:09, 1 user, load averages: 11.34 10.39 9.23
+        9.40 real        67.10 user         7.21 sys
+          2938208256  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              697261  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+              572637  involuntary context switches
+        800789186610  instructions retired
+        232569617226  cycles elapsed
+          4329590144  peak memory footprint

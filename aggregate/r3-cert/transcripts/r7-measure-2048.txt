@@ -1,0 +1,604 @@
+# r3-cert round 7 measurements at N = 2048 (chain range, 16 x 128)
+# host: Apple M3 Pro, 11 logical CPUs, 18 GiB; rustc 1.96.0 (ac68faa20 2026-05-25)
+# binary sha256: c8353cddfee930a843bbfadb8b3f080d6767c303fd17f76b0802b6d03786d47c; lab commit c037598
+## run 1 v4 prove+verify | uptime: 14:23  up 11 days, 12:21, 1 user, load averages: 32.38 35.96 23.66
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH4
+uptime at start: 14:23  up 11 days, 12:21, 1 user, load averages: 32.38 35.96 23.66
+rayon threads: 11
+chain built and node-validated in 317 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       184.4 |     361 |     331 |     363  P-1 witness generation
+        37.3 |     401 |     401 |     433  P0 statement digest, manifest, transcript init
+      4783.3 |    3073 |    3073 |    3105  P1 WHIR commit (2^nv cells)
+       159.1 |    3269 |    3269 |    3302  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       310.5 |    3269 |    3269 |    3302  P3 integer lifts and quotients
+       276.2 |    3909 |    3909 |    3942  P4a paired leaves
+      1108.6 |    4549 |    3269 |    3302  P4b fractional GKR
+      1227.6 |    5096 |    4776 |    4810  P5a master weights, public coefficient columns, claimed sum
+      1094.9 |    5016 |    3336 |    3369  P5b master sumcheck (degree 4)
+        58.5 |    3371 |    3276 |    3309  P5c table sumcheck (degree 2)
+      1996.6 |    4611 |     613 |     646  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5096 MiB = 4.98 GiB
+     11237.1  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        12.8 |      29 |      25 |      39  V-1 header linkage, replay, c_tilde from u, accumulators
+        30.3 |      96 |      96 |     110  V0 parse, manifest, statement digest, byte checks
+         0.8 |      96 |      96 |     110  V1 transcript replay, fractional GKR verification
+         2.9 |      97 |      96 |     111  V2 WHIR verification (5 claims)
+        82.0 |     497 |     417 |     431  V3a projection challenges, eq tables
+       337.7 |     424 |     423 |     437  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     423 |     423 |     437  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 497 MiB = 0.49 GiB
+       466.6  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair           0
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              550925
+  TOTAL                  2679985  = 1308.59 B/signature; with the 1024 B of header accumulators 1309.09 B/signature
+certificate written to /tmp/mout/chain-cert-v4.bin (2679985 B, sha256 via shasum)
+uptime at end: 14:23  up 11 days, 12:21, 1 user, load averages: 34.33 36.32 24.01
+       12.50 real        39.03 user         7.07 sys
+          2227748864  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1263540  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  21  voluntary context switches
+              479583  involuntary context switches
+        529336616860  instructions retired
+        143483412765  cycles elapsed
+          5379248304  peak memory footprint
+5f20ccd575c0a898c31b91936022d89e32d63d3657576a1236f6f83a7ecdcd2f  /tmp/mout/chain-cert-v4.bin
+## run 1 v4 verify in a fresh process | uptime: 14:23  up 11 days, 12:21, 1 user, load averages: 34.33 36.32 24.01
+# r3-cert chain verify, /tmp/mout/chain-cert-v4.bin
+uptime at start: 14:23  up 11 days, 12:21, 1 user, load averages: 34.33 36.32 24.01
+chain rebuilt in 340 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        12.0 |      27 |      24 |      36  V-1 header linkage, replay, c_tilde from u, accumulators
+        31.1 |      95 |      95 |     108  V0 parse, manifest, statement digest, byte checks
+         0.9 |      95 |      95 |     108  V1 transcript replay, fractional GKR verification
+         2.7 |      95 |      95 |     108  V2 WHIR verification (5 claims)
+        96.3 |     495 |     415 |     429  V3a projection challenges, eq tables
+       431.2 |     423 |     421 |     434  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     421 |     421 |     434  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 495 MiB = 0.48 GiB
+       574.3  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 509 MiB
+VERIFY: ACCEPT
+        0.93 real         4.36 user         0.23 sys
+           536117248  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               73756  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+               24722  involuntary context switches
+         54300944766  instructions retired
+         13773104891  cycles elapsed
+           533578496  peak memory footprint
+## run 1 v7 prove+verify | uptime: 14:23  up 11 days, 12:21, 1 user, load averages: 34.33 36.32 24.01
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH7, profile 0x00070001
+uptime at start: 14:23  up 11 days, 12:21, 1 user, load averages: 34.33 36.32 24.01
+rayon threads: 11
+chain built and node-validated in 317 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       182.2 |     361 |     331 |     363  P-1 witness generation
+        50.0 |     408 |     408 |     440  P0 raw instance absorbed, registered-round transcript init
+      1861.8 |    3080 |    3080 |    3113  P1 WHIR commit (2^nv cells)
+       116.5 |    3277 |    3277 |    3310  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       150.7 |    3277 |    3277 |    3310  P3 integer lifts and quotients
+       182.5 |    3917 |    3917 |    3950  P4a paired leaves
+      2369.1 |    4557 |    3277 |    3310  P4b fractional GKR
+      1322.9 |    5103 |    4783 |    4818  P5a master weights, public coefficient columns, claimed sum
+      1257.8 |    5023 |    3343 |    3377  P5b master sumcheck (degree 4)
+       138.0 |    3378 |    3283 |    3317  P5c table sumcheck (degree 2)
+      2775.1 |    4619 |     621 |     653  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5103 MiB = 4.98 GiB
+     10406.5  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        41.7 |      89 |      33 |      46  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        55.8 |     104 |     104 |     117  V0 parse, manifest, statement digest, byte checks
+         2.4 |     105 |     104 |     118  V1 transcript replay, fractional GKR verification
+         6.4 |     105 |     104 |     118  V2 WHIR verification (5 claims)
+       134.9 |     505 |     425 |     439  V3a projection challenges, eq tables
+       444.3 |     432 |     431 |     445  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     431 |     431 |     445  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 505 MiB = 0.49 GiB
+       685.7  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair          80
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              553805
+  TOTAL                  2682945  = 1310.03 B/signature; with the 1024 B of header accumulators 1310.53 B/signature
+certificate written to /tmp/mout/chain-cert-v7.bin (2682945 B, sha256 via shasum)
+uptime at end: 14:24  up 11 days, 12:21, 1 user, load averages: 40.08 37.42 24.54
+       11.47 real        42.12 user         5.02 sys
+          4139794432  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1042036  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+              322802  involuntary context switches
+        525599257270  instructions retired
+        142624374706  cycles elapsed
+          5387653320  peak memory footprint
+e4d3faef22d5495f3bf46bafd4894b93b111102b58a007873377ead7af9615bf  /tmp/mout/chain-cert-v7.bin
+## run 1 v7 verify in a fresh process | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 40.08 37.42 24.54
+# r3-cert chain verify, /tmp/mout/chain-cert-v7.bin
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 40.08 37.42 24.54
+chain rebuilt in 424 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        40.1 |      88 |      31 |      44  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        39.4 |     102 |     102 |     115  V0 parse, manifest, statement digest, byte checks
+         1.1 |     103 |     103 |     115  V1 transcript replay, fractional GKR verification
+         2.7 |     103 |     103 |     116  V2 WHIR verification (5 claims)
+       150.8 |     503 |     423 |     437  V3a projection challenges, eq tables
+       432.2 |     431 |     429 |     442  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     429 |     429 |     442  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 503 MiB = 0.49 GiB
+       666.5  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 517 MiB
+VERIFY: ACCEPT
+        1.12 real         4.39 user         0.27 sys
+           544292864  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               80734  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  11  voluntary context switches
+               27154  involuntary context switches
+         54930049058  instructions retired
+         13989205532  cycles elapsed
+           541737704  peak memory footprint
+## run 2 v4 prove+verify | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 40.08 37.42 24.54
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH4
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 40.08 37.42 24.54
+rayon threads: 11
+chain built and node-validated in 336 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       195.2 |     361 |     331 |     362  P-1 witness generation
+        39.2 |     401 |     401 |     432  P0 statement digest, manifest, transcript init
+      2412.5 |    3073 |    3073 |    3105  P1 WHIR commit (2^nv cells)
+       121.5 |    3269 |    3269 |    3301  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       170.7 |    3269 |    3269 |    3302  P3 integer lifts and quotients
+       323.2 |    3909 |    3909 |    3942  P4a paired leaves
+      1449.4 |    4549 |    3269 |    3302  P4b fractional GKR
+      1333.8 |    5096 |    4776 |    4810  P5a master weights, public coefficient columns, claimed sum
+      1152.8 |    5016 |    3336 |    3369  P5b master sumcheck (degree 4)
+        62.0 |    3371 |    3276 |    3309  P5c table sumcheck (degree 2)
+      2363.3 |    4611 |     613 |     646  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5096 MiB = 4.98 GiB
+      9623.7  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        19.1 |      29 |      25 |      38  V-1 header linkage, replay, c_tilde from u, accumulators
+        38.4 |      96 |      96 |     110  V0 parse, manifest, statement digest, byte checks
+         0.9 |      96 |      96 |     110  V1 transcript replay, fractional GKR verification
+         2.8 |      97 |      96 |     110  V2 WHIR verification (5 claims)
+       145.6 |     497 |     417 |     431  V3a projection challenges, eq tables
+       419.8 |     424 |     423 |     437  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.4 |     423 |     423 |     437  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 497 MiB = 0.49 GiB
+       626.9  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair           0
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              550925
+  TOTAL                  2679985  = 1308.59 B/signature; with the 1024 B of header accumulators 1309.09 B/signature
+certificate written to /tmp/mout/chain-cert-v4.bin (2679985 B, sha256 via shasum)
+uptime at end: 14:24  up 11 days, 12:21, 1 user, load averages: 45.17 38.52 25.15
+       10.67 real        39.65 user         4.63 sys
+          2962489344  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              952073  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+              306106  involuntary context switches
+        524021055609  instructions retired
+        136713558104  cycles elapsed
+          5379035288  peak memory footprint
+5f20ccd575c0a898c31b91936022d89e32d63d3657576a1236f6f83a7ecdcd2f  /tmp/mout/chain-cert-v4.bin
+## run 2 v4 verify in a fresh process | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 45.17 38.52 25.15
+# r3-cert chain verify, /tmp/mout/chain-cert-v4.bin
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 45.17 38.52 25.15
+chain rebuilt in 313 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        11.7 |      27 |      24 |      36  V-1 header linkage, replay, c_tilde from u, accumulators
+        31.5 |      95 |      95 |     108  V0 parse, manifest, statement digest, byte checks
+         0.8 |      95 |      95 |     108  V1 transcript replay, fractional GKR verification
+         2.7 |      95 |      95 |     108  V2 WHIR verification (5 claims)
+        83.3 |     495 |     415 |     429  V3a projection challenges, eq tables
+       283.5 |     423 |     421 |     434  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     421 |     421 |     434  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 495 MiB = 0.48 GiB
+       413.6  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 509 MiB
+VERIFY: ACCEPT
+        0.75 real         3.83 user         0.22 sys
+           536199168  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               73787  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               16905  involuntary context switches
+         54350918021  instructions retired
+         12725591677  cycles elapsed
+           533660416  peak memory footprint
+## run 2 v7 prove+verify | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 45.17 38.52 25.15
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH7, profile 0x00070001
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 45.17 38.52 25.15
+rayon threads: 11
+chain built and node-validated in 286 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       158.4 |     361 |     331 |     362  P-1 witness generation
+        50.3 |     408 |     408 |     440  P0 raw instance absorbed, registered-round transcript init
+      2482.3 |    3080 |    3080 |    3113  P1 WHIR commit (2^nv cells)
+       132.5 |    3277 |    3277 |    3310  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       169.0 |    3277 |    3277 |    3310  P3 integer lifts and quotients
+       183.0 |    3917 |    3917 |    3950  P4a paired leaves
+      1441.3 |    4557 |    3277 |    3310  P4b fractional GKR
+      1660.4 |    5103 |    4783 |    4818  P5a master weights, public coefficient columns, claimed sum
+      1429.3 |    5023 |    3343 |    3377  P5b master sumcheck (degree 4)
+        61.8 |    3378 |    3283 |    3317  P5c table sumcheck (degree 2)
+      2306.5 |    4619 |     621 |     653  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5103 MiB = 4.98 GiB
+     10074.8  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        47.3 |      89 |      33 |      46  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        49.6 |     104 |     104 |     117  V0 parse, manifest, statement digest, byte checks
+         1.1 |     105 |     104 |     118  V1 transcript replay, fractional GKR verification
+         2.8 |     105 |     104 |     118  V2 WHIR verification (5 claims)
+       106.4 |     505 |     425 |     439  V3a projection challenges, eq tables
+       442.4 |     432 |     431 |     445  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     431 |     431 |     445  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 505 MiB = 0.49 GiB
+       649.7  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair          80
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              553805
+  TOTAL                  2682945  = 1310.03 B/signature; with the 1024 B of header accumulators 1310.53 B/signature
+certificate written to /tmp/mout/chain-cert-v7.bin (2682945 B, sha256 via shasum)
+uptime at end: 14:24  up 11 days, 12:21, 1 user, load averages: 44.26 38.52 25.30
+       11.12 real        40.20 user         5.64 sys
+          3272458240  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1048840  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 109  voluntary context switches
+              347323  involuntary context switches
+        526535647166  instructions retired
+        141006921852  cycles elapsed
+          5387669656  peak memory footprint
+e4d3faef22d5495f3bf46bafd4894b93b111102b58a007873377ead7af9615bf  /tmp/mout/chain-cert-v7.bin
+## run 2 v7 verify in a fresh process | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 44.26 38.52 25.30
+# r3-cert chain verify, /tmp/mout/chain-cert-v7.bin
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 44.26 38.52 25.30
+chain rebuilt in 378 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        40.9 |      88 |      31 |      44  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        42.4 |     102 |     102 |     115  V0 parse, manifest, statement digest, byte checks
+         1.9 |     103 |     103 |     115  V1 transcript replay, fractional GKR verification
+         2.9 |     103 |     103 |     116  V2 WHIR verification (5 claims)
+       145.3 |     503 |     423 |     437  V3a projection challenges, eq tables
+       465.6 |     431 |     429 |     442  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     429 |     429 |     442  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 503 MiB = 0.49 GiB
+       699.2  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 517 MiB
+VERIFY: ACCEPT
+        1.09 real         4.13 user         0.27 sys
+           544227328  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               80537  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               23691  involuntary context switches
+         54820680971  instructions retired
+         13370037639  cycles elapsed
+           541688576  peak memory footprint
+## run 3 v4 prove+verify | uptime: 14:24  up 11 days, 12:21, 1 user, load averages: 44.26 38.52 25.30
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH4
+uptime at start: 14:24  up 11 days, 12:21, 1 user, load averages: 44.26 38.52 25.30
+rayon threads: 11
+chain built and node-validated in 400 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       185.8 |     361 |     331 |     362  P-1 witness generation
+        43.6 |     401 |     401 |     432  P0 statement digest, manifest, transcript init
+      2457.3 |    3073 |    3073 |    3105  P1 WHIR commit (2^nv cells)
+       134.7 |    3269 |    3269 |    3302  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       158.4 |    3269 |    3269 |    3302  P3 integer lifts and quotients
+       794.2 |    3909 |    3909 |    3943  P4a paired leaves
+      1592.0 |    4549 |    3269 |    3303  P4b fractional GKR
+      1197.8 |    5096 |    4776 |    4810  P5a master weights, public coefficient columns, claimed sum
+      3127.7 |    5016 |    3336 |    3369  P5b master sumcheck (degree 4)
+        83.4 |    3371 |    3276 |    3309  P5c table sumcheck (degree 2)
+      2143.4 |    4611 |     613 |     646  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5096 MiB = 4.98 GiB
+     11918.4  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        14.5 |      29 |      25 |      39  V-1 header linkage, replay, c_tilde from u, accumulators
+        30.9 |      96 |      96 |     110  V0 parse, manifest, statement digest, byte checks
+         0.8 |      96 |      96 |     110  V1 transcript replay, fractional GKR verification
+         2.7 |      97 |      96 |     111  V2 WHIR verification (5 claims)
+        94.6 |     497 |     417 |     431  V3a projection challenges, eq tables
+       472.2 |     424 |     423 |     437  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     423 |     423 |     437  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 497 MiB = 0.49 GiB
+       615.9  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair           0
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              550925
+  TOTAL                  2679985  = 1308.59 B/signature; with the 1024 B of header accumulators 1309.09 B/signature
+certificate written to /tmp/mout/chain-cert-v4.bin (2679985 B, sha256 via shasum)
+uptime at end: 14:24  up 11 days, 12:22, 1 user, load averages: 45.75 39.26 25.81
+       13.03 real        38.63 user         6.57 sys
+          3556294656  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1088260  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  22  voluntary context switches
+              460412  involuntary context switches
+        527785295245  instructions retired
+        141170075586  cycles elapsed
+          5379281048  peak memory footprint
+5f20ccd575c0a898c31b91936022d89e32d63d3657576a1236f6f83a7ecdcd2f  /tmp/mout/chain-cert-v4.bin
+## run 3 v4 verify in a fresh process | uptime: 14:24  up 11 days, 12:22, 1 user, load averages: 45.75 39.26 25.81
+# r3-cert chain verify, /tmp/mout/chain-cert-v4.bin
+uptime at start: 14:24  up 11 days, 12:22, 1 user, load averages: 45.75 39.26 25.81
+chain rebuilt in 324 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        12.0 |      27 |      24 |      36  V-1 header linkage, replay, c_tilde from u, accumulators
+        32.3 |      95 |      95 |     107  V0 parse, manifest, statement digest, byte checks
+         0.9 |      95 |      95 |     108  V1 transcript replay, fractional GKR verification
+         2.7 |      95 |      95 |     108  V2 WHIR verification (5 claims)
+        84.7 |     495 |     415 |     429  V3a projection challenges, eq tables
+       293.1 |     423 |     421 |     434  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     421 |     421 |     434  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 495 MiB = 0.48 GiB
+       425.8  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 509 MiB
+VERIFY: ACCEPT
+        0.76 real         3.83 user         0.23 sys
+           536068096  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               73779  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               21517  involuntary context switches
+         54415139196  instructions retired
+         12719776821  cycles elapsed
+           533512936  peak memory footprint
+## run 3 v7 prove+verify | uptime: 14:24  up 11 days, 12:22, 1 user, load averages: 45.75 39.26 25.81
+# r3-cert chain measurement, 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH7, profile 0x00070001
+uptime at start: 14:24  up 11 days, 12:22, 1 user, load averages: 45.75 39.26 25.81
+rayon threads: 11
+chain built and node-validated in 280 ms (not counted)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       195.4 |     361 |     331 |     362  P-1 witness generation
+        49.7 |     408 |     408 |     440  P0 raw instance absorbed, registered-round transcript init
+      3142.2 |    3080 |    3080 |    3113  P1 WHIR commit (2^nv cells)
+       137.2 |    3277 |    3277 |    3310  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       173.2 |    3277 |    3277 |    3310  P3 integer lifts and quotients
+       350.0 |    3917 |    3917 |    3951  P4a paired leaves
+      1497.9 |    4557 |    3277 |    3311  P4b fractional GKR
+      1069.8 |    5103 |    4783 |    4818  P5a master weights, public coefficient columns, claimed sum
+      1978.8 |    5023 |    3343 |    3377  P5b master sumcheck (degree 4)
+        51.9 |    3378 |    3283 |    3317  P5c table sumcheck (degree 2)
+      1727.6 |    4619 |     621 |     654  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5103 MiB = 4.98 GiB
+     10373.8  TOTAL prover
+-- verifier (in process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        40.0 |      89 |      33 |      46  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        44.0 |     104 |     104 |     117  V0 parse, manifest, statement digest, byte checks
+         1.1 |     105 |     104 |     118  V1 transcript replay, fractional GKR verification
+         3.0 |     105 |     104 |     118  V2 WHIR verification (5 claims)
+        98.2 |     505 |     425 |     439  V3a projection challenges, eq tables
+       348.1 |     432 |     431 |     445  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     431 |     431 |     445  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (in process) phases: 505 MiB = 0.49 GiB
+       534.6  TOTAL verifier (in process)
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  GKR                      23920
+  explicit leaf pair          80
+  T                           40
+  master                    3520
+  table                     1520
+  WHIR length field            4
+  WHIR proof              553805
+  TOTAL                  2682945  = 1310.03 B/signature; with the 1024 B of header accumulators 1310.53 B/signature
+certificate written to /tmp/mout/chain-cert-v7.bin (2682945 B, sha256 via shasum)
+uptime at end: 14:24  up 11 days, 12:22, 1 user, load averages: 66.54 43.87 27.60
+       11.28 real        39.44 user         6.40 sys
+          3705339904  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1155038  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  26  voluntary context switches
+              464854  involuntary context switches
+        527936366644  instructions retired
+        142483410721  cycles elapsed
+          5387751600  peak memory footprint
+e4d3faef22d5495f3bf46bafd4894b93b111102b58a007873377ead7af9615bf  /tmp/mout/chain-cert-v7.bin
+## run 3 v7 verify in a fresh process | uptime: 14:24  up 11 days, 12:22, 1 user, load averages: 66.54 43.87 27.60
+# r3-cert chain verify, /tmp/mout/chain-cert-v7.bin
+uptime at start: 14:24  up 11 days, 12:22, 1 user, load averages: 66.54 43.87 27.60
+chain rebuilt in 317 ms (not counted)
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        41.6 |      88 |      31 |      44  V-1 header linkage, replay, c_tilde from u, accumulators, raw instance X
+        41.9 |     102 |     102 |     115  V0 parse, manifest, statement digest, byte checks
+         2.1 |     103 |     103 |     115  V1 transcript replay, fractional GKR verification
+         3.2 |     103 |     103 |     116  V2 WHIR verification (5 claims)
+        98.2 |     503 |     423 |     437  V3a projection challenges, eq tables
+       340.3 |     431 |     429 |     442  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     429 |     429 |     442  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 503 MiB = 0.49 GiB
+       527.3  TOTAL verifier (fresh process)
+process footprint before verification 29 MiB, lifetime peak 517 MiB
+VERIFY: ACCEPT
+        0.86 real         4.01 user         0.26 sys
+           544292864  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               80771  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   9  voluntary context switches
+               21562  involuntary context switches
+         54772419116  instructions retired
+         13232225822  cycles elapsed
+           541737704  peak memory footprint
+## end | uptime: 14:24  up 11 days, 12:22, 1 user, load averages: 66.54 43.87 27.60

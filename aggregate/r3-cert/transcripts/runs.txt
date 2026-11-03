@@ -1,0 +1,914 @@
+# r3-cert transcript
+# host: Apple M3 Pro, 11 logical CPUs, 18 GiB
+# rustc 1.96.0 (ac68faa20 2026-05-25)
+# binary sha256: 5f1222f86303ec166df68b38b1d7b698193e8dd5dd18c197792d8f7331f28e71
+# lab commit: 857c8b8
+## N=128 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+# r3-cert run N = 128
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 128 distinct keys, pure-mode signatures with contexts of 1..255 B (12 ms incl. keygen and u derivation)
+distinct public keys 128; libcrux verify of the originals 128/128
+witness: X, Y, S 262144 cells each, m 2^20 (8 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 10
+reconstructed from witness: byte-identical 128/128, libcrux accepts 128/128, hint count = FIPS hint count 128/128
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         6.6 |      29 |      28 |      39  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         1.3 |      29 |      28 |      39  P0 statement digest, manifest, transcript init
+       211.4 |     378 |     378 |     388  P1 WHIR commit (2^nv cells)
+         6.5 |     390 |     390 |     400  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+         9.1 |     390 |     390 |     400  P3 integer lifts and quotients
+        11.7 |     470 |     470 |     481  P4a paired leaves
+       128.6 |     550 |     390 |     400  P4b fractional GKR
+        51.0 |     561 |     541 |     551  P5a master weights, public coefficient columns, claimed sum
+        55.4 |     556 |     451 |     461  P5b master sumcheck (degree 4)
+        38.5 |     486 |     391 |     401  P5c table sumcheck (degree 2)
+       167.9 |     557 |      58 |      69  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 561 MiB = 0.55 GiB
+       688.1  TOTAL prover
+prover report: stacked PCS domain 2^21, GKR leaves 2^20, theta rejections 0, inexact quotients 0, max |V| 97788144 (2^26.54), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.4 |       6 |       6 |      15  V0 parse, manifest, statement digest, byte checks
+         0.5 |       6 |       6 |      15  V1 transcript replay, fractional GKR verification
+         4.1 |      14 |      14 |      24  V2 WHIR verification (5 claims)
+         7.9 |      39 |      34 |      44  V3a projection challenges, eq tables
+        19.5 |      36 |      34 |      44  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      34 |      34 |      44  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 39 MiB = 0.04 GiB
+        33.5  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                131072
+  hint counts                128
+  lift quotients              70
+  commitment                  64
+  frontend GKR             18400  (460 extension elements)
+  frontend T claim            40
+  frontend master           2880  (18 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     401440
+  frontend subtotal        22840
+  TOTAL                   556130  = 4344.8 B/signature (raw signatures 592256 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 271.31252 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-128.bin (556130 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+        0.76 real         4.22 user         0.65 sys
+           601047040  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84814  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   5  voluntary context switches
+               51080  involuntary context switches
+         55349660533  instructions retired
+         14908822873  cycles elapsed
+           598885120  peak memory footprint
+## N=128 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+# r3-cert verify N = 128, /tmp/cert-128.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.3 |       2 |       2 |      10  V0 parse, manifest, statement digest, byte checks
+         0.6 |       2 |       2 |      10  V1 transcript replay, fractional GKR verification
+         4.2 |      11 |      10 |      19  V2 WHIR verification (5 claims)
+         8.4 |      35 |      30 |      39  V3a projection challenges, eq tables
+        18.5 |      32 |      31 |      40  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      31 |      31 |      40  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 35 MiB = 0.03 GiB
+        33.0  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.04 real         0.23 user         0.03 sys
+            48168960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5934  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                2882  involuntary context switches
+          3185439538  instructions retired
+           824966568  cycles elapsed
+            45941120  peak memory footprint
+## N=512 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+# r3-cert run N = 512
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 512 distinct keys, pure-mode signatures with contexts of 1..255 B (42 ms incl. keygen and u derivation)
+distinct public keys 512; libcrux verify of the originals 512/512
+witness: X, Y, S 1048576 cells each, m 2^20 (26 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 21
+reconstructed from witness: byte-identical 512/512, libcrux accepts 512/512, hint count = FIPS hint count 512/512
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 16.91 13.18 14.03
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        32.7 |      93 |      86 |     100  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         5.1 |      90 |      87 |     102  P0 statement digest, manifest, transcript init
+       428.3 |     783 |     783 |     798  P1 WHIR commit (2^nv cells)
+        25.3 |     833 |     833 |     847  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+        37.4 |     833 |     833 |     847  P3 integer lifts and quotients
+       103.4 |    1153 |    1153 |    1167  P4a paired leaves
+       467.5 |    1473 |     833 |     847  P4b fractional GKR
+       146.8 |    1334 |    1254 |    1270  P5a master weights, public coefficient columns, claimed sum
+       178.6 |    1314 |     894 |     909  P5b master sumcheck (degree 4)
+        45.5 |     929 |     834 |     849  P5c table sumcheck (degree 2)
+       521.6 |    1195 |     163 |     179  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 1473 MiB = 1.44 GiB
+      1992.3  TOTAL prover
+prover report: stacked PCS domain 2^22, GKR leaves 2^22, theta rejections 0, inexact quotients 0, max |V| 219613811 (2^27.71), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.3 |      19 |      18 |      29  V0 parse, manifest, statement digest, byte checks
+         1.2 |      18 |      18 |      29  V1 transcript replay, fractional GKR verification
+         6.8 |      34 |      34 |      45  V2 WHIR verification (5 claims)
+        27.6 |     134 |     114 |     126  V3a projection challenges, eq tables
+        84.5 |     118 |     116 |     127  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     116 |     116 |     127  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 134 MiB = 0.13 GiB
+       124.3  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                524288
+  hint counts                512
+  lift quotients              70
+  commitment                  64
+  frontend GKR             22000  (550 extension elements)
+  frontend T claim            40
+  frontend master           3200  (20 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     437613
+  frontend subtotal        26760
+  TOTAL                   989823  = 1933.2 B/signature (raw signatures 2369024 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 270.87091 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-512.bin (989823 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+        2.23 real        11.57 user         1.15 sys
+          1561968640  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              233997  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   9  voluntary context switches
+               91878  involuntary context switches
+        150363017920  instructions retired
+         39242809810  cycles elapsed
+          1560315320  peak memory footprint
+## N=512 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+# r3-cert verify N = 512, /tmp/cert-512.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.0 |       6 |       5 |      13  V0 parse, manifest, statement digest, byte checks
+         1.2 |       5 |       5 |      13  V1 transcript replay, fractional GKR verification
+         6.7 |      21 |      21 |      30  V2 WHIR verification (5 claims)
+        24.6 |     121 |     101 |     110  V3a projection challenges, eq tables
+        71.3 |     104 |     103 |     112  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     103 |     103 |     112  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 121 MiB = 0.12 GiB
+       107.8  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.13 real         0.91 user         0.06 sys
+           138985472  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               19044  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                4467  involuntary context switches
+         12155453751  instructions retired
+          3003269009  cycles elapsed
+           136806856  peak memory footprint
+## N=2048 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+# r3-cert run N = 2048
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 2048 distinct keys, pure-mode signatures with contexts of 1..255 B (159 ms incl. keygen and u derivation)
+distinct public keys 2048; libcrux verify of the originals 2048/2048
+witness: X, Y, S 4194304 cells each, m 2^20 (100 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 50
+reconstructed from witness: byte-identical 2048/2048, libcrux accepts 2048/2048, hint count = FIPS hint count 2048/2048
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 17.31 13.33 14.08
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        93.5 |     349 |     319 |     348  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+        20.4 |     335 |     325 |     354  P0 statement digest, manifest, transcript init
+      2638.8 |    3061 |    3061 |    3092  P1 WHIR commit (2^nv cells)
+       130.0 |    3257 |    3257 |    3288  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       153.6 |    3258 |    3258 |    3289  P3 integer lifts and quotients
+       345.3 |    3898 |    3898 |    3929  P4a paired leaves
+      1119.8 |    4538 |    3258 |    3289  P4b fractional GKR
+       810.8 |    5084 |    4764 |    4796  P5a master weights, public coefficient columns, claimed sum
+       792.7 |    5004 |    3324 |    3356  P5b master sumcheck (degree 4)
+        38.0 |    3359 |    3264 |    3295  P5c table sumcheck (degree 2)
+      1607.1 |    4600 |     601 |     632  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5084 MiB = 4.96 GiB
+      7750.1  TOTAL prover
+prover report: stacked PCS domain 2^24, GKR leaves 2^23, theta rejections 0, inexact quotients 0, max |V| 289668986 (2^28.11), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        18.2 |      74 |      69 |      81  V0 parse, manifest, statement digest, byte checks
+         3.8 |      69 |      69 |      81  V1 transcript replay, fractional GKR verification
+        22.6 |     133 |     133 |     146  V2 WHIR verification (5 claims)
+        92.9 |     533 |     453 |     466  V3a projection challenges, eq tables
+       295.2 |     461 |     459 |     472  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     459 |     459 |     472  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       432.9  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  frontend GKR             23920  (598 extension elements)
+  frontend T claim            40
+  frontend master           3520  (22 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     552909
+  frontend subtotal        29000
+  TOTAL                  2681969  = 1309.6 B/signature (raw signatures 9476096 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 269.97354 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-2048.bin (2681969 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+        8.65 real        38.14 user         4.95 sys
+          3507240960  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1027193  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  19  voluntary context switches
+              341212  involuntary context switches
+        524738235000  instructions retired
+        134367430565  cycles elapsed
+          5365059736  peak memory footprint
+## N=2048 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert verify N = 2048, /tmp/cert-2048.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        15.6 |      21 |      15 |      25  V0 parse, manifest, statement digest, byte checks
+         3.5 |      15 |      15 |      25  V1 transcript replay, fractional GKR verification
+        27.6 |      80 |      79 |      90  V2 WHIR verification (5 claims)
+        88.8 |     480 |     400 |     410  V3a projection challenges, eq tables
+       298.0 |     408 |     406 |     416  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     406 |     406 |     416  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 480 MiB = 0.47 GiB
+       433.7  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.54 real         3.31 user         0.19 sys
+           516177920  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72507  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               14197  involuntary context switches
+         48471206314  instructions retired
+         11101169862  cycles elapsed
+           514212608  peak memory footprint
+## N=128 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert run N = 128
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 128 distinct keys, pure-mode signatures with contexts of 1..255 B (15 ms incl. keygen and u derivation)
+distinct public keys 128; libcrux verify of the originals 128/128
+witness: X, Y, S 262144 cells each, m 2^20 (10 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 10
+reconstructed from witness: byte-identical 128/128, libcrux accepts 128/128, hint count = FIPS hint count 128/128
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         8.1 |      29 |      28 |      38  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         1.4 |      29 |      28 |      39  P0 statement digest, manifest, transcript init
+       209.5 |     378 |     378 |     388  P1 WHIR commit (2^nv cells)
+         6.7 |     390 |     390 |     400  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+         9.2 |     390 |     390 |     400  P3 integer lifts and quotients
+         8.6 |     470 |     470 |     481  P4a paired leaves
+       120.5 |     550 |     390 |     400  P4b fractional GKR
+        45.3 |     561 |     541 |     551  P5a master weights, public coefficient columns, claimed sum
+        51.0 |     556 |     451 |     461  P5b master sumcheck (degree 4)
+        33.0 |     486 |     391 |     401  P5c table sumcheck (degree 2)
+       172.8 |     557 |      58 |      69  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 561 MiB = 0.55 GiB
+       666.2  TOTAL prover
+prover report: stacked PCS domain 2^21, GKR leaves 2^20, theta rejections 0, inexact quotients 0, max |V| 97788144 (2^26.54), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.3 |       6 |       6 |      15  V0 parse, manifest, statement digest, byte checks
+         0.6 |       6 |       6 |      15  V1 transcript replay, fractional GKR verification
+         4.2 |      14 |      14 |      24  V2 WHIR verification (5 claims)
+         8.0 |      39 |      34 |      44  V3a projection challenges, eq tables
+        19.7 |      36 |      34 |      44  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      34 |      34 |      44  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 39 MiB = 0.04 GiB
+        33.7  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                131072
+  hint counts                128
+  lift quotients              70
+  commitment                  64
+  frontend GKR             18400  (460 extension elements)
+  frontend T claim            40
+  frontend master           2880  (18 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     401440
+  frontend subtotal        22840
+  TOTAL                   556130  = 4344.8 B/signature (raw signatures 592256 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 271.31252 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-128.bin (556130 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+        0.76 real         3.95 user         0.52 sys
+           600981504  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84644  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   4  voluntary context switches
+               53373  involuntary context switches
+         55327669557  instructions retired
+         14077573757  cycles elapsed
+           598819584  peak memory footprint
+## N=128 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert verify N = 128, /tmp/cert-128.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.3 |       2 |       2 |      10  V0 parse, manifest, statement digest, byte checks
+         0.6 |       2 |       2 |      10  V1 transcript replay, fractional GKR verification
+         4.2 |      11 |      10 |      19  V2 WHIR verification (5 claims)
+         8.6 |      35 |      30 |      39  V3a projection challenges, eq tables
+        19.4 |      32 |      31 |      40  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      31 |      31 |      40  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 35 MiB = 0.03 GiB
+        34.0  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.04 real         0.23 user         0.03 sys
+            48152576  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5918  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                2989  involuntary context switches
+          3182235790  instructions retired
+           837164815  cycles elapsed
+            45924736  peak memory footprint
+## N=512 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert run N = 512
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 512 distinct keys, pure-mode signatures with contexts of 1..255 B (36 ms incl. keygen and u derivation)
+distinct public keys 512; libcrux verify of the originals 512/512
+witness: X, Y, S 1048576 cells each, m 2^20 (24 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 21
+reconstructed from witness: byte-identical 512/512, libcrux accepts 512/512, hint count = FIPS hint count 512/512
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        23.4 |      93 |      86 |     101  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         5.5 |      90 |      87 |     102  P0 statement digest, manifest, transcript init
+       400.3 |     783 |     783 |     798  P1 WHIR commit (2^nv cells)
+        22.3 |     833 |     833 |     847  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+        37.8 |     833 |     833 |     847  P3 integer lifts and quotients
+        28.4 |    1153 |    1153 |    1167  P4a paired leaves
+       377.5 |    1473 |     833 |     848  P4b fractional GKR
+       139.7 |    1334 |    1254 |    1270  P5a master weights, public coefficient columns, claimed sum
+       182.8 |    1314 |     894 |     909  P5b master sumcheck (degree 4)
+        31.7 |     929 |     834 |     849  P5c table sumcheck (degree 2)
+       508.9 |    1195 |     163 |     179  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 1473 MiB = 1.44 GiB
+      1758.3  TOTAL prover
+prover report: stacked PCS domain 2^22, GKR leaves 2^22, theta rejections 0, inexact quotients 0, max |V| 219613811 (2^27.71), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.6 |      19 |      18 |      29  V0 parse, manifest, statement digest, byte checks
+         1.2 |      18 |      18 |      29  V1 transcript replay, fractional GKR verification
+         7.0 |      34 |      34 |      45  V2 WHIR verification (5 claims)
+        23.1 |     134 |     114 |     126  V3a projection challenges, eq tables
+        67.3 |     118 |     116 |     127  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     116 |     116 |     127  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 134 MiB = 0.13 GiB
+       103.3  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                524288
+  hint counts                512
+  lift quotients              70
+  commitment                  64
+  frontend GKR             22000  (550 extension elements)
+  frontend T claim            40
+  frontend master           3200  (20 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     437613
+  frontend subtotal        26760
+  TOTAL                   989823  = 1933.2 B/signature (raw signatures 2369024 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 270.87091 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-512.bin (989823 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+        1.97 real        11.48 user         1.09 sys
+          1562034176  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              234005  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               97399  involuntary context switches
+        150285615911  instructions retired
+         39120740698  cycles elapsed
+          1560380856  peak memory footprint
+## N=512 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert verify N = 512, /tmp/cert-512.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.2 |       6 |       5 |      13  V0 parse, manifest, statement digest, byte checks
+         1.1 |       5 |       5 |      13  V1 transcript replay, fractional GKR verification
+         6.6 |      21 |      21 |      30  V2 WHIR verification (5 claims)
+        27.2 |     121 |     101 |     110  V3a projection challenges, eq tables
+        63.6 |     104 |     103 |     112  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     103 |     103 |     112  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 121 MiB = 0.12 GiB
+       102.8  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.13 real         0.83 user         0.06 sys
+           138772480  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               19010  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                5182  involuntary context switches
+         12167839070  instructions retired
+          2841974701  cycles elapsed
+           136593864  peak memory footprint
+## N=2048 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+# r3-cert run N = 2048
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 2048 distinct keys, pure-mode signatures with contexts of 1..255 B (140 ms incl. keygen and u derivation)
+distinct public keys 2048; libcrux verify of the originals 2048/2048
+witness: X, Y, S 4194304 cells each, m 2^20 (92 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 50
+reconstructed from witness: byte-identical 2048/2048, libcrux accepts 2048/2048, hint count = FIPS hint count 2048/2048
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 21.25 14.32 14.42
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        86.8 |     349 |     319 |     348  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+        20.4 |     335 |     325 |     354  P0 statement digest, manifest, transcript init
+      1617.9 |    3061 |    3061 |    3092  P1 WHIR commit (2^nv cells)
+        92.2 |    3257 |    3257 |    3288  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       148.4 |    3258 |    3258 |    3289  P3 integer lifts and quotients
+       722.0 |    3898 |    3898 |    3929  P4a paired leaves
+      1005.1 |    4538 |    3258 |    3289  P4b fractional GKR
+      1032.4 |    5084 |    4764 |    4796  P5a master weights, public coefficient columns, claimed sum
+       892.6 |    5004 |    3324 |    3356  P5b master sumcheck (degree 4)
+        35.9 |    3359 |    3264 |    3295  P5c table sumcheck (degree 2)
+      1367.6 |    4600 |     601 |     632  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5084 MiB = 4.96 GiB
+      7021.5  TOTAL prover
+prover report: stacked PCS domain 2^24, GKR leaves 2^23, theta rejections 0, inexact quotients 0, max |V| 289668986 (2^28.11), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        17.8 |      74 |      69 |      81  V0 parse, manifest, statement digest, byte checks
+         3.5 |      69 |      69 |      81  V1 transcript replay, fractional GKR verification
+        24.3 |     133 |     133 |     146  V2 WHIR verification (5 claims)
+       134.7 |     533 |     453 |     466  V3a projection challenges, eq tables
+       284.5 |     461 |     459 |     472  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     459 |     459 |     472  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       465.0  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  frontend GKR             23920  (598 extension elements)
+  frontend T claim            40
+  frontend master           3520  (22 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     552909
+  frontend subtotal        29000
+  TOTAL                  2681969  = 1309.6 B/signature (raw signatures 9476096 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 269.97354 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-2048.bin (2681969 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+        7.88 real        38.06 user         3.98 sys
+          3731996672  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              911409  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   7  voluntary context switches
+              261698  involuntary context switches
+        522734617770  instructions retired
+        132046429470  cycles elapsed
+          5365108888  peak memory footprint
+## N=2048 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+# r3-cert verify N = 2048, /tmp/cert-2048.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        15.2 |      21 |      15 |      25  V0 parse, manifest, statement digest, byte checks
+         3.5 |      15 |      15 |      25  V1 transcript replay, fractional GKR verification
+        22.2 |      80 |      79 |      90  V2 WHIR verification (5 claims)
+        83.0 |     480 |     400 |     410  V3a projection challenges, eq tables
+       252.6 |     408 |     406 |     416  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     406 |     406 |     416  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 480 MiB = 0.47 GiB
+       376.6  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.48 real         3.42 user         0.19 sys
+           516259840  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72532  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               12257  involuntary context switches
+         48501969982  instructions retired
+         11310630997  cycles elapsed
+           514261712  peak memory footprint
+## N=128 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+# r3-cert run N = 128
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 128 distinct keys, pure-mode signatures with contexts of 1..255 B (10 ms incl. keygen and u derivation)
+distinct public keys 128; libcrux verify of the originals 128/128
+witness: X, Y, S 262144 cells each, m 2^20 (7 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 10
+reconstructed from witness: byte-identical 128/128, libcrux accepts 128/128, hint count = FIPS hint count 128/128
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         6.6 |      29 |      28 |      39  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         1.4 |      29 |      28 |      39  P0 statement digest, manifest, transcript init
+       173.9 |     378 |     378 |     388  P1 WHIR commit (2^nv cells)
+         5.8 |     390 |     390 |     400  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+         9.0 |     390 |     390 |     400  P3 integer lifts and quotients
+         7.7 |     470 |     470 |     481  P4a paired leaves
+       108.7 |     550 |     390 |     400  P4b fractional GKR
+        49.7 |     561 |     541 |     551  P5a master weights, public coefficient columns, claimed sum
+        55.9 |     556 |     451 |     461  P5b master sumcheck (degree 4)
+        38.9 |     486 |     391 |     401  P5c table sumcheck (degree 2)
+       204.0 |     557 |      58 |      69  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 561 MiB = 0.55 GiB
+       661.6  TOTAL prover
+prover report: stacked PCS domain 2^21, GKR leaves 2^20, theta rejections 0, inexact quotients 0, max |V| 97788144 (2^26.54), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.4 |       6 |       6 |      15  V0 parse, manifest, statement digest, byte checks
+         0.6 |       6 |       6 |      15  V1 transcript replay, fractional GKR verification
+         4.0 |      14 |      14 |      24  V2 WHIR verification (5 claims)
+         8.4 |      39 |      34 |      44  V3a projection challenges, eq tables
+        21.9 |      36 |      34 |      44  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      34 |      34 |      44  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 39 MiB = 0.04 GiB
+        36.4  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                131072
+  hint counts                128
+  lift quotients              70
+  commitment                  64
+  frontend GKR             18400  (460 extension elements)
+  frontend T claim            40
+  frontend master           2880  (18 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     401440
+  frontend subtotal        22840
+  TOTAL                   556130  = 4344.8 B/signature (raw signatures 592256 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 271.31252 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-128.bin (556130 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+        0.74 real         4.09 user         0.53 sys
+           600965120  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               84678  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+               52866  involuntary context switches
+         55325167000  instructions retired
+         14359264777  cycles elapsed
+           598803200  peak memory footprint
+## N=128 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+# r3-cert verify N = 128, /tmp/cert-128.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         1.2 |       2 |       2 |      10  V0 parse, manifest, statement digest, byte checks
+         0.6 |       2 |       2 |      10  V1 transcript replay, fractional GKR verification
+         4.1 |      11 |      10 |      19  V2 WHIR verification (5 claims)
+         8.0 |      35 |      30 |      39  V3a projection challenges, eq tables
+        20.0 |      32 |      31 |      40  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.0 |      31 |      31 |      40  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 35 MiB = 0.03 GiB
+        34.0  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.04 real         0.23 user         0.03 sys
+            48316416  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                5931  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                3003  involuntary context switches
+          3180448894  instructions retired
+           819419634  cycles elapsed
+            46088576  peak memory footprint
+## N=512 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+# r3-cert run N = 512
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 512 distinct keys, pure-mode signatures with contexts of 1..255 B (56 ms incl. keygen and u derivation)
+distinct public keys 512; libcrux verify of the originals 512/512
+witness: X, Y, S 1048576 cells each, m 2^20 (27 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 21
+reconstructed from witness: byte-identical 512/512, libcrux accepts 512/512, hint count = FIPS hint count 512/512
+uptime before prove: 7:33  up 11 days,  5:30, 1 user, load averages: 22.83 14.88 14.62
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        27.1 |      93 |      86 |     101  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+         5.5 |      90 |      87 |     102  P0 statement digest, manifest, transcript init
+       440.6 |     783 |     783 |     798  P1 WHIR commit (2^nv cells)
+        19.1 |     833 |     833 |     847  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+        35.3 |     833 |     833 |     847  P3 integer lifts and quotients
+        26.3 |    1153 |    1153 |    1167  P4a paired leaves
+       353.4 |    1473 |     833 |     848  P4b fractional GKR
+       132.8 |    1334 |    1254 |    1270  P5a master weights, public coefficient columns, claimed sum
+       149.6 |    1314 |     894 |     909  P5b master sumcheck (degree 4)
+        28.8 |     929 |     834 |     849  P5c table sumcheck (degree 2)
+       448.0 |    1195 |     163 |     179  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 1473 MiB = 1.44 GiB
+      1666.4  TOTAL prover
+prover report: stacked PCS domain 2^22, GKR leaves 2^22, theta rejections 0, inexact quotients 0, max |V| 219613811 (2^27.71), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.2 |      19 |      18 |      29  V0 parse, manifest, statement digest, byte checks
+         1.2 |      18 |      18 |      29  V1 transcript replay, fractional GKR verification
+         6.6 |      34 |      34 |      45  V2 WHIR verification (5 claims)
+        22.4 |     134 |     114 |     126  V3a projection challenges, eq tables
+        71.7 |     118 |     116 |     127  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     116 |     116 |     127  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 134 MiB = 0.13 GiB
+       106.1  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u                524288
+  hint counts                512
+  lift quotients              70
+  commitment                  64
+  frontend GKR             22000  (550 extension elements)
+  frontend T claim            40
+  frontend master           3200  (20 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     437613
+  frontend subtotal        26760
+  TOTAL                   989823  = 1933.2 B/signature (raw signatures 2369024 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 270.87091 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-512.bin (989823 B)
+uptime at end: 7:33  up 11 days,  5:30, 1 user, load averages: 23.65 15.18 14.73
+        1.91 real        11.68 user         1.08 sys
+          1562083328  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              234007  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   3  voluntary context switches
+               82440  involuntary context switches
+        150260963571  instructions retired
+         39980847087  cycles elapsed
+          1560430008  peak memory footprint
+## N=512 verify in a fresh process | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 23.65 15.18 14.73
+# r3-cert verify N = 512, /tmp/cert-512.bin
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 23.65 15.18 14.73
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         4.1 |       6 |       5 |      14  V0 parse, manifest, statement digest, byte checks
+         1.2 |       5 |       5 |      14  V1 transcript replay, fractional GKR verification
+         6.8 |      21 |      21 |      30  V2 WHIR verification (5 claims)
+        22.7 |     121 |     101 |     110  V3a projection challenges, eq tables
+        60.3 |     104 |     103 |     112  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     103 |     103 |     112  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 121 MiB = 0.12 GiB
+        95.1  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.12 real         0.86 user         0.07 sys
+           139001856  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               19028  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+                4484  involuntary context switches
+         12161760360  instructions retired
+          2916136183  cycles elapsed
+           136823240  peak memory footprint
+## N=2048 prove+verify | uptime:  7:33  up 11 days,  5:30, 1 user, load averages: 23.65 15.18 14.73
+# r3-cert run N = 2048
+uptime at start: 7:33  up 11 days,  5:30, 1 user, load averages: 23.65 15.18 14.73
+rayon threads: 11
+libcrux-ml-dsa 0.0.11: 2048 distinct keys, pure-mode signatures with contexts of 1..255 B (164 ms incl. keygen and u derivation)
+distinct public keys 2048; libcrux verify of the originals 2048/2048
+witness: X, Y, S 4194304 cells each, m 2^20 (119 ms); violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }; max hints 75, max multiplicity 50
+reconstructed from witness: byte-identical 2048/2048, libcrux accepts 2048/2048, hint count = FIPS hint count 2048/2048
+uptime before prove: 7:33  up 11 days,  5:31, 1 user, load averages: 23.65 15.18 14.73
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       102.6 |     349 |     319 |     348  P-1 witness generation (A, mu, c, b; e, S, Y; multiplicities)
+        21.7 |     335 |     325 |     354  P0 statement digest, manifest, transcript init
+      1785.5 |    3061 |    3061 |    3092  P1 WHIR commit (2^nv cells)
+       112.3 |    3257 |    3257 |    3288  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       155.3 |    3258 |    3258 |    3289  P3 integer lifts and quotients
+       783.2 |    3898 |    3898 |    3929  P4a paired leaves
+       996.0 |    4538 |    3258 |    3289  P4b fractional GKR
+       846.8 |    5084 |    4764 |    4796  P5a master weights, public coefficient columns, claimed sum
+       732.0 |    5004 |    3324 |    3356  P5b master sumcheck (degree 4)
+        40.0 |    3359 |    3264 |    3295  P5c table sumcheck (degree 2)
+      1525.3 |    4600 |     601 |     632  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5084 MiB = 4.96 GiB
+      7100.7  TOTAL prover
+prover report: stacked PCS domain 2^24, GKR leaves 2^23, theta rejections 0, inexact quotients 0, max |V| 289668986 (2^28.11), WHIR evals = sumcheck evals true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        17.5 |      74 |      69 |      81  V0 parse, manifest, statement digest, byte checks
+         3.5 |      69 |      69 |      81  V1 transcript replay, fractional GKR verification
+        21.1 |     133 |     133 |     146  V2 WHIR verification (5 claims)
+        81.3 |     533 |     453 |     466  V3a projection challenges, eq tables
+       387.0 |     461 |     459 |     472  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     459 |     459 |     472  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       510.6  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes --
+  manifest                   512
+  public u               2097152
+  hint counts               2048
+  lift quotients             280
+  commitment                  64
+  frontend GKR             23920  (598 extension elements)
+  frontend T claim            40
+  frontend master           3520  (22 rounds x 4)
+  frontend table            1520  (19 rounds x 2)
+  WHIR length field            4
+  WHIR proof (bincode, incl. 5 opened values = 200 B + framing)     552909
+  frontend subtotal        29000
+  TOTAL                  2681969  = 1309.6 B/signature (raw signatures 9476096 B = 4627 B/signature)
+  total bytes == serialized length true
+p3-whir prescribed_security for this 5-claim protocol: 269.97354 bits (log2 candidates 7.322)
+certificate written to /tmp/cert-2048.bin (2681969 B)
+uptime at end: 7:33  up 11 days,  5:31, 1 user, load averages: 22.31 15.05 14.68
+        8.07 real        39.57 user         3.84 sys
+          3948331008  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              896157  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  17  voluntary context switches
+              252192  involuntary context switches
+        521884706520  instructions retired
+        132476365839  cycles elapsed
+          5365125296  peak memory footprint
+## N=2048 verify in a fresh process | uptime:  7:33  up 11 days,  5:31, 1 user, load averages: 22.31 15.05 14.68
+# r3-cert verify N = 2048, /tmp/cert-2048.bin
+uptime at start: 7:33  up 11 days,  5:31, 1 user, load averages: 22.31 15.05 14.68
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        15.4 |      21 |      15 |      25  V0 parse, manifest, statement digest, byte checks
+         3.4 |      15 |      15 |      25  V1 transcript replay, fractional GKR verification
+        22.8 |      80 |      79 |      90  V2 WHIR verification (5 claims)
+        89.3 |     480 |     400 |     410  V3a projection challenges, eq tables
+       318.1 |     408 |     406 |     416  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.2 |     406 |     406 |     416  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier (fresh process) phases: 480 MiB = 0.47 GiB
+       449.2  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.56 real         3.62 user         0.19 sys
+           516308992  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               72520  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               14244  involuntary context switches
+         48475059675  instructions retired
+         11614367671  cycles elapsed
+           514327272  peak memory footprint

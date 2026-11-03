@@ -1,0 +1,4 @@
+# lab commit b1e3d17; binary sha256 22adc40db9cc7754; Apple M3 Pro, 11 CPUs; rustc 1.96.0 (ac68faa20 2026-05-25)
+fmul == p3 mul on 200,000 inputs: true
+p3 quintic mul: 16.14 ns per multiply-add, single thread (false)
+lazy-reduction fmul: 15.14 ns per multiply-add, single thread (false)

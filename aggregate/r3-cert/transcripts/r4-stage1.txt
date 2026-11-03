@@ -1,0 +1,10 @@
+# r3-cert round 4 tests, N = 128
+uptime at start: 8:46  up 11 days,  6:44, 1 user, load averages: 11.67 9.03 8.74
+## A.2 isolated S^3 = S test
+  signature 0, cells [0, 1, 5, 8]: S <- 1/2, Y <- e + 32735, count 61 -> 62; integer-witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  checked: Y and K - Y in [0, 2^20), K = 458303, e = Y + start(S), sum S^2 = count, S^3 != S
+[PASS] S = 1/2 at four interior hint-zero cells, full verifier: REJECT Master("terminal check")
+[PASS] same witness, UNSAFE control without the S^3 = S zerocheck (same statement, profile, schedule): ACCEPT
+[PASS] honest batch, UNSAFE control (the control itself is complete): ACCEPT
+R4 SUMMARY: 3/3 tests behave as expected
+uptime at end: 8:47  up 11 days,  6:44, 1 user, load averages: 12.26 9.19 8.80

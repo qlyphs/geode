@@ -1,0 +1,11 @@
+queries: [141, 80, 62, 51] WHIR terms: 56
+projection: 300.658341537 bits
+lookup: 288.678071989 bits
+other: 303.224801269 bits
+frontend: 288.677654699 bits
+WHIR: 269.973539402 bits
+IOP: 269.973536023 bits
+canonical BCS, one epoch: 205.973536023 bits
+canonical BCS, 2^20 epochs: 185.973536023 bits
+PASS: field, no-wrap, and ledger arithmetic
+NOTE: compiler compatibility is an unproved hypothesis.

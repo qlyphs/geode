@@ -1,0 +1,30 @@
+## KECCAK_HIST=0 keccak 8 tests
+prover mode: baseline (direct first round and fold)
+[PASS] honest proof: ACCEPT
+[PASS] committed output with one bit flipped (instance 17, cell 900): REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] committed outputs of instances 0 and 1 swapped: REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] non-canonical padding cell (instance 3, cell 1700 = 1; never read by the circuit): REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] non-boolean input cell (instance 5, cell 77 = 2), honest GKR on the field values: REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] tampered byte in output claim: REJECT booleanity: main terminal check
+[PASS] tampered byte in first booleanity round: REJECT booleanity: main terminal check
+[PASS] tampered byte in a GKR layer message (middle of the stream): REJECT round 12 theta-a: main terminal check
+[PASS] tampered byte in the WHIR proof: REJECT WHIR MerkleProofInvalid { position: 0, reason: "Base field Merkle multiproof verification failed" }
+[PASS] one trailing byte: REJECT trailing bytes
+KECCAK SUMMARY: 12/12 tests behave as expected
+## KECCAK_HIST=1 keccak 8 tests
+prover mode: optimized (first-round histograms, selection fold)
+[PASS] honest proof: ACCEPT
+[PASS] committed output with one bit flipped (instance 17, cell 900): REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] committed outputs of instances 0 and 1 swapped: REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] non-canonical padding cell (instance 3, cell 1700 = 1; never read by the circuit): REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] non-boolean input cell (instance 5, cell 77 = 2), honest GKR on the field values: REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] tampered byte in output claim: REJECT booleanity: main terminal check
+[PASS] tampered byte in first booleanity round: REJECT booleanity: main terminal check
+[PASS] tampered byte in a GKR layer message (middle of the stream): REJECT round 12 theta-a: main terminal check
+[PASS] tampered byte in the WHIR proof: REJECT WHIR MerkleProofInvalid { position: 0, reason: "Base field Merkle multiproof verification failed" }
+[PASS] one trailing byte: REJECT trailing bytes
+KECCAK SUMMARY: 12/12 tests behave as expected

@@ -1,0 +1,7 @@
+adjoint slot reversal NTT(f(X^-1))[j] = NTT(f)[255-j]: true
+adjoint slot reversal on all 256 basis polynomials: true
+lift bound 512: 8923706090701451264 < p true; 1024: true; 2048 (with 2^41 range it fails in the doc; here 2^39): false
+ternary cover vs UseHint: 16760834 residuals, all ok: true (doc: 16760834)
+quadratic coefficient tables match start/K definitions: true
+GKR zero-sum: verify ok true, bottom claims equal direct MLE true
+GKR non-zero sum rejected: Some(RootNumeratorNonzero)

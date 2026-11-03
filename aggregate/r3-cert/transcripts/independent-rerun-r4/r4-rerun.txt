@@ -1,0 +1,56 @@
+# r3-cert round 4 tests, N = 128
+uptime at start: 9:15  up 11 days,  7:12, 1 user, load averages: 6.74 7.91 8.37
+## A.2 isolated S^3 = S test
+  signature 0, cells [0, 1, 5, 8]: S <- 1/2, Y <- e + 32735, count 61 -> 62; integer-witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  checked: Y and K - Y in [0, 2^20), K = 458303, e = Y + start(S), sum S^2 = count, S^3 != S
+[PASS] S = 1/2 at four interior hint-zero cells, full verifier: REJECT Master("terminal check")
+[PASS] same witness, UNSAFE control without the S^3 = S zerocheck (same statement, profile, schedule): ACCEPT
+[PASS] honest batch, UNSAFE control (the control itself is complete): ACCEPT
+## A.1 challenge-prefix sensitivity
+[PASS] honest certificate: ACCEPT
+[PASS] verifier-derived projection seed and theta equal the prover's
+[PASS] each record's message (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each record's context (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each record's public key (one bit of t1), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each signature's public u (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each signature's published hint count (+-1), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] initial commitment (each of 64 bytes), projection seed: first applicable challenge changed in 64/64 mutations
+[PASS] manifest (each of 512 bytes: magic, backend/profile id, parameter and layout digest, count N, statement digest, chunk count, reserved): first applicable challenge changed in 512/512 mutations
+[PASS] each lift quotient (+-1): seed unchanged, theta changed: first applicable challenge changed in 14/14 mutations
+## A.1 Gruen exceptional challenges (GKR rounds and betas, table rounds; both sides)
+  v = (1 + i)/2 with i^2 = -1: eq1(v, v) = true
+[PASS] Zero: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Zero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Zero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Zero: GKR layer 5, round 2, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Zero: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] One: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] One: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] One: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] One: GKR layer 5, round 2, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] One: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Half: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Half: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Half: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Half: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Half: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] EqZero: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] EqZero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] EqZero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] EqZero: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(5)")
+[PASS] EqZero: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Vroot: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Vroot: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Vroot: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Vroot: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Vroot: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+## A.1 layout, claim-order and profile mismatches (prover deviates, verifier canonical)
+[PASS] SwapTables: REJECT Whir("OpeningBatchSizeMismatch { table_idx: 0, expected: 3, actual: 2 }")
+[PASS] SwapColumns: REJECT Master("terminal check")
+[PASS] ClaimOrder: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Profile: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+## A.1 manifest vs transport length
+  WHIR proof lengths for three statements of 128 signatures: [403168, 402016, 401760] (data dependent)
+[PASS] manifest = function of the records only, computed before proving, reserved bytes zero; the 4-byte WHIR length is never absorbed
+R4 SUMMARY: 43/43 tests behave as expected
+uptime at end: 9:15  up 11 days,  7:13, 1 user, load averages: 9.35 8.43 8.54

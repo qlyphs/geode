@@ -1,0 +1,58 @@
+# keccak kernel: 1024 Keccak-f[1600] permutations, GKR over Goldilocks^5 + WHIR (p3-whir 0.8.0), SHAKE256 transcript
+uptime at start: 9:15  up 11 days,  7:13, 1 user, load averages: 7.51 8.07 8.41
+rayon threads: 11
+native keccak::f1600 (crate keccak 0.1.6) on 1024 states: 0.25 ms
+layer circuit (72 layers) output = native Keccak-f[1600]: 1024/1024
+round polynomial degrees per round (theta-a, theta-b, chi): [6, 4, 4]; gathers [6, 3, 3]
+uptime before prove: 9:15  up 11 days,  7:13, 1 user, load averages: 7.51 8.07 8.41
+-- keccak prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       316.0 |    1188 |    1188 |    1195  K0 witness: 72 layers (native, field values)
+       441.9 |    1876 |    1876 |    1885  K1 WHIR commit [in, out]
+        83.3 |    2197 |    2196 |    2005  K2 output claim, canonical-input zerocheck
+         0.0 |       0 |       0 |       0  K3a GKR main sumchecks (72 layers, 3310 ms of the next line)
+         0.0 |       0 |       0 |       0  K3b GKR wiring sumchecks (175 ms of the next line)
+      3503.4 |    2200 |    1045 |     933  K3 GKR (72 layer reductions)
+       460.0 |    1053 |      22 |      29  K4 WHIR opening (3 claims)
+  peak live heap over all keccak prover phases: 2200 MiB = 2.15 GiB
+      4804.7  TOTAL keccak prover
+  main-sumcheck split (ms, summed over 73 sumchecks): round 1 (base) 303, phase-A EF rounds 1801, phase-A folds 937, phase B 89
+-- keccak verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        26.4 |       6 |       5 |      12  KV1 transcript replay, 72 layer checks
+         6.6 |      22 |      22 |      29  KV2 WHIR verification (3 claims)
+  peak live heap over all keccak verifier phases: 22 MiB = 0.02 GiB
+        33.0  TOTAL keccak verifier
+VERIFY: ACCEPT
+-- proof bytes: total 773833 = commitment 64 + count 4 + frontend 8335 elements x 40 = 333400 + WHIR 440365 ; 755.7 B/permutation
+-- prover 4804.7 ms per 1024 permutations = 4804.7 ms per 1024
+[PASS] honest proof: ACCEPT
+[PASS] committed output with one bit flipped (instance 17, cell 900): REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] committed outputs of instances 0 and 1 swapped: REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] non-canonical padding cell (instance 3, cell 1700 = 1; never read by the circuit): REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] non-boolean input cell (instance 5, cell 77 = 2), honest GKR on the field values: REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] tampered byte in output claim: REJECT booleanity: main terminal check
+[PASS] tampered byte in first booleanity round: REJECT booleanity: main terminal check
+[PASS] tampered byte in a GKR layer message (middle of the stream): REJECT round 12 theta-a: main terminal check
+[PASS] tampered byte in the WHIR proof: REJECT WHIR MerkleProofInvalid { position: 0, reason: "Base field Merkle multiproof verification failed" }
+[PASS] one trailing byte: REJECT trailing bytes
+KECCAK SUMMARY: 12/12 tests behave as expected
+uptime at end: 9:16  up 11 days,  7:13, 1 user, load averages: 13.90 9.48 8.91
+       32.31 real       236.23 user        23.82 sys
+          2189148160  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1800229  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  21  voluntary context switches
+             1933623  involuntary context switches
+       2774982420557  instructions retired
+        811387190728  cycles elapsed
+          2191280024  peak memory footprint

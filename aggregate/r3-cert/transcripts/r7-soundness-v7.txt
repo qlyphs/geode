@@ -1,0 +1,93 @@
+# lab commit c6b125a, binary sha256 68c080618981c9fe, Apple M3 Pro, rustc 1.96.0
+# start: 14:19  up 11 days, 12:17, 1 user, load averages: 32.24 24.01 15.94
+# r3-cert soundness tests, N = 128 (127 libcrux signatures + the record under test)
+transcript: QLYAUTH7 registered-round transcript (round 7)
+uptime at start: 14:19  up 11 days, 12:17, 1 user, load averages: 32.24 24.01 15.94
+[PASS] control: 128 honest libcrux signatures: ACCEPT | witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  relaxed signer Valid: 1 attempts, 105 ms, hints 52, max |z| 523011, residuals out of region 0
+[PASS] control: relaxed signer, all bounds respected: ACCEPT | witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  relaxed signer ZEdge(1): 4001 attempts, 47 ms, hints 66, max |z| 524168, residuals out of region 0
+[PASS] out-of-range z = +524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 1, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  relaxed signer ZEdge(-1): 772 attempts, 57 ms, hints 58, max |z| 524168, residuals out of region 0
+[PASS] out-of-range z = -524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 1, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  relaxed signer ResidualOut: 2 attempts, 126 ms, hints 63, max |z| 524114, residuals out of region 1
+[PASS] residual outside its region (u moved by 2 at one coefficient; all else exact): REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 1, sigs_over_omega: 0, max_hints: 75 }
+  (z += q: inexact quotients 0 -> the projections alone cannot see it)
+[PASS] z coefficient + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 1, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  relaxed signer Hints(76): 47 attempts, 105 ms, hints 76
+[PASS] signature 0 has 76 hints, published nu_0 = 75 and nu_1 + 1 (total unchanged): REJECT Master("terminal check") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 1, max_hints: 76 }
+[PASS] signature 0 has 76 hints, published nu_0 = 76: REJECT HintCountByte(0)
+[PASS] honest certificate, records 0 and 1 reordered in the statement: REJECT Manifest
+[PASS] honest certificate, contexts of records 0 and 1 swapped: REJECT Manifest
+[PASS] honest certificate, public keys of records 0 and 1 swapped: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, records 0 and 1 reordered: REJECT Gkr("LayerMismatch(1)")
+[PASS] honest certificate + rewritten manifest, contexts 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] honest certificate + rewritten manifest, public keys 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+  (Y += q: inexact quotients 0)
+[PASS] residual cell Y + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero")
+[PASS] multiplicity table: one count moved from t to t+1: REJECT Gkr("RootNumeratorNonzero")
+[PASS] one lift quotient V + 1, everything else honest: REJECT Master("terminal check")
+[PASS] selector moved between two cells of signature 0 (count unchanged): REJECT Gkr("RootNumeratorNonzero")
+[PASS] wrong u: one nibble of u_0 changed, prover runs on the resulting witness: REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 1796, sigs_over_omega: 1, max_hints: 1909 }
+[PASS] reordered records (0 <-> 1) with the witness in the original order: REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 3562, sigs_over_omega: 2, max_hints: 1911 }
+[PASS] contexts 0 <-> 1 swapped, prover runs on the resulting witness: REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 3563, sigs_over_omega: 2, max_hints: 1914 }
+[PASS] public keys 0 <-> 1 swapped, prover runs on the resulting witness: REJECT Gkr("RootNumeratorNonzero") | witness violations Violations { z_out_of_range: 0, e_out_of_region: 3622, sigs_over_omega: 2, max_hints: 1945 }
+[PASS] tampered byte 170 (manifest): REJECT Manifest
+[PASS] tampered byte 511 (manifest): REJECT Manifest
+[PASS] tampered byte 44202 (public u): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131583 (public u): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131626 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131711 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131735 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131781 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131803 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 131845 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 137979 (GKR): REJECT Gkr("LayerMismatch(10)")
+[PASS] tampered byte 150245 (GKR): REJECT Gkr("LayerMismatch(19)")
+[PASS] tampered byte 150339 (table claim T): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 150365 (table claim T): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 151326 (master sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 153245 (master sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 153752 (table sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 154765 (table sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 167359 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 192537 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 217715 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 242893 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 268071 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 293249 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 318427 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 343605 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 368783 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 393961 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 419139 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 444317 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 469495 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 494673 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 519851 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 545029 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 150272 (explicit leaf pair): REJECT LeafPair
+[PASS] tampered byte 150325 (explicit leaf pair): REJECT LeafPair
+[PASS] one trailing byte appended: REJECT Parse("length mismatch / trailing bytes")
+[PASS] byte appended inside the WHIR proof, length raised: REJECT Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)")
+SOUNDNESS SUMMARY: 60/60 tests behave as expected
+uptime at end: 14:20  up 11 days, 12:17, 1 user, load averages: 45.36 27.67 17.45
+       17.88 real        66.76 user         8.98 sys
+           614612992  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1324122  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  19  voluntary context switches
+              913190  involuntary context switches
+        890009686727  instructions retired
+        230951472416  cycles elapsed
+           614826776  peak memory footprint
+# exit 0; end: 14:20  up 11 days, 12:17, 1 user, load averages: 45.36 27.67 17.45

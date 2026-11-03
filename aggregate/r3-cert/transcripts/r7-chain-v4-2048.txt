@@ -1,0 +1,65 @@
+# lab commit c6b125a, binary sha256 68c080618981c9fe, Apple M3 Pro, rustc 1.96.0
+# start: 14:22  up 11 days, 12:19, 1 user, load averages: 62.09 38.92 23.09
+# r3-cert chain binding (round 4 section D.3): 16 blocks x 128 records = 2048 signatures
+transcript: QLYAUTH3/QLYAUTH4 sponge transcript
+uptime at start: 14:22  up 11 days, 12:19, 1 user, load averages: 62.09 38.92 23.09
+chain: 32 blocks built and node-validated (native verification, c_tilde from signatures, A[b]) in 614 ms; 4112 keys in state (16 rotated senders)
+[PASS] invalid sidecar for block 3 rejected (Some("native verification")), replacement witness accepted and matches the unchanged header A[3]: true
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       167.3 |     376 |     346 |     379  P-1 witness generation
+        40.6 |     416 |     416 |     450  P0 statement digest, manifest, transcript init
+      4543.2 |    3088 |    3088 |    3122  P1 WHIR commit (2^nv cells)
+       259.1 |    3284 |    3284 |    3319  P2 projections (s = alpha A^dagger eta, 98 inverse NTTs per signature)
+       287.7 |    3284 |    3284 |    3319  P3 integer lifts and quotients
+       677.4 |    3924 |    3924 |    3960  P4a paired leaves
+      1437.6 |    4564 |    3284 |    3320  P4b fractional GKR
+      1441.2 |    5111 |    4791 |    4827  P5a master weights, public coefficient columns, claimed sum
+      1536.6 |    5031 |    3351 |    3386  P5b master sumcheck (degree 4)
+        63.8 |    3386 |    3291 |    3326  P5c table sumcheck (degree 2)
+      2841.6 |    4626 |     628 |     663  P6 WHIR opening (5 claims)
+  peak live heap over all prover phases: 5111 MiB = 4.99 GiB
+     13296.0  TOTAL prover
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       961.0 |      44 |      40 |      56  V-1 header linkage, replay, c_tilde from u, accumulators
+        32.9 |     111 |     111 |     127  V0 parse, manifest, statement digest, byte checks
+         0.8 |     111 |     111 |     127  V1 transcript replay, fractional GKR verification
+        10.2 |     112 |     111 |     128  V2 WHIR verification (5 claims)
+        94.3 |     512 |     432 |     448  V3a projection challenges, eq tables
+       344.8 |     440 |     438 |     454  V3b public coefficients (ExpandA, mu, c, b, 14 projections, eq-weighted sums)
+         0.1 |     438 |     438 |     454  V4 claimed sum, master chain, terminal checks
+  peak live heap over all verifier phases: 512 MiB = 0.50 GiB
+      1444.0  TOTAL verifier
+[PASS] honest certificate for heights 0..15: ACCEPT
+-- certificate bytes: total 2681009 = 1309.1 B/signature (manifest 512, u 2097152, nu 2048, quotients 280, commitment 64, GKR 23920, T 40, master 3520, table 1520, WHIR 551949 + 4)
+-- header accumulators outside the certificate: 16 x 64 = 1024 B; certificate + headers = 2682033 B = 1309.5864 B/signature
+[PASS] replayed bodies with records 0 and 1 of block 2 reordered: REJECT Chain("accumulator mismatch at height 2")
+[PASS] state resolves one record to another key (substituted state key): REJECT Chain("accumulator mismatch at height 1")
+[PASS] header A[7] changed (header ids relinked): REJECT Chain("accumulator mismatch at height 7")
+[PASS] cross-fork: certificate of fork A checked on fork B (same bodies, other parent): REJECT Manifest
+[PASS] cross-fork with the manifest rewritten to fork B: REJECT Gkr("LayerMismatch(1)")
+[PASS] certificate for heights 0..15 checked as heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] the same with the manifest rewritten to heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] prover proves block 2 with records 0 and 1 reordered (valid proof of the permuted list): REJECT Chain("accumulator mismatch at height 2")
+  key rotation: sender of transaction 256 is registered under epochs 0 and 1, its record names epoch 1
+[PASS] prover authorizes an epoch-1 record with the rotated-out epoch-0 key (valid signature under that key): REJECT Chain("accumulator mismatch at height 2")
+CHAIN SUMMARY: 11/11 tests behave as expected
+uptime at end: 14:22  up 11 days, 12:20, 1 user, load averages: 51.74 39.12 23.88
+       38.60 real       110.79 user        18.26 sys
+          4137353216  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             3187376  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                3404  voluntary context switches
+             1285820  involuntary context switches
+       1512452615843  instructions retired
+        400559237367  cycles elapsed
+          5462823136  peak memory footprint
+# exit 0; end: 14:22  up 11 days, 12:20, 1 user, load averages: 51.74 39.12 23.88

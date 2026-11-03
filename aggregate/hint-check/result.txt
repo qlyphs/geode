@@ -1,0 +1,1 @@
+comparisons 134086672, existence mismatches 0, non-unique hints 0, hint-rule mismatches 0 (over 16760834 existing cases)

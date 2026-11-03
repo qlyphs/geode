@@ -1,0 +1,47 @@
+diff -ru a/src/fs/domain_separator.rs b/src/fs/domain_separator.rs
+--- a/src/fs/domain_separator.rs	2026-10-23 14:02:00
++++ b/src/fs/domain_separator.rs	2026-10-23 14:02:00
+@@ -159,7 +159,10 @@
+     where
+         C: CanObserve<U::Item>,
+     {
+-        U::observe_bytes(challenger, &self.seed_bytes());
++        // r3-cert vendored change: skip the absorption when the challenger declines seeds.
++        if challenger.absorb_domain_seed() {
++            U::observe_bytes(challenger, &self.seed_bytes());
++        }
+     }
+ }
+ 
+diff -ru a/src/lib.rs b/src/lib.rs
+--- a/src/lib.rs	2026-10-23 14:02:00
++++ b/src/lib.rs	2026-10-23 14:02:00
+@@ -39,6 +39,16 @@
+     /// Absorb a single value into the transcript.
+     fn observe(&mut self, value: T);
+ 
++    /// Whether a transcript driver must absorb a `fs::DomainSeparator` seed into this
++    /// challenger before playing its pattern.
++    ///
++    /// r3-cert vendored change: a challenger that binds its configuration through an external
++    /// registered round table (r3-cert profile 0x00070001) returns `false`, so the seed bytes never
++    /// reach it while the pattern checks still run. The default keeps upstream behaviour.
++    fn absorb_domain_seed(&mut self) -> bool {
++        true
++    }
++
+     /// Absorb a slice of values into the transcript.
+     fn observe_slice(&mut self, values: &[T])
+     where
+@@ -171,6 +181,11 @@
+     #[inline(always)]
+     fn observe(&mut self, value: T) {
+         (*self).observe(value);
++    }
++
++    #[inline(always)]
++    fn absorb_domain_seed(&mut self) -> bool {
++        (*self).absorb_domain_seed()
+     }
+ 
+     #[inline(always)]
