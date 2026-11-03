@@ -1,0 +1,22 @@
+# job registry | commit 3e5e9a433f2a4887a730deef1b5d34a58555b79d | binary sha256 a04c51e6c573821825e7d56e72735665685ede8c8299dd341d65984c93ef05ce
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## registry N=128 family johnson -> /data/out/registry/r10-registry-128-fff91007.txt | 2026-10-23T20:30:58Z
+## end registry N=128 family johnson exit 0 | 2026-10-23T20:31:04Z
+## registry N=2048 family johnson -> /data/out/registry/r10-registry-2048-fff9100b.txt | 2026-10-23T20:31:04Z
+## end registry N=2048 family johnson exit 0 | 2026-10-23T20:31:39Z
+## registry N=4096 family johnson -> /data/out/registry/r10-registry-4096-fff9100c.txt | 2026-10-23T20:31:39Z
+## end registry N=4096 family johnson exit 0 | 2026-10-23T20:31:39Z
+## registry N=16384 family johnson -> /data/out/registry/r10-registry-16384-fff9100e.txt | 2026-10-23T20:31:39Z
+## end registry N=16384 family johnson exit 0 | 2026-10-23T20:31:40Z
+## registry N=65536 family johnson -> /data/out/registry/r10-registry-65536-fff91010.txt | 2026-10-23T20:31:40Z
+## end registry N=65536 family johnson exit 0 | 2026-10-23T20:31:42Z
+## registry N=128 family ud -> /data/out/registry/r10-registry-128-fff91207.txt | 2026-10-23T20:31:42Z
+## end registry N=128 family ud exit 0 | 2026-10-23T20:31:46Z
+## registry N=2048 family ud -> /data/out/registry/r10-registry-2048-fff9120b.txt | 2026-10-23T20:31:46Z
+## end registry N=2048 family ud exit 0 | 2026-10-23T20:32:25Z
+## registry N=4096 family ud -> /data/out/registry/r10-registry-4096-fff9120c.txt | 2026-10-23T20:32:25Z
+## end registry N=4096 family ud exit 0 | 2026-10-23T20:32:26Z
+## registry N=16384 family ud -> /data/out/registry/r10-registry-16384-fff9120e.txt | 2026-10-23T20:32:26Z
+## end registry N=16384 family ud exit 0 | 2026-10-23T20:32:27Z
+## registry N=65536 family ud -> /data/out/registry/r10-registry-65536-fff91210.txt | 2026-10-23T20:32:27Z
+## end registry N=65536 family ud exit 0 | 2026-10-23T20:32:29Z

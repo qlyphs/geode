@@ -1,0 +1,5 @@
+# t_utc memory.current_MiB anon_MiB file_MiB file_dirty_MiB r3_read_MiB r3_write_MiB loadavg1
+21:41:26 233 13 174 2 0 0 37.34
+21:41:36 4496 4174 174 1 0 0 38.97
+21:41:46 4402 4078 174 1 0 0 40.50
+21:41:56 5205 4882 174 1 0 0 42.13

@@ -1,37 +1,145 @@
-# job gates | commit 3e5e9a433f2a4887a730deef1b5d34a58555b79d | binary sha256 a04c51e6c573821825e7d56e72735665685ede8c8299dd341d65984c93ef05ce
+# job gates | commit fea3f280527a258f3d091524adc85df1d9a233f7 | binary sha256 cdc84d6686d7c24672228d1098ca8ccff2a29b842d323f9ea04ca710926e9b75 | lab binary sha256 ae208c80f811d4602d2139bad55a16382993961a5b375f13ec268a0e370c5dd8
 # host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
-## bigindex | 2026-10-23T20:41:26Z | load 35.88 31.72 30.55 | env H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 | r3-cert bigindex
-SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill
-array of 4294971392 field elements (32.00 GiB): elements around 2^32 read back: true; matrix of width 64, height 67108928: rows 67108863 and 67108864 straddle 2^32 correctly: true; SSD-backed now 32.00 GiB
-BIGINDEX PASS
-	Command being timed: "/data/bin/r3-cert bigindex"
-	User time (seconds): 0.94
-	System time (seconds): 17.64
-	Percent of CPU this job got: 51%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:35.86
+## default-build-has-no-h9tests | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92 | env none | r3-cert h9tests 32
+usage: r3-cert selftest | run <N> | soundness [v7] | verify <N> <file> | r4 [v7] | chain <per_block> [v7] | vectors7 | gates7 | attack7 | attack8 | route8 | keccak <log2 P> [tests] | bench-ef
+	Command being timed: "/data/bin/r3-cert h9tests 32"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 20751892
+	Maximum resident set size (kbytes): 10048
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 2
-	Minor (reclaiming a frame) page faults: 779278
-	Voluntary context switches: 1374
-	Involuntary context switches: 3261
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 167
+	Voluntary context switches: 0
+	Involuntary context switches: 1
 	Swaps: 0
-	File system inputs: 1376
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+awk: cannot open "/proc/7419/io" (No such file or directory)
+## memory: cgroup memory.peak 2916 MiB (container lifetime); sampled max memory.current 0 MiB, anon 0 MiB
+## end default-build-has-no-h9tests | exit 0 | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92
+## ident-4096 | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92 | env H9_FAMILY=johnson H9_K10_HIST=1 R3_OUT=/data/out/ident | r3-cert h9chain 4096
+# hidden-u chain-range certificate (lab chain profile 0xfff9110c, family Johnson), N = 4096, 32 blocks of 128
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 21:29:37 up 217 days,  7:54,  0 users,  load average: 19.76, 26.41, 27.92
+rayon threads: 24
+chain built (32 blocks, 4096 signatures signed and natively verified): 0.6 s
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint (RSS) MiB at end | read MiB | written MiB | SSD-backed MiB at end | RSS peak MiB so far) --
+       508.2 |     942 |     845 |     980 |        0 |        0 |       0 |    1068  P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+       123.9 |     998 |     996 |    1121 |        0 |        0 |       0 |    1121  P0 raw instance absorbed, registered-round transcript init
+      2479.2 |    7604 |    7604 |    7737 |        0 |        0 |       0 |    7737  P1 WHIR commit (one table of 15 columns + multiplicities)
+       423.5 |    7997 |    7997 |    8130 |        0 |        0 |       0 |    8130  P2 projections, integer lifts (u term r' in the witness), quotients
+      5616.5 |   13117 |    7997 |    8129 |        0 |        0 |       0 |   13239  P3 LogUp leaves and fractional GKR
+      1637.5 |   10926 |    9894 |   10030 |        0 |        0 |       0 |   13239  P4a master weights, public columns, claimed sum
+      4246.9 |   11014 |    7654 |    7790 |        0 |        0 |       0 |   13239  P4b master sumcheck (degree 8)
+        41.2 |    7709 |    7614 |    7750 |        0 |        0 |       0 |   13239  P4c table sumcheck
+      1115.4 |   11456 |    8016 |    8155 |        0 |        0 |       0 |   13239  P5a Keccak trace (16 N slots; 25 packed round boundaries, 400 MiB)
+        28.0 |    8092 |    8016 |    8145 |        0 |        0 |       0 |   13239  P5b masked output and mask sumcheck
+     25906.1 |    8356 |    7617 |    7744 |        0 |        0 |       0 |   13239  P5c Keccak GKR (72 layer reductions)
+      6180.8 |   11969 |    8129 |    8264 |        0 |        0 |       0 |   13239  P5d input-link sumcheck
+        64.6 |    8130 |    8129 |    8265 |        0 |        0 |       0 |   13239  P5e bit-wiring sumcheck
+      1968.4 |    8817 |    2043 |    2181 |        0 |        0 |       0 |   13239  P6 WHIR opening (29 values, 5 points)
+  storage traffic over all prover phases: read 0.00 GiB, written 0.00 GiB; SSD-backed peak 0.00 GiB
+  peak live heap over all prover phases: 13117 MiB = 12.81 GiB
+     50340.3  TOTAL prover
+  round-10 Keccak path split (ms): packed trace 967, selection rounds 9921, materialization 8508, folded rounds and phase B 4783, wiring 561
+prover wall clock (prove_stmt9 only): 49.8 s; throughput 82.17 signatures/s
+prover transcript error: None; rounds 3279; FS calls 3279; coin bytes 1412984; singleton hashes 3275; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- certificate bytes by component (exact):
+         512  manifest
+      262144  c_tilde
+        4096  hint counts
+         560  quotients
+          64  commitment
+       28000  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        7360  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2160  mask sumcheck
+          40  Keccak output claim
+      394560  Keccak GKR, 72 layers
+        2760  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      976461  WHIR proof
+     1682041  TOTAL = 410.65 B/signature (headers add 64 B per block = 0.50 B/signature)
+WHIR: dimension 27, schedule (2, [4, 7, 10], [6, 5, 5, 5]), Sec { assumption: JohnsonBound, target: 272 }; prescribed security (p3 planner, composed, 29-value protocol): 270.25 bits; log2 max candidates 5.32
+WHIR queries per phase (library): [293, 141, 80] + final 56
+certificate written to /data/out/ident/h9chain-cert-4096-fff9110c.bin
+uptime at end: 21:30:29 up 217 days,  7:55,  0 users,  load average: 24.53, 26.45, 27.84
+	Command being timed: "/data/bin/r3-cert h9chain 4096"
+	User time (seconds): 599.54
+	System time (seconds): 46.50
+	Percent of CPU this job got: 1263%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:51.15
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 13556652
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 17450330
+	Voluntary context switches: 177027
+	Involuntary context switches: 199129
+	Swaps: 0
+	File system inputs: 232
+	File system outputs: 3304
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 14317 MiB (container lifetime); sampled max memory.current 9566 MiB, anon 8934 MiB
+## end ident-4096 | exit 0 | 2026-10-23T21:30:29Z | load 24.53 26.45 27.84
+## N=4096 Johnson certificate sha256 97f3cd102d065a2c1d6dc75cf1fd0bdfcc89bf7b8ce028db581ddc872ac755d7; before the rewrite 97f3cd102d065a2c1d6dc75cf1fd0bdfcc89bf7b8ce028db581ddc872ac755d7: IDENTICAL
+## bigindex | 2026-10-23T21:30:29Z | load 24.53 26.45 27.84 | env H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 | r3-cert bigindex
+SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill
+array of 4294971392 field elements (32.00 GiB): elements around 2^32 read back: true; matrix of width 64, height 67108928: rows 67108863 and 67108864 straddle 2^32 correctly: true; SSD-backed now 32.00 GiB
+BIGINDEX PASS
+	Command being timed: "/data/bin/r3-cert-lab bigindex"
+	User time (seconds): 0.87
+	System time (seconds): 16.42
+	Percent of CPU this job got: 51%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:33.49
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 22588064
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 3
+	Minor (reclaiming a frame) page faults: 772208
+	Voluntary context switches: 1187
+	Involuntary context switches: 5917
+	Swaps: 0
+	File system inputs: 1512
 	File system outputs: 67108944
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0
 	Page size (bytes): 4096
 	Exit status: 0
-## memory: cgroup memory.peak 21045 MiB (container lifetime); sampled max memory.current 20405 MiB, anon 10 MiB
-## end bigindex | exit 0 | 2026-10-23T20:42:02Z | load 28.70 30.28 30.10
-## h9tests-128-johnson | 2026-10-23T20:42:02Z | load 28.70 30.28 30.10 | env H9_FAMILY=johnson | r3-cert h9tests 128
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 22887 MiB, anon 7 MiB
+## end bigindex | exit 0 | 2026-10-23T21:31:02Z | load 25.83 26.57 27.84
+## h9tests-128-johnson | 2026-10-23T21:31:02Z | load 25.83 26.57 27.84 | env H9_FAMILY=johnson | r3-cert h9tests 128
 # hidden-u acceptance tests, N = 128, lab profile 0xfff91007, lab chain profile 0xfff91107
-uptime at start: 20:42:02 up 217 days,  7:06,  0 users,  load average: 28.70, 30.28, 30.10
+uptime at start: 21:31:02 up 217 days,  7:56,  0 users,  load average: 26.40, 26.68, 27.86
 ## A. honest controls, extraction, profile isolation
 [PASS] honest certificate: ACCEPT
 [PASS] prover and verifier round logs identical (2785 rounds: roots, bodies, coin prefixes); verify true
@@ -204,6 +312,11 @@ uptime at start: 20:42:02 up 217 days,  7:06,  0 users,  load average: 28.70, 30
 [PASS] same (L, R) under tree rounds 1 and 2: different digests
 [PASS] same (L, R) under two profiles: different digests
 [PASS] tree-separated node differs from the QLYAUTH7 node
+[PASS] injected pool, exactly enough accepted words (513 rejected of 613): accepted, 100 coefficients
+[PASS] injected pool, one accepted word fewer: short (rejected), not padded
+[PASS] injected pool, the last required coefficient is the last word of the pool: accepted (value q - 1)
+[PASS] the same pool with that last word = q: short
+[PASS] boundary: q - 1 accepted, q rejected, 2^23 - 1 rejected, top bit of the third byte masked off
 [PASS] qslack10(57344) = 656 >= 512 (failure <= 2^-768)
 [PASS] qslack10(258048) = 1158 >= 960 (failure <= 2^-768)
 [PASS] qslack10(946176) = 2878 >= 2112 (failure <= 2^-768)
@@ -234,42 +347,62 @@ uptime at start: 20:42:02 up 217 days,  7:06,  0 users,  load average: 28.70, 30
 [PASS] coordinated planes: sqrt2^2 = 2 (true), B0 = 1/2, B1 = (1 + sqrt 2)/2, unweighted Booleanity sum at the cell = 0 (true)
 [PASS] coordinated non-Boolean planes cancelling under a fixed sum (Booleanity uses four independent weights): REJECT Hash("input-link terminal check")
 [PASS] multiplicities moved after theta (committed ones unchanged): REJECT Gkr("RootNumeratorNonzero")
-[PASS] opening value changed after alpha (last opened value): REJECT Parse("WHIR proof")
-[PASS] opening value changed after alpha (second-to-last opened value): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T1(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T2(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T3(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T4(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T5(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T6(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T7(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T8(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] the 8 masked-output openings located among the WHIR proof's opened values: 8/8
 [PASS] sign conversion: packed input layer unpacks to the field input rows (bit 0 -> +1, 1 -> -1, padding and dummy slots -> 0): 4194304/4194304 cells
 [PASS] chi under A = 1 - 2a: truth table (8 triples) and A(1 - B + C + BC)/2 at 64 random points: 72/72
 [PASS] every layer term vanishes on the zero vector (skipped dummy pairs contribute 0): 96/96
 [PASS] per-tree hash domains: hashes only under the 4 registered commit rounds [1, 2762, 2769, 2775], each tree hashed (prover and verifier counted together: {1: (2097293, 2099117), 2762: (524368, 525324), 2769: (131134, 131760), 2775: (32819, 33253)})
-H9 TESTS SUMMARY: 199/199 behave as expected
-uptime at end: 20:47:01 up 217 days,  7:11,  0 users,  load average: 28.12, 32.43, 31.37
-	Command being timed: "/data/bin/r3-cert h9tests 128"
-	User time (seconds): 4411.19
-	System time (seconds): 402.16
-	Percent of CPU this job got: 1608%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:59.24
+## H. per-operation tree contexts and injected coin pools (round-11 review)
+[PASS] every routing-cell write replaced by tree 1 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 2 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 4000 during verification: openings hash with their originating trees: ACCEPT
+[PASS] control: the QLYAUTH7 lab scheme (shared routing cell) under the same wrong ambient context: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] interleaved verifiers on two threads: profile 0xfff91007 (trees [1, 2762, 2769, 2775]) x3 and 0xfff91006 (trees [1, 2687, 2693, 2699]) x3 all ACCEPT
+[PASS] per-operation context: committed under tree 5 with the cell changed to 9 afterwards; verifies as tree 5 (true), not as tree 9 (true); an ambiguous root (true) and an unobserved root (true) are rejected
+[PASS] round id 70000 (> LE16): narrow() rejects it (true), 65535 accepted (true), the verifier rejects that tree (true), a commitment under it is refused (true)
+[PASS] K pool of rejected words: flagged short (true); the round-10 table is strict (true; QLYAUTH7 tables keep the padded rule)
+[PASS] forced-short K pools: the verifier rejects the honest certificate: REJECT Gkr("LayerMismatch(1)")
+[PASS] forced-short K pools: the prover's transcript is poisoned or the prover stops (Ok(Some("round 3: K pool short")))
+[PASS] every registered round-1 shape: exactly enough accepted words decodes in full, one fewer is short [N=32: nq 29120 slack 585 quotient body Scalar(70); N=64: nq 29568 slack 586 quotient body Scalar(70); N=128: nq 30464 slack 589 quotient body Scalar(70); N=256: nq 32256 slack 593 quotient body Scalar(70); N=512: nq 35840 slack 602 quotient body Scalar(70); N=1024: nq 43008 slack 620 quotient body Scalar(140); N=2048: nq 57344 slack 656 quotient body Scalar(280); N=4096: nq 86016 slack 728 quotient body Scalar(560); N=8192: nq 143360 slack 871 quotient body Scalar(1120); N=16384: nq 258048 slack 1158 quotient body Scalar(2240); N=32768: nq 487424 slack 1731 quotient body Scalar(4480); N=65536: nq 946176 slack 2878 quotient body Scalar(8960)]
+[PASS] chunk transition 512 -> 1024 signatures: quotient bodies Scalar(70) -> Scalar(140) (14 trials x 5 bytes per chunk)
+H9 TESTS SUMMARY: 223/223 behave as expected
+uptime at end: 21:36:08 up 217 days,  8:01,  0 users,  load average: 42.00, 36.34, 31.80
+	Command being timed: "/data/bin/r3-cert-lab h9tests 128"
+	User time (seconds): 4433.80
+	System time (seconds): 411.04
+	Percent of CPU this job got: 1585%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:05.58
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 4353680
+	Maximum resident set size (kbytes): 4354628
 	Average resident set size (kbytes): 0
-	Major (requiring I/O) page faults: 1
-	Minor (reclaiming a frame) page faults: 48415339
-	Voluntary context switches: 6054884
-	Involuntary context switches: 1559026
+	Major (requiring I/O) page faults: 4
+	Minor (reclaiming a frame) page faults: 49999472
+	Voluntary context switches: 6218817
+	Involuntary context switches: 1758660
 	Swaps: 0
-	File system inputs: 7584
-	File system outputs: 104
+	File system inputs: 18224
+	File system outputs: 112
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0
 	Page size (bytes): 4096
 	Exit status: 0
-## memory: cgroup memory.peak 21045 MiB (container lifetime); sampled max memory.current 3772 MiB, anon 3647 MiB
-## end h9tests-128-johnson | exit 0 | 2026-10-23T20:47:01Z | load 28.12 32.43 31.37
-## h9tests-128-ud | 2026-10-23T20:47:01Z | load 28.12 32.43 31.37 | env H9_FAMILY=ud | r3-cert h9tests 128
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 3174 MiB, anon 2944 MiB
+## end h9tests-128-johnson | exit 0 | 2026-10-23T21:36:08Z | load 42.00 36.34 31.80
+## h9tests-128-ud | 2026-10-23T21:36:08Z | load 42.00 36.34 31.80 | env H9_FAMILY=ud | r3-cert h9tests 128
 # hidden-u acceptance tests, N = 128, lab profile 0xfff91207, lab chain profile 0xfff91307
-uptime at start: 20:47:01 up 217 days,  7:11,  0 users,  load average: 28.12, 32.43, 31.37
+uptime at start: 21:36:08 up 217 days,  8:01,  0 users,  load average: 42.00, 36.34, 31.80
 ## A. honest controls, extraction, profile isolation
 [PASS] honest certificate: ACCEPT
 [PASS] prover and verifier round logs identical (2781 rounds: roots, bodies, coin prefixes); verify true
@@ -442,6 +575,11 @@ uptime at start: 20:47:01 up 217 days,  7:11,  0 users,  load average: 28.12, 32
 [PASS] same (L, R) under tree rounds 1 and 2: different digests
 [PASS] same (L, R) under two profiles: different digests
 [PASS] tree-separated node differs from the QLYAUTH7 node
+[PASS] injected pool, exactly enough accepted words (513 rejected of 613): accepted, 100 coefficients
+[PASS] injected pool, one accepted word fewer: short (rejected), not padded
+[PASS] injected pool, the last required coefficient is the last word of the pool: accepted (value q - 1)
+[PASS] the same pool with that last word = q: short
+[PASS] boundary: q - 1 accepted, q rejected, 2^23 - 1 rejected, top bit of the third byte masked off
 [PASS] qslack10(57344) = 656 >= 512 (failure <= 2^-768)
 [PASS] qslack10(258048) = 1158 >= 960 (failure <= 2^-768)
 [PASS] qslack10(946176) = 2878 >= 2112 (failure <= 2^-768)
@@ -472,36 +610,56 @@ uptime at start: 20:47:01 up 217 days,  7:11,  0 users,  load average: 28.12, 32
 [PASS] coordinated planes: sqrt2^2 = 2 (true), B0 = 1/2, B1 = (1 + sqrt 2)/2, unweighted Booleanity sum at the cell = 0 (true)
 [PASS] coordinated non-Boolean planes cancelling under a fixed sum (Booleanity uses four independent weights): REJECT Hash("input-link terminal check")
 [PASS] multiplicities moved after theta (committed ones unchanged): REJECT Gkr("RootNumeratorNonzero")
-[PASS] opening value changed after alpha (last opened value): REJECT Parse("WHIR proof")
-[PASS] opening value changed after alpha (second-to-last opened value): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T1(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T2(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T3(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T4(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T5(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T6(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T7(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T8(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] the 8 masked-output openings located among the WHIR proof's opened values: 8/8
 [PASS] sign conversion: packed input layer unpacks to the field input rows (bit 0 -> +1, 1 -> -1, padding and dummy slots -> 0): 4194304/4194304 cells
 [PASS] chi under A = 1 - 2a: truth table (8 triples) and A(1 - B + C + BC)/2 at 64 random points: 72/72
 [PASS] every layer term vanishes on the zero vector (skipped dummy pairs contribute 0): 96/96
 [PASS] per-tree hash domains: hashes only under the 4 registered commit rounds [1, 2761, 2767, 2772], each tree hashed (prover and verifier counted together: {1: (524710, 528667), 2761: (131372, 133742), 2767: (65823, 67835), 2772: (16669, 18095)})
-H9 TESTS SUMMARY: 199/199 behave as expected
-uptime at end: 20:51:12 up 217 days,  7:16,  0 users,  load average: 29.33, 33.07, 32.04
-	Command being timed: "/data/bin/r3-cert h9tests 128"
-	User time (seconds): 3373.09
-	System time (seconds): 348.06
-	Percent of CPU this job got: 1482%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:10.96
+## H. per-operation tree contexts and injected coin pools (round-11 review)
+[PASS] every routing-cell write replaced by tree 1 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 2 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 4000 during verification: openings hash with their originating trees: ACCEPT
+[PASS] control: the QLYAUTH7 lab scheme (shared routing cell) under the same wrong ambient context: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] interleaved verifiers on two threads: profile 0xfff91207 (trees [1, 2761, 2767, 2772]) x3 and 0xfff91206 (trees [1, 2686, 2691, 2696]) x3 all ACCEPT
+[PASS] per-operation context: committed under tree 5 with the cell changed to 9 afterwards; verifies as tree 5 (true), not as tree 9 (true); an ambiguous root (true) and an unobserved root (true) are rejected
+[PASS] round id 70000 (> LE16): narrow() rejects it (true), 65535 accepted (true), the verifier rejects that tree (true), a commitment under it is refused (true)
+[PASS] K pool of rejected words: flagged short (true); the round-10 table is strict (true; QLYAUTH7 tables keep the padded rule)
+[PASS] forced-short K pools: the verifier rejects the honest certificate: REJECT Gkr("LayerMismatch(1)")
+[PASS] forced-short K pools: the prover's transcript is poisoned or the prover stops (Ok(Some("round 3: K pool short")))
+[PASS] every registered round-1 shape: exactly enough accepted words decodes in full, one fewer is short [N=32: nq 29120 slack 585 quotient body Scalar(70); N=64: nq 29568 slack 586 quotient body Scalar(70); N=128: nq 30464 slack 589 quotient body Scalar(70); N=256: nq 32256 slack 593 quotient body Scalar(70); N=512: nq 35840 slack 602 quotient body Scalar(70); N=1024: nq 43008 slack 620 quotient body Scalar(140); N=2048: nq 57344 slack 656 quotient body Scalar(280); N=4096: nq 86016 slack 728 quotient body Scalar(560); N=8192: nq 143360 slack 871 quotient body Scalar(1120); N=16384: nq 258048 slack 1158 quotient body Scalar(2240); N=32768: nq 487424 slack 1731 quotient body Scalar(4480); N=65536: nq 946176 slack 2878 quotient body Scalar(8960)]
+[PASS] chunk transition 512 -> 1024 signatures: quotient bodies Scalar(70) -> Scalar(140) (14 trials x 5 bytes per chunk)
+H9 TESTS SUMMARY: 223/223 behave as expected
+uptime at end: 21:40:28 up 217 days,  8:05,  0 users,  load average: 40.04, 38.91, 33.95
+	Command being timed: "/data/bin/r3-cert-lab h9tests 128"
+	User time (seconds): 3448.19
+	System time (seconds): 354.21
+	Percent of CPU this job got: 1463%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:19.81
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 3344340
+	Maximum resident set size (kbytes): 3353596
 	Average resident set size (kbytes): 0
 	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 48858816
-	Voluntary context switches: 5577101
-	Involuntary context switches: 1529326
+	Minor (reclaiming a frame) page faults: 50684678
+	Voluntary context switches: 5663012
+	Involuntary context switches: 1473171
 	Swaps: 0
 	File system inputs: 0
-	File system outputs: 96
+	File system outputs: 112
 	Socket messages sent: 0
 	Socket messages received: 0
 	Signals delivered: 0
 	Page size (bytes): 4096
 	Exit status: 0
-## memory: cgroup memory.peak 21045 MiB (container lifetime); sampled max memory.current 1319 MiB, anon 1191 MiB
-## end h9tests-128-ud | exit 0 | 2026-10-23T20:51:12Z | load 29.33 33.07 32.04
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 1975 MiB, anon 1741 MiB
+## end h9tests-128-ud | exit 0 | 2026-10-23T21:40:28Z | load 40.04 38.91 33.95

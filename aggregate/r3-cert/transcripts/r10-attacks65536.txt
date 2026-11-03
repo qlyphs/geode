@@ -1,0 +1,80 @@
+# job attacks65536 | commit 68cc4e16e850688b62f99dda6d6638dc681cb826 | binary sha256 8a6e5eb50acac5ef698a49e48bbfe2a45e233da9d914e52dbbf405b94e2379e0 | lab binary sha256 5bee0414660d31e6ededa9967147aec162866d105f120605ca1c678ebc0f7bec
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## h9chainattacks-65536 | 2026-10-23T23:34:30Z | load 33.29 28.93 31.98 | env H9_FAMILY=johnson | r3-cert h9chainattacks 65536 /data/out/h9chain-cert-65536-fff91110.bin
+# hidden-u chain-range verifier attacks, N = 65536, /data/out/h9chain-cert-65536-fff91110.bin
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+[PASS] honest certificate: ACCEPT (20.0 s)
+[PASS] manifest: byte 0 of 512 changed: REJECT Profile("not a hidden-u lab chain certificate") (0.2 s)
+[PASS] manifest: byte 256 of 512 changed: REJECT Manifest (1.7 s)
+[PASS] c_tilde: byte 0 of 4194304 changed: REJECT Chain("accumulator mismatch at height 0") (1.1 s)
+[PASS] c_tilde: byte 2097152 of 4194304 changed: REJECT Chain("accumulator mismatch at height 256") (1.3 s)
+[PASS] hint counts: byte 0 of 65536 changed: REJECT Gkr("LayerMismatch(1)") (3.2 s)
+[PASS] hint counts: byte 32768 of 65536 changed: REJECT Gkr("LayerMismatch(1)") (3.2 s)
+[PASS] quotients: byte 0 of 8960 changed: REJECT Gkr("LayerMismatch(1)") (3.1 s)
+[PASS] quotients: byte 4480 of 8960 changed: REJECT Gkr("LayerMismatch(1)") (3.2 s)
+[PASS] commitment: byte 0 of 64 changed: REJECT Gkr("LayerMismatch(1)") (3.1 s)
+[PASS] commitment: byte 32 of 64 changed: REJECT Gkr("LayerMismatch(1)") (3.1 s)
+[PASS] LogUp GKR: byte 0 of 37120 changed: REJECT Gkr("RootNumeratorNonzero") (3.1 s)
+[PASS] LogUp GKR: byte 18560 of 37120 changed: REJECT Gkr("LayerMismatch(20)") (3.0 s)
+[PASS] leaf pair: byte 0 of 80 changed: REJECT LeafPair (3.0 s)
+[PASS] leaf pair: byte 40 of 80 changed: REJECT LeafPair (3.1 s)
+[PASS] table claim T: byte 0 of 40 changed: REJECT Hash("mask terminal check") (3.1 s)
+[PASS] table claim T: byte 20 of 40 changed: REJECT Hash("mask terminal check") (3.0 s)
+[PASS] master sumcheck: byte 0 of 8640 changed: REJECT Hash("mask terminal check") (3.1 s)
+[PASS] master sumcheck: byte 4320 of 8640 changed: REJECT Hash("mask terminal check") (3.0 s)
+[PASS] table sumcheck: byte 0 of 1520 changed: REJECT Hash("mask terminal check") (3.1 s)
+[PASS] table sumcheck: byte 760 of 1520 changed: REJECT Hash("mask terminal check") (3.3 s)
+[PASS] masked-output T openings: byte 0 of 320 changed: REJECT Hash("mask terminal check") (3.3 s)
+[PASS] masked-output T openings: byte 160 of 320 changed: REJECT Hash("mask terminal check") (3.5 s)
+[PASS] mask sumcheck: byte 0 of 2480 changed: REJECT Hash("mask terminal check") (3.5 s)
+[PASS] mask sumcheck: byte 1240 of 2480 changed: REJECT Hash("mask terminal check") (3.4 s)
+[PASS] Keccak output claim: byte 0 of 40 changed: REJECT Hash("mask terminal check") (3.5 s)
+[PASS] Keccak output claim: byte 20 of 40 changed: REJECT Hash("mask terminal check") (3.5 s)
+[PASS] Keccak GKR, 72 layers: byte 0 of 436800 changed: REJECT Hash("round 23 rho-pi-chi-iota: main terminal check") (3.6 s)
+[PASS] Keccak GKR, 72 layers: byte 218400 of 436800 changed: REJECT Hash("round 11 rho-pi-chi-iota: main terminal check") (3.6 s)
+[PASS] input-link sumcheck: byte 0 of 3240 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] input-link sumcheck: byte 1620 of 3240 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] re-indexed bit claims: byte 0 of 320 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] re-indexed bit claims: byte 160 of 320 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.6 s)
+[PASS] bit-wiring sumcheck: byte 0 of 1040 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] bit-wiring sumcheck: byte 520 of 1040 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (4.0 s)
+[PASS] WHIR length: byte 0 of 4 changed: REJECT Parse("length mismatch / trailing bytes") (1.3 s)
+[PASS] WHIR length: byte 2 of 4 changed: REJECT Parse("length mismatch / trailing bytes") (1.3 s)
+[PASS] WHIR proof: byte 294340 of 2060386 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.8 s)
+[PASS] WHIR proof: byte 686795 of 2060386 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] WHIR proof: byte 1030193 of 2060386 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] WHIR proof: byte 2060345 of 2060386 changed: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }") (3.7 s)
+[PASS] one trailing byte: REJECT Parse("length mismatch / trailing bytes") (1.2 s)
+[PASS] last byte removed: REJECT Parse("length mismatch / trailing bytes") (1.2 s)
+[PASS] profile id relabelled to the other family: REJECT Profile("unregistered profile 0xfff91310 for N = 65536") (0.2 s)
+[PASS] one payload byte of a record in block 3 changed: REJECT Chain("accumulator mismatch at height 3") (1.3 s)
+[PASS] two records of block 7 swapped: REJECT Chain("accumulator mismatch at height 7") (1.3 s)
+[PASS] blocks 1 and 2 (and headers) swapped: REJECT Chain("header linkage") (0.0 s)
+[PASS] same blocks against another parent: REJECT Chain("header linkage") (0.0 s)
+[PASS] state key of sender 1 replaced by sender 2's key: REJECT Chain("accumulator mismatch at height 0") (1.3 s)
+H9 CHAIN ATTACKS SUMMARY: 49/49 behave as expected
+	Command being timed: "/data/bin/r3-cert h9chainattacks 65536 /data/out/h9chain-cert-65536-fff91110.bin"
+	User time (seconds): 327.41
+	System time (seconds): 64.43
+	Percent of CPU this job got: 247%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:38.46
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 15312236
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 28302806
+	Voluntary context switches: 59325
+	Involuntary context switches: 95578
+	Swaps: 0
+	File system inputs: 13328
+	File system outputs: 48
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 15630 MiB (container lifetime); sampled max memory.current 13319 MiB, anon 12642 MiB
+## end h9chainattacks-65536 | exit 0 | 2026-10-23T23:37:08Z | load 25.33 27.32 30.89

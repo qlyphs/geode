@@ -1,0 +1,139 @@
+# job m65536 | commit a02cb7ae0a84de038013cb639928247ad4382ef5 | binary sha256 b39ea4e2c446de7f98e8a9459d7ef3ceaafaf42764bf307d9d240e0a0c3eb740 | lab binary sha256 a88c660e4c7452a10323f461bb66dd7c9af80d288817fe440357b6013f119c3f
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## h9chain-65536-johnson | 2026-10-23T22:36:20Z | load 29.46 38.29 41.83 | env H9_FAMILY=johnson H9_PROGRESS=1 H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 H9_SPILL_SEQ=1 | r3-cert h9chain 65536
+# hidden-u chain-range certificate (lab chain profile 0xfff91110, family Johnson), N = 65536, 512 blocks of 128
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill; round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 22:36:20 up 217 days,  9:01,  0 users,  load average: 29.46, 38.29, 41.83
+rayon threads: 24
+chain built (512 blocks, 65536 signatures signed and natively verified): 9.2 s
+progress: 20957 ms, live 13401 MiB, disk-backed 8609 MiB, read 0 MiB, written 15399 MiB: P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+progress: 1837 ms, live 14780 MiB, disk-backed 9859 MiB, read 0 MiB, written 2126 MiB: P0 raw instance absorbed, registered-round transcript init
+progress: 565835 ms, live 79308 MiB, disk-backed 74307 MiB, read 118314 MiB, written 153366 MiB: P1 WHIR commit (one table of 15 columns + multiplicities)
+progress: 16670 ms, live 85602 MiB, disk-backed 80579 MiB, read 5120 MiB, written 6272 MiB: P2 projections, integer lifts (u term r' in the witness), quotients
+progress: 843400 ms, live 85602 MiB, disk-backed 80579 MiB, read 318318 MiB, written 273487 MiB: P3 LogUp leaves and fractional GKR
+progress: 155323 ms, live 115344 MiB, disk-backed 110276 MiB, read 55533 MiB, written 96604 MiB: P4a master weights, public columns, claimed sum
+progress: 245016 ms, live 79501 MiB, disk-backed 74436 MiB, read 165064 MiB, written 69081 MiB: P4b master sumcheck (degree 8)
+progress: 37 ms, live 79461 MiB, disk-backed 74436 MiB, read 0 MiB, written 0 MiB: P4c table sumcheck
+progress: 273961 ms, live 85867 MiB, disk-backed 74436 MiB, read 130143 MiB, written 140000 MiB: P5a Keccak trace (16 N slots; 25 packed round boundaries, 6400 MiB)
+progress: 113 ms, live 85867 MiB, disk-backed 74436 MiB, read 0 MiB, written 0 MiB: P5b masked output and mask sumcheck
+progress: 355747 ms, live 79468 MiB, disk-backed 74436 MiB, read 0 MiB, written 0 MiB: P5c Keccak GKR (72 layer reductions)
+progress: 517233 ms, live 87664 MiB, disk-backed 82628 MiB, read 242597 MiB, written 340251 MiB: P5d input-link sumcheck
+progress: 25721 ms, live 87666 MiB, disk-backed 82628 MiB, read 4096 MiB, written 0 MiB: P5e bit-wiring sumcheck
+progress: 74684 ms, live 31343 MiB, disk-backed 26372 MiB, read 15895 MiB, written 25121 MiB: P6 WHIR opening (29 values, 5 points)
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint (RSS) MiB at end | read MiB | written MiB | SSD-backed MiB at end | RSS peak MiB so far) --
+     20956.8 |   14945 |   13402 |   13843 |        0 |    15399 |    8609 |   15373  P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+      1836.9 |   14783 |   14781 |   15060 |        0 |     2126 |    9860 |   15373  P0 raw instance absorbed, registered-round transcript init
+    565834.7 |  104141 |   79309 |   21661 |   118315 |   153367 |   74308 |   21819  P1 WHIR commit (one table of 15 columns + multiplicities)
+     16669.8 |   85602 |   85602 |   21557 |     5120 |     6272 |   80580 |   21819  P2 projections, integer lifts (u term r' in the witness), quotients
+    843399.7 |  167522 |   85602 |    5483 |   318318 |   273487 |   80580 |   21908  P3 LogUp leaves and fractional GKR
+    155323.1 |  131856 |  115344 |   17242 |    55534 |    96605 |  110276 |   21908  P4a master weights, public columns, claimed sum
+    245015.6 |  133262 |   79502 |    5525 |   165064 |    69082 |   74436 |   22002  P4b master sumcheck (degree 8)
+        36.6 |   79557 |   79462 |    5488 |        0 |        0 |   74436 |   22002  P4c table sumcheck
+    273961.5 |  140904 |   85868 |   14703 |   130144 |   140001 |   74436 |   22198  P5a Keccak trace (16 N slots; 25 packed round boundaries, 6400 MiB)
+       113.1 |   85958 |   85868 |   14708 |        0 |        0 |   74436 |   22198  P5b masked output and mask sumcheck
+    355746.7 |   91267 |   79468 |    5794 |        0 |        0 |   74436 |   22198  P5c Keccak GKR (72 layer reductions)
+    517233.3 |  149104 |   87664 |    5516 |   242598 |   340252 |   82628 |   22322  P5d input-link sumcheck
+     25721.2 |   87669 |   87667 |    9615 |     4096 |        0 |   82628 |   22322  P5e bit-wiring sumcheck
+     74683.9 |   90548 |   31343 |    5448 |    15895 |    25121 |   26372 |   22407  P6 WHIR opening (29 values, 5 points)
+  storage traffic over all prover phases: read 1030.36 GiB, written 1095.42 GiB; SSD-backed peak 158.54 GiB
+  peak live heap over all prover phases: 167522 MiB = 163.60 GiB
+   3096532.7  TOTAL prover
+  round-10 Keccak path split (ms): packed trace 14596, selection rounds 129539, materialization 127868, folded rounds and phase B 64646, wiring 4072
+prover wall clock (prove_stmt9 only): 3075.5 s; throughput 21.31 signatures/s
+prover transcript error: None; rounds 3695; FS calls 3695; coin bytes 6650690; singleton hashes 3690; seeds declined 15; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- certificate bytes by component (exact):
+         512  manifest
+     4194304  c_tilde
+       65536  hint counts
+        8960  quotients
+          64  commitment
+       37120  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        8640  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2480  mask sumcheck
+          40  Keccak output claim
+      436800  Keccak GKR, 72 layers
+        3240  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+     2060386  WHIR proof
+     6821406  TOTAL = 104.09 B/signature (headers add 64 B per block = 0.50 B/signature)
+WHIR: dimension 31, schedule (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]), Sec { assumption: JohnsonBound, target: 272 }; prescribed security (p3 planner, composed, 29-value protocol): 269.27 bits; log2 max candidates 4.32
+WHIR queries per phase (library): [634, 293, 112, 70] + final 51
+certificate written to /data/out/h9chain-cert-65536-fff91110.bin
+uptime at end: 23:28:09 up 217 days,  9:53,  0 users,  load average: 35.19, 38.19, 36.13
+	Command being timed: "/data/bin/r3-cert h9chain 65536"
+	User time (seconds): 8920.38
+	System time (seconds): 3163.42
+	Percent of CPU this job got: 388%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 51:49.14
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 22944924
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 9751959
+	Minor (reclaiming a frame) page faults: 259186601
+	Voluntary context switches: 9792311
+	Involuntary context switches: 2625474
+	Swaps: 0
+	File system inputs: 2160814272
+	File system outputs: 2301998120
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 22888 MiB, anon 16783 MiB
+## end h9chain-65536-johnson | exit 0 | 2026-10-23T23:28:10Z | load 35.19 38.19 36.13
+## h9chainverify-65536-johnson | 2026-10-23T23:28:10Z | load 35.19 38.19 36.13 | env H9_FAMILY=johnson | r3-cert h9chainverify 65536 /data/out/h9chain-cert-65536-fff91110.bin
+# hidden-u chain-range verify in a fresh process, N = 65536, /data/out/h9chain-cert-65536-fff91110.bin
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 23:28:10 up 217 days,  9:53,  0 users,  load average: 35.19, 38.19, 36.13
+chain rebuilt for the verifier's inputs (not timed below): 9.2 s
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint (RSS) MiB at end | read MiB | written MiB | SSD-backed MiB at end | RSS peak MiB so far) --
+      1565.5 |    1709 |    1044 |    1100 |        0 |        0 |       0 |    1926  V-1 header linkage, replay, accumulators from c_tilde, raw instance
+      1153.5 |    2081 |    2081 |    2141 |        0 |        0 |       0 |    2141  V0 parse, manifest, byte checks
+       140.4 |    2097 |    2093 |    2153 |        0 |        0 |       0 |    2153  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+        21.5 |    2095 |    2093 |    2154 |        0 |        0 |       0 |    2154  V2 WHIR verification (29 values)
+         2.4 |    2094 |    2093 |    2154 |        0 |        0 |       0 |    2154  V3 hash-side terminal checks
+     15170.3 |   14897 |   12466 |   12534 |        0 |        0 |       0 |   14968  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         6.4 |   12470 |   12466 |   12536 |        0 |        0 |       0 |   14968  V4b claimed sum, master chain, master terminal
+  storage traffic over all verifier (fresh process) phases: read 0.00 GiB, written 0.00 GiB; SSD-backed peak 0.00 GiB
+  peak live heap over all verifier (fresh process) phases: 14897 MiB = 14.55 GiB
+     18059.9  TOTAL verifier (fresh process)
+verifier wall clock: 18778.2 ms
+VERIFY: ACCEPT
+uptime at end: 23:28:38 up 217 days,  9:53,  0 users,  load average: 33.22, 37.47, 35.95
+	Command being timed: "/data/bin/r3-cert h9chainverify 65536 /data/out/h9chain-cert-65536-fff91110.bin"
+	User time (seconds): 215.91
+	System time (seconds): 15.51
+	Percent of CPU this job got: 826%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:28.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 15327336
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 2
+	Minor (reclaiming a frame) page faults: 7394542
+	Voluntary context switches: 50457
+	Involuntary context switches: 47690
+	Swaps: 0
+	File system inputs: 24
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 15104 MiB, anon 14968 MiB
+## end h9chainverify-65536-johnson | exit 0 | 2026-10-23T23:28:38Z | load 33.22 37.47 35.95

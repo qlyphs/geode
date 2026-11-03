@@ -30,8 +30,8 @@ pub static ON: AtomicBool = AtomicBool::new(true);
 /// Phase-A round at which the folded layer is materialized (H9_K10_J, 1..=4; capped at log2 N).
 pub static JMAT: AtomicUsize = AtomicUsize::new(4);
 /// Weighted-histogram rounds (round 9 section D) for the phase-A rounds j < 3 where a term's
-/// table fits (H9_K10_HIST=1; default off until its whole-kernel timing is measured).
-pub static HIST: AtomicBool = AtomicBool::new(false);
+/// table fits (default on: measured faster at N = 2048 and 4096 with byte-identical certificates; H9_K10_HIST=0 turns it off).
+pub static HIST: AtomicBool = AtomicBool::new(true);
 /// Test-only challenge injection in the phase-A rounds of every Keccak layer, applied in both
 /// prover paths after the challenge is sampled: 0 off (the protocol), 1 = 0, 2 = 1, 3 = 1/2,
 /// 4 = (1 - x)/(1 - 2x) (eq1(x, r) = 0, exceptional Gruen), 5 = (1 + i)/2, 6 = a base-field

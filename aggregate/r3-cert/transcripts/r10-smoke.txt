@@ -1,0 +1,144 @@
+# job smoke | commit 8ed5eaf52d00d40d8ddb9fbf668e2a3bb3ddd473 | binary sha256 4d78960a569e361cc73e8c4b6f383b2aa19f2afdc71a34d0d8e1943ec5fb6d44
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## host | 2026-10-23T19:40:05Z | load 30.16 21.36 18.86 | env none | r3-cert host
+cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory)
+	Command being timed: "/data/bin/r3-cert host"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 66%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 10108
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 170
+	Voluntary context switches: 1
+	Involuntary context switches: 45
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## end host | exit 0 | 2026-10-23T19:40:05Z | load 30.16 21.36 18.86
+## r10self | 2026-10-23T19:40:05Z | load 30.16 21.36 18.86 | env none | r3-cert r10self
+[PASS] strict pool of rejected words: short, not padded
+[PASS] legacy pool of rejected words: padded with zeros (QLYAUTH7 rule kept)
+[PASS] strict pool of accepted words: full
+[PASS] strict descriptor differs from the legacy one
+[PASS] legacy descriptor unchanged (13 bytes + widths)
+[PASS] same (L, R) under tree rounds 1 and 2: different digests
+[PASS] same (L, R) under two profiles: different digests
+[PASS] tree-separated node differs from the QLYAUTH7 node
+[PASS] qslack10(57344) = 656 >= 512 (failure <= 2^-768)
+[PASS] qslack10(258048) = 1158 >= 960 (failure <= 2^-768)
+[PASS] qslack10(946176) = 2878 >= 2112 (failure <= 2^-768)
+	Command being timed: "/data/bin/r3-cert r10self"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 50%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 9748
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 165
+	Voluntary context switches: 1
+	Involuntary context switches: 4
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## end r10self | exit 0 | 2026-10-23T19:40:05Z | load 30.16 21.36 18.86
+## digests | 2026-10-23T19:40:05Z | load 30.16 21.36 18.86 | env none | r3-cert digests
+DIGEST QLYAUTH3-QLYAUTH4-transcript N=128: 557858 B, verify true, sha3-256 0557e8ac66fd77c9d62e6ed375bfb1b8f26a3fe2d34ce21eac9b55498fc12982
+DIGEST QLYAUTH7-lab-0xfff70007 N=128: 558834 B, verify true, sha3-256 176455076139fff1851390c112f52aeca253f81a2cfe7380b2b41cc935618b5f
+DIGEST keccak-kernel P=256: 655052 B, verify true, sha3-256 772a6412d0fd61de273757540df2f84b0a04706d2716fcc02551f1c18dcfc979
+	Command being timed: "/data/bin/r3-cert digests"
+	User time (seconds): 32.39
+	System time (seconds): 8.46
+	Percent of CPU this job got: 1034%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:03.95
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 669444
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 968145
+	Voluntary context switches: 88248
+	Involuntary context switches: 82397
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## end digests | exit 0 | 2026-10-23T19:40:09Z | load 34.71 22.45 19.22
+## h9self | 2026-10-23T19:40:09Z | load 34.71 22.45 19.22 | env none | r3-cert h9self
+# hidden-u self checks
+[PASS] nine-permutation trace output = SHAKE256(mu || U, 64)
+[PASS] U positions: 8192 cells, bijective onto the 4 x 2048 bit cells, inverse map consistent
+[PASS] absorbed bits = mu bits and (u >> plane) & 1 at the mapped cells
+[PASS] padding block 0x1f .. 0x80 (cells 0..4 and 1087)
+[PASS] 72-layer circuit on 16 slots: slots 0..8 = the nine states, padding cells and dummy slots 9..15 stay 0
+[PASS] XOR MLE example s = (0,1), b = (1,0), r = 2: MLE(s xor b)(r) = 1, shortcut = 5 (differ)
+[PASS] hidden-u lift bound at 512 signatures 8923771996974608384 < p
+HIDDEN-U SELF CHECKS: all pass
+	Command being timed: "/data/bin/r3-cert h9self"
+	User time (seconds): 0.11
+	System time (seconds): 0.08
+	Percent of CPU this job got: 634%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 115084
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 5129
+	Voluntary context switches: 2476
+	Involuntary context switches: 440
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## end h9self | exit 0 | 2026-10-23T19:40:09Z | load 34.71 22.45 19.22
+## h9tests-128-johnson | 2026-10-23T19:40:09Z | load 34.71 22.45 19.22 | env H9_FAMILY=johnson | r3-cert h9tests 128
+# hidden-u acceptance tests, N = 128, lab profile 0xfff91007, lab chain profile 0xfff91107
+uptime at start: 19:40:09 up 217 days,  6:05,  0 users,  load average: 34.71, 22.45, 19.22
+## A. honest controls, extraction, profile isolation
+[PASS] honest certificate: ACCEPT
+[PASS] prover and verifier round logs identical (2785 rounds: roots, bodies, coin prefixes); verify true
+[PASS] registered calls only: 2785 FS derivations, 935503 coin bytes, 2781 singleton hashes, 14 p3 seeds declined, 0 grinding calls, 0 plain bit samples
+[PASS] canonical extraction: signatures rebuilt from (X, S, bit planes, public c_tilde) equal the originals and are accepted by libcrux: 128/128
+[PASS] registry: no hidden-u table for the production id, the QLYAUTH7 lab id, or another count
+[PASS] hidden-u certificate relabelled with the QLYAUTH7 lab id: REJECT Manifest
+[PASS] hidden-u certificate given to the QLYAUTH7 lab verifier: REJECT Parse("length mismatch / trailing bytes")
+[PASS] honest certificate under the UNSAFE no-Booleanity control (the control is complete): ACCEPT
+## B. hash-side attacks (relaxed key in slot 0 unless stated)
+[PASS] control: relaxed signer, true SHAKE256 challenge, all bounds respected: ACCEPT
+[PASS] wrong SHAKE suffix: c_tilde from the 0x06-padded sponge, prover's trace uses that padding block: REJECT Hash("input-link terminal check")
+[PASS] omitted padding permutation: c_tilde = first 64 bytes of S_8, honest nine-permutation trace: REJECT Hash("mask terminal check")
+[PASS] omitted padding: prover also drops the padding block from slot 8: REJECT Hash("mask terminal check")
+[PASS] wrong nibble order: U encoded high nibble first; c_tilde and the prover's trace use that encoding, the bits are the true u: REJECT Hash("input-link terminal check")

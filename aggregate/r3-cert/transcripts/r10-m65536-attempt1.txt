@@ -1,0 +1,9 @@
+# job m65536 | commit fea3f280527a258f3d091524adc85df1d9a233f7 | binary sha256 cdc84d6686d7c24672228d1098ca8ccff2a29b842d323f9ea04ca710926e9b75 | lab binary sha256 ae208c80f811d4602d2139bad55a16382993961a5b375f13ec268a0e370c5dd8
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## h9chain-65536-johnson | 2026-10-23T21:46:06Z | load 37.66 39.75 36.00 | env H9_FAMILY=johnson H9_K10_HIST=1 H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 | r3-cert h9chain 65536
+# hidden-u chain-range certificate (lab chain profile 0xfff91110, family Johnson), N = 65536, 512 blocks of 128
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill; round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 21:46:06 up 217 days,  8:11,  0 users,  load average: 37.66, 39.75, 36.00
+rayon threads: 24
+chain built (512 blocks, 65536 signatures signed and natively verified): 9.6 s
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
