@@ -1349,6 +1349,26 @@ fn main() {
         Some("h9chain") => h9chain_run(args[2].parse().unwrap()),
         Some("h9chainverify") => h9chain_verify(args[2].parse().unwrap(), &args[3]),
         Some("host") => println!("{}", host_line()),
+        Some("sched") => {
+            // Library-derived WHIR schedules of the round-10 lab profiles, both families.
+            for fam in [hidden::Fam::Johnson, hidden::Fam::Unique] {
+                hidden::set_family(fam);
+                for lg in 5..=16 {
+                    let n = 1usize << lg;
+                    let nv = hidden::stacked_vars9(n);
+                    let (sch, sec) = hidden::schedule_of(hidden::lab_profile9(n), nv);
+                    let r = std::panic::catch_unwind(|| {
+                        let (bits, cands) = hidden::pcs_security_bits9(n);
+                        let sh = hidden::whir_shape9(n);
+                        (bits, cands, sh.commitment_ood_samples, sh.rounds.iter().map(|r| r.query_draws).collect::<Vec<_>>(), sh.final_query_draws)
+                    });
+                    match r {
+                        Ok((bits, cands, ood, q, qf)) => println!("{fam:?} N = {n}: profile {:#010x}, dimension {nv}, schedule {sch:?}, {sec:?}: composed {bits:.2} bits, log2 max candidates {cands:.2}, OOD samples {ood}, queries {q:?} + final {qf}", hidden::lab_profile9(n)),
+                        Err(_) => println!("{fam:?} N = {n}: dimension {nv}, schedule {sch:?}: NO CONFIG"),
+                    }
+                }
+            }
+        }
         Some("k10cmp") => {
             let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };
             let modes: Vec<u8> = list(4).into_iter().map(|m| m as u8).collect();

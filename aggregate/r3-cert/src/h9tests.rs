@@ -768,6 +768,7 @@ fn fs_on_gkr(t: &mut Tally, base: &Case, honest: &[u8]) {
         let table = hidden::registered_table9(hidden::lab_profile9(n), n).unwrap();
         let mut t1 = (*table).clone();
         t1.rounds[0].shape.qslack += 1;
+        t1.formal_len = t1.rounds.iter().map(|d| d.shape.used()).max().unwrap();
         let r = prove_with_x(base, &base.records, &x, &Opts9 { table_override: Some(hidden::TableOv(Arc::new(t1))), ..Default::default() }).map(|b| verify(base, &b)).unwrap_or(Ok(()));
         t.expect("T-FS5 coins derived for another round-1 descriptor (slack + 1)", &r, false);
         let mut t2 = (*table).clone();

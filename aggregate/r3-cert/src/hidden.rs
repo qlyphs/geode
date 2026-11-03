@@ -738,17 +738,18 @@ pub struct B9 {
 /// Round 10, dimensions 27..31 (N = 4096 .. 65536): chosen with aggregate/r10-check/whir_plan.py
 /// among JohnsonBound schedules with no grinding whose WHIR ledger is at least 270 bits, for
 /// the smallest estimated proof under the first-codeword budget of the 24 GB prover (start rate
-/// 1/2 from dimension 29 on). Dimension 31 uses the per-term planner target 273 (pcs::target_for):
+/// 1/2 from dimension 29 on), with at most 6 variables left for the final polynomial (the
+/// library's folding threshold). Dimension 31 uses the per-term planner target 273 (pcs::target_for):
 /// at 272 its fold terms leave the composed figure at 269.3 bits.
 pub fn schedule9(nv: usize) -> (usize, Vec<usize>, Vec<usize>) {
     match nv {
         25 => (3, vec![6, 8, 10], vec![6, 5, 5, 5]),
         26 => (2, vec![5, 8, 10], vec![6, 5, 5, 5]),
-        27 => (2, vec![3, 6, 9], vec![6, 4, 4, 4]),
-        28 => (2, vec![3, 6, 9], vec![6, 5, 5, 5]),
-        29 => (1, vec![3, 6, 9], vec![6, 5, 5, 5]),
+        27 => (2, vec![4, 7, 10], vec![6, 5, 5, 5]),
+        28 => (2, vec![3, 6, 9], vec![7, 5, 5, 5]),
+        29 => (1, vec![2, 5, 8, 11], vec![6, 5, 5, 5, 5]),
         30 => (1, vec![3, 6, 9], vec![7, 6, 6, 6]),
-        31 => (1, vec![2, 5, 8], vec![6, 6, 6, 6]),
+        31 => (1, vec![2, 5, 8], vec![7, 6, 6, 6]),
         v => pcs::profile(v),
     }
 }
@@ -757,8 +758,12 @@ pub fn schedule9(nv: usize) -> (usize, Vec<usize>, Vec<usize>) {
 /// 65536 are the review ledger's candidates; the others follow the same family.
 pub fn schedule_ud(nv: usize) -> (usize, Vec<usize>, Vec<usize>) {
     match nv {
-        ..=25 => (2, vec![5, 8], vec![6, 5, 5]),
-        26..=28 => (2, vec![5, 8, 10], vec![6, 5, 5, 5]),
+        ..=21 => (2, vec![5, 8], vec![6, 5, 5]),
+        22 => (2, vec![5, 8, 10], vec![6, 4, 4, 4]),
+        23 => (2, vec![5, 8, 10], vec![6, 5, 4, 4]),
+        24 => (2, vec![5, 8, 10], vec![6, 5, 5, 4]),
+        25..=27 => (2, vec![5, 8, 10], vec![6, 5, 5, 5]),
+        28 => (2, vec![5, 8, 10], vec![6, 6, 5, 5]),
         29 => (2, vec![5, 8, 10, 11], vec![6, 5, 5, 5, 3]),
         30 => (2, vec![5, 8, 10, 11], vec![6, 5, 5, 5, 4]),
         _ => (1, vec![2, 5, 8, 11], vec![6, 5, 5, 5, 5]),

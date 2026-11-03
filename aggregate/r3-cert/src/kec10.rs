@@ -27,6 +27,9 @@ use std::sync::atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering::Relaxed};
 pub static ON: AtomicBool = AtomicBool::new(true);
 /// Phase-A round at which the folded layer is materialized (H9_K10_J, 1..=4; capped at log2 N).
 pub static JMAT: AtomicUsize = AtomicUsize::new(4);
+/// Weighted-histogram rounds (round 9 section D) for the phase-A rounds j < 3 where a term's
+/// table fits (H9_K10_HIST=1; default off until its whole-kernel timing is measured).
+pub static HIST: AtomicBool = AtomicBool::new(false);
 /// Test-only challenge injection in the phase-A rounds of every Keccak layer, applied in both
 /// prover paths after the challenge is sampled: 0 off (the protocol), 1 = 0, 2 = 1, 3 = 1/2,
 /// 4 = (1 - x)/(1 - 2x) (eq1(x, r) = 0, exceptional Gruen), 5 = (1 + i)/2, 6 = a base-field
@@ -45,6 +48,9 @@ pub fn configure_from_env() -> String {
     if let Ok(v) = std::env::var("H9_K10") {
         ON.store(v != "0", Relaxed);
     }
+    if let Ok(v) = std::env::var("H9_K10_HIST") {
+        HIST.store(v == "1", Relaxed);
+    }
     if let Ok(v) = std::env::var("H9_K10_J") {
         JMAT.store(v.parse::<usize>().expect("H9_K10_J").clamp(1, 4), Relaxed);
     }
@@ -53,7 +59,7 @@ pub fn configure_from_env() -> String {
 
 pub fn describe() -> String {
     if ON.load(Relaxed) {
-        format!("round-10 Keccak path (packed trace, selection rounds, materialization at round {})", JMAT.load(Relaxed))
+        format!("round-10 Keccak path (packed trace, selection rounds, materialization at round {}, histogram rounds {})", JMAT.load(Relaxed), if HIST.load(Relaxed) { "on" } else { "off" })
     } else {
         "reference Keccak path (field-valued layers, folded arrays)".into()
     }
@@ -319,10 +325,235 @@ impl Trace10 {
     }
 }
 
+// ---------------------------------------------------------------- histogram rounds
+
+/// Histogram rounds are tried for j < HROUNDS only.
+const HROUNDS: usize = 3;
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+enum Form {
+    /// Endpoint classes: class = the 2^(j+1) bits of every factor; q(t) = sum_c G[c] f_c(t).
+    E,
+    /// Endpoint selections: for each sigma in {0,1}^d the alphabet tuple of the selected
+    /// endpoints goes to bin H_|sigma|; q(t) = sum_k T_k t^k (1-t)^(d-k), T_k = sum H_k f.
+    S,
+}
+
+/// The form for round j of a term, or None (the term selects in round j).
+fn form(k: &Kind, j: usize) -> Option<Form> {
+    if j >= HROUNDS {
+        return None;
+    }
+    let d = k.uses().len();
+    let multilinear = !matches!(k, Kind::Sq(_));
+    if d << (j + 1) <= 12 {
+        Some(Form::E)
+    } else if multilinear && d << j <= 12 {
+        Some(Form::S)
+    } else {
+        None
+    }
+}
+
+/// Gathered planes of one gather: rows x |words| words, and which words read the support.
+fn gplanes(m: &GMap, l: &PLayer, rows: usize) -> (Vec<u64>, Vec<bool>) {
+    let mw = m.words.len();
+    let mut buf = vec![0u64; rows * mw];
+    buf.par_chunks_mut(mw).enumerate().for_each(|(p, o)| {
+        let row = &l.bits[p * WORDS..(p + 1) * WORDS];
+        for i in 0..mw {
+            o[i] = row[m.src[i]].rotate_left(m.rot[i]);
+        }
+    });
+    (buf, m.src.iter().map(|&s| l.support >> s & 1 == 1).collect())
+}
+
+/// t^k (1 - t)^(d - k) at a small integer t.
+fn bern(t: usize, k: usize, d: usize) -> F {
+    let (a, b) = (F::from_usize(t), F::ONE - F::from_usize(t));
+    (0..k).fold(F::ONE, |x, _| x * a) * (0..d - k).fold(F::ONE, |x, _| x * b)
+}
+
+/// One histogram round of one term (the round-9 prototype, with the dummy row pairs skipped):
+/// q(t) for t = 0..=df, summed over the real row pairs and the term's cells.
+#[allow(clippy::too_many_arguments)]
+fn hist_term(kind: &Kind, fm: Form, pl: &[&[u64]], live: &[bool], w: &[EF], vals: &[EF], j: usize, rows: usize, rp: &[EF], df: usize, nreal: usize) -> [EF; MAXJ] {
+    let uses = kind.uses();
+    let d = uses.len();
+    let mw = live.len();
+    let m = mw * 64;
+    let hr = rows / 2;
+    let nb = hr.trailing_zeros() as usize;
+    let kb = 2usize << j;
+    let ab = 1usize << j;
+    let ncls = match fm {
+        Form::E => 1usize << (d * kb),
+        Form::S => (d + 1) << (d * ab),
+    };
+    let ca = 1usize << (d * ab);
+    let threads = rayon::current_num_threads();
+    let live_words = live.iter().filter(|&&x| x).count().max(1);
+    let plan = |b: usize| {
+        let blocks = 1usize << (nb - b);
+        let chunks = (2 * threads).div_ceil(blocks).min(live_words).max(1);
+        let collapse = if blocks == 1 { threads * ncls / 6 } else { blocks * chunks * ncls * 7 / 6 };
+        ((1usize << b) * m + collapse, chunks)
+    };
+    // Blocks of at least 16 rows so that a block's rows share their slot pattern.
+    let b = (4.min(nb)..=nb).min_by_key(|&b| plan(b).0).unwrap();
+    let chunks = plan(b).1;
+    let e_lo = eq_table(&rp[..b]);
+    let e_hi = eq_table(&rp[b..nb]);
+    let nlo = 1usize << b;
+    let mut we = vec![EF::ZERO; nlo * m];
+    we.par_chunks_mut(m).enumerate().for_each(|(l, o)| {
+        for (x, &y) in o.iter_mut().zip(w) {
+            *x = e_lo[l] * y;
+        }
+    });
+    let lw: Vec<usize> = (0..mw).filter(|&i| live[i]).collect();
+    let per = lw.len().div_ceil(chunks).max(1);
+    let tasks: Vec<(usize, usize, usize)> = {
+        let nlw = lw.len();
+        (0..e_hi.len()).flat_map(move |ph| (0..nlw).step_by(per).map(move |c0| (ph, c0, (c0 + per).min(nlw))))
+    }
+    .collect();
+    let single = e_hi.len() == 1;
+    let g = tasks
+        .par_iter()
+        .fold(
+            || (vec![EF::ZERO; if single { 0 } else { ncls }], vec![EF::ZERO; ncls]),
+            |(mut gt, mut ga), &(ph, c0, c1)| {
+                let dst: &mut Vec<EF> = if single {
+                    &mut ga
+                } else {
+                    gt.iter_mut().for_each(|x| *x = EF::ZERO);
+                    &mut gt
+                };
+                for l in 0..nlo {
+                    let p = l | (ph << b);
+                    if p % 16 >= nreal {
+                        continue;
+                    }
+                    let wrow = &we[l * m..(l + 1) * m];
+                    for &i in &lw[c0..c1] {
+                        let ws = &wrow[i * 64..i * 64 + 64];
+                        match fm {
+                            Form::E => {
+                                let mut acc = [0u128; 8];
+                                for (fi, g) in pl.iter().enumerate() {
+                                    for k in 0..kb {
+                                        or_plane(&mut acc, g[(p + k * hr) * mw + i], (fi * kb + k) as u32);
+                                    }
+                                }
+                                let cls = lanes(&acc);
+                                for z in 0..64 {
+                                    dst[cls[z] as usize] += ws[z];
+                                }
+                            }
+                            Form::S => {
+                                let mut lo = [[0u16; 64]; 6];
+                                let mut hi = [[0u16; 64]; 6];
+                                for (fi, g) in pl.iter().enumerate() {
+                                    let (mut al, mut ah) = ([0u128; 8], [0u128; 8]);
+                                    for k in 0..ab {
+                                        let sh = (fi * ab + k) as u32;
+                                        or_plane(&mut al, g[(p + 2 * k * hr) * mw + i], sh);
+                                        or_plane(&mut ah, g[(p + (2 * k + 1) * hr) * mw + i], sh);
+                                    }
+                                    lo[fi] = lanes(&al);
+                                    hi[fi] = lanes(&ah);
+                                }
+                                let mut sums = [0u32; 32];
+                                for z in 0..64 {
+                                    sums[0] = (0..d).fold(0, |a, fi| a | lo[fi][z] as u32);
+                                    for fi in 0..d {
+                                        let delta = (hi[fi][z] as u32).wrapping_sub(lo[fi][z] as u32);
+                                        for mm in 0..1usize << fi {
+                                            sums[mm | 1 << fi] = sums[mm].wrapping_add(delta);
+                                        }
+                                    }
+                                    for (sg, &a) in sums.iter().enumerate().take(1 << d) {
+                                        dst[(sg.count_ones() as usize) * ca + a as usize] += ws[z];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if !single {
+                    let e = e_hi[ph];
+                    for (a, &x) in ga.iter_mut().zip(gt.iter()) {
+                        *a += e * x;
+                    }
+                }
+                (gt, ga)
+            },
+        )
+        .map(|(_, ga)| ga)
+        .reduce(
+            || vec![EF::ZERO; ncls],
+            |mut a, b| {
+                a.iter_mut().zip(&b).for_each(|(x, y)| *x += *y);
+                a
+            },
+        );
+    let mut q = [EF::ZERO; MAXJ];
+    match fm {
+        Form::E => {
+            let mask = (1usize << kb) - 1;
+            q = (0..ncls)
+                .into_par_iter()
+                .with_min_len(64)
+                .map(|c| {
+                    let mut out = [EF::ZERO; MAXJ];
+                    if g[c] == EF::ZERO {
+                        return out;
+                    }
+                    let mut lohi = [(EF::ZERO, EF::ZERO); MAXJ];
+                    for (fi, &u) in uses.iter().enumerate() {
+                        let pat = c >> (fi * kb) & mask;
+                        lohi[u] = (vals[even_bits(pat, ab)], vals[odd_bits(pat, ab)]);
+                    }
+                    for (t, o) in out.iter_mut().enumerate().take(df + 1) {
+                        let mut v = [EF::ZERO; MAXJ];
+                        for &u in &uses {
+                            let (lo, hi) = lohi[u];
+                            v[u] = lo + (hi - lo) * F::from_usize(t);
+                        }
+                        *o = g[c] * eval_f(kind, &v);
+                    }
+                    out
+                })
+                .reduce(|| [EF::ZERO; MAXJ], |a, b| core::array::from_fn(|k| a[k] + b[k]));
+        }
+        Form::S => {
+            let amask = (1usize << ab) - 1;
+            let fa: Vec<EF> = (0..ca)
+                .into_par_iter()
+                .with_min_len(64)
+                .map(|a| {
+                    let mut v = [EF::ZERO; MAXJ];
+                    for (fi, &u) in uses.iter().enumerate() {
+                        v[u] = vals[a >> (fi * ab) & amask];
+                    }
+                    eval_f(kind, &v)
+                })
+                .collect();
+            let tk: Vec<EF> = (0..=d).map(|k| g[k * ca..(k + 1) * ca].iter().zip(&fa).map(|(&h, &f)| h * f).sum()).collect();
+            for (t, o) in q.iter_mut().enumerate().take(df + 1) {
+                *o = (0..=d).map(|k| tk[k] * bern(t, k, d)).sum();
+            }
+        }
+    }
+    q
+}
+
 // ---------------------------------------------------------------- main layer sumcheck
 
 /// Round 0 from the packed layer, in the base field (the reference evaluates the same values).
-fn round0(spec: &Spec, maps: &[GMap], lay: &PLayer, ep: &[EF], wc: &[Vec<EF>], rows: usize, nreal: usize, with1: bool) -> [EF; MAXJ] {
+#[allow(clippy::too_many_arguments)]
+fn round0(spec: &Spec, maps: &[GMap], lay: &PLayer, ep: &[EF], wc: &[Vec<EF>], rows: usize, nreal: usize, with1: bool, mask: &[bool]) -> [EF; MAXJ] {
     let df = spec.deg_f();
     let hr = rows / 2;
     let pm = |b: u64| if b & 1 == 1 { -F::ONE } else { F::ONE };
@@ -333,6 +564,9 @@ fn round0(spec: &Spec, maps: &[GMap], lay: &PLayer, ep: &[EF], wc: &[Vec<EF>], r
             let mut acc = [EF::ZERO; MAXJ];
             let mut vals = [[F::ZERO; MAXJ]; MAXJ];
             for (ti, t) in spec.terms.iter().enumerate() {
+                if !mask[ti] {
+                    continue;
+                }
                 let uses = t.kind.uses();
                 let nw = t.active.len() / 64;
                 if let Kind::Lin(j) = t.kind {
@@ -395,7 +629,7 @@ fn round0(spec: &Spec, maps: &[GMap], lay: &PLayer, ep: &[EF], wc: &[Vec<EF>], r
 
 /// Round j >= 1 by selection: the folded values of row pair (p, p + hr) are read from `vals`.
 #[allow(clippy::too_many_arguments)]
-fn round_sel(spec: &Spec, maps: &[GMap], lay: &PLayer, vals_t: &[EF], j: usize, ep: &[EF], wc: &[Vec<EF>], rows_j: usize, nreal: usize, with1: bool) -> [EF; MAXJ] {
+fn round_sel(spec: &Spec, maps: &[GMap], lay: &PLayer, vals_t: &[EF], j: usize, ep: &[EF], wc: &[Vec<EF>], rows_j: usize, nreal: usize, with1: bool, mask: &[bool]) -> [EF; MAXJ] {
     let df = spec.deg_f();
     let hr = rows_j / 2;
     (0..hr)
@@ -405,6 +639,9 @@ fn round_sel(spec: &Spec, maps: &[GMap], lay: &PLayer, vals_t: &[EF], j: usize, 
             let mut acc = [EF::ZERO; MAXJ];
             let mut vals = [[EF::ZERO; MAXJ]; MAXJ];
             for (ti, t) in spec.terms.iter().enumerate() {
+                if !mask[ti] {
+                    continue;
+                }
                 let uses = t.kind.uses();
                 let nw = t.active.len() / 64;
                 if let Kind::Lin(jj) = t.kind {
@@ -514,14 +751,38 @@ pub fn main_prove_k10<T: crate::pcs::Fs>(spec: &Spec, maps: &[GMap], lay: &PLaye
     };
     // Selection rounds (signature bits only, j < jm <= log2 N).
     let t0 = Instant::now();
+    let hist_on = HIST.load(Relaxed);
+    let mut planes: Option<Vec<(Vec<u64>, Vec<bool>)>> = if hist_on { Some(maps.iter().map(|m| gplanes(m, lay, rows)).collect()) } else { None };
     for j in 0..jm {
         let var = LOGW + rows.trailing_zeros() as usize - 1;
         let x = rp[var - LOGW];
         let with1 = x == EF::ZERO;
-        let mut q = if j == 0 { round0(spec, maps, lay, &ep, &wc, rows, nreal, with1) } else { round_sel(spec, maps, lay, &vals_t, j, &ep, &wc, rows, nreal, with1) };
+        // Terms whose histogram table fits take the histogram round; the others select.
+        let hist: Vec<Option<Form>> = spec.terms.iter().map(|t| if hist_on { form(&t.kind, j) } else { None }).collect();
+        let mask: Vec<bool> = hist.iter().map(|h| h.is_none()).collect();
+        let mut q = if !mask.iter().any(|&m| m) {
+            [EF::ZERO; MAXJ]
+        } else if j == 0 {
+            round0(spec, maps, lay, &ep, &wc, rows, nreal, with1, &mask)
+        } else {
+            round_sel(spec, maps, lay, &vals_t, j, &ep, &wc, rows, nreal, with1, &mask)
+        };
+        for (ti, t) in spec.terms.iter().enumerate() {
+            if let Some(fm) = hist[ti] {
+                let uses = t.kind.uses();
+                let pl: Vec<&[u64]> = uses.iter().map(|&u| planes.as_ref().unwrap()[u].0.as_slice()).collect();
+                let h = hist_term(&t.kind, fm, &pl, &planes.as_ref().unwrap()[uses[0]].1, &wc[ti], &vals_t, j, rows, rp, df, nreal);
+                for k in 0..=df {
+                    q[k] += h[k];
+                }
+            }
+        }
         let r = send(&mut q, x, &mut claim, tr, msgs);
         pt[var] = r;
         vals_t = next_vals(&vals_t, r);
+        if j + 1 >= HROUNDS {
+            planes = None;
+        }
         if ep.len() > 1 {
             halve_eq(&mut ep);
         }

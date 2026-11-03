@@ -1,6 +1,6 @@
 #!/bin/bash
 # entry.sh: build r3-cert (release, --locked) from /src into the volume, record the host, then
-# idle. Jobs are started with `/src/r10-jobs/start-job.sh <job>` over a remote shell
+# idle. Jobs are started with `/src/r10-jobs/start-job.sh <job>[,<job>]` over a remote shell
 # or by setting JOB=<job> before a deploy.
 set -u
 mkdir -p /data/logs /data/out /data/spill /data/bin
