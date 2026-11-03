@@ -1,0 +1,142 @@
+# lab commit 40a46c1 + round-8 working tree, binary sha256 fe9abb8050cf5552, Apple M3 Pro, rustc 1.96.0
+# command: r3-cert gates7
+# start: 15:37  up 11 days, 13:34, 1 user, load averages: 29.79 22.44 17.18
+# r3-cert round 7 acceptance gates, profile 0x00070001 (QLYAUTH7), N = 2048
+uptime at start: 15:37  up 11 days, 13:34, 1 user, load averages: 29.79 22.44 17.18
+chain: 16 blocks x 128 records built and node-validated in 460 ms
+-- registered round table: 354 rounds, 350 scalar singletons, formal L = 173568 B, decoder prefixes 365136 B in total
+          1  initial commitment; projections: real tree; nk 0, nq 57344; used 173568 B
+          2  quotients; theta: 280 B body; nk 0, theta; used 376 B
+          3  GKR layer-1 finals; beta_0, lambda_1: 160 B body; nk 2; used 336 B
+          4  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+          5  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+        6-7  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+          8  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+       9-11  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         12  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      13-16  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         17  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      18-22  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         23  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      24-29  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         30  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      31-37  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         38  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      39-46  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         47  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      48-56  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         57  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      58-67  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         68  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      69-79  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         80  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+      81-92  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+         93  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+     94-106  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        107  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    108-121  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        122  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    123-137  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        138  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    139-154  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        155  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    156-172  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        173  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    174-191  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        192  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    193-211  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        212  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    213-232  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        233  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    234-254  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        255  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 2; used 336 B
+    256-277  GKR round (a1, a2): 80 B body; nk 1; used 296 B
+        278  GKR finals; beta_k (, lambda_k+1): 160 B body; nk 1; used 296 B
+        279  explicit (P_leaf, Q_leaf); gamma_P, gamma_Q: 80 B body; nk 2; used 336 B
+        280  T; gamma_Z, tau, omega, mu: 40 B body; nk 2127; used 85336 B
+    281-302  master round: 160 B body; nk 1; used 296 B
+    303-321  table round: 80 B body; nk 1; used 296 B
+        322  empty; initial OOD point: 0 B body; nk 1; used 296 B
+        323  initial OOD answer, 5 opened values; batching alpha: 240 B body; nk 1; used 296 B
+    324-329  WHIR sumcheck: 80 B body; nk 1; used 296 B
+        330  WHIR commitment; OOD point: real tree; nk 1; used 296 B
+        331  OOD answer; query indices, gamma: 40 B body; nk 1, 141 indices of 22 bits; used 860 B; opens the tree of round 1
+    332-336  WHIR sumcheck: 80 B body; nk 1; used 296 B
+        337  WHIR commitment; OOD point: real tree; nk 1; used 296 B
+        338  OOD answer; query indices, gamma: 40 B body; nk 1, 80 indices of 20 bits; used 616 B; opens the tree of round 330
+    339-343  WHIR sumcheck: 80 B body; nk 1; used 296 B
+        344  WHIR commitment; OOD point: real tree; nk 1; used 296 B
+        345  OOD answer; query indices, gamma: 40 B body; nk 1, 62 indices of 17 bits; used 544 B; opens the tree of round 337
+    346-349  WHIR sumcheck: 80 B body; nk 1; used 296 B
+        350  final polynomial; final query indices: 640 B body; nk 0, 51 indices of 15 bits; used 204 B; opens the tree of round 344
+    351-354  final sumcheck: 80 B body; nk 1; used 296 B
+[PASS] round table matches spec §4 (279 explicit pair, 280 nk = 2127, 322 empty, 330/337/344 real, 331/338/345/350 indices 141x22/80x20/62x17/51x15 with gamma except 350, 350 body 16 K, 354 rounds)
+raw instance X: 7914404 bytes (manifest, parent Header104, block section with 2048 AuthRecords and state keys, U, nu)
+prover 11534 ms, verifier 678 ms; certificate 2682753 B (leaf pair 80 B); VERIFY: ACCEPT
+[PASS] honest certificate accepted by the chain verifier under 0x00070001
+## gate 1: full-preimage reference vs incremental prefix implementation, all 354 blocks
+  reference: 354 preimages of 7914547 to 7942434 bytes, 173568 B squeezed each (0.85 s, 11 threads); incremental full blocks (0.10 s)
+[PASS] incremental implementation, full formal length, equals the reference on 354/354 blocks
+[PASS] prefixes the verifier's adapter squeezed equal the reference prefix on 354/354 blocks
+[PASS] prover and verifier adapters derived identical roots, bodies and prefixes in all rounds
+## gate 2: registered challenge calls only
+  prover: FS calls 354, coin bytes 365136, singleton leaf hashes 350, p3 domain seeds declined 11, grinding calls 0, plain bit samples 0, Merkle leaf hashes 5406720, error None
+[PASS] prover: exactly 354 SHAKE256 coin derivations, one per registered round, 365,136 bytes in total (no refill), 350 singleton hashes, no grinding or plain bit sample, every slot consumed
+[PASS] prover: every p3 DomainSeparator seed declined (11 seeds), none absorbed
+  verifier: FS calls 354, coin bytes 365136, singleton leaf hashes 350, p3 domain seeds declined 11, grinding calls 0, plain bit samples 0, Merkle leaf hashes 334, error None
+[PASS] verifier: exactly 354 SHAKE256 coin derivations, one per registered round, 365,136 bytes in total (no refill), 350 singleton hashes, no grinding or plain bit sample, every slot consumed
+[PASS] verifier: every p3 DomainSeparator seed declined (11 seeds), none absorbed
+[PASS] no separate projection XOF in prove + verify (QLYAUTH4 XOF calls: 0)
+[PASS] control: the counter sees the QLYAUTH4 projection XOF (28 calls for one challenge set)
+## gate 3: roots reconstructed from the certificate bytes alone
+[PASS] 350 singleton roots recomputed from wire bodies (incl. the 80-byte pair at 279 and the empty body at 322) and 4 real roots read from the wire: 354/354 equal the verifier's history
+## gate 4: canonical parsing, trailing bytes, unregistered profiles
+[PASS] one trailing byte: REJECT Parse("length mismatch / trailing bytes")
+[PASS] one byte appended inside the WHIR proof, length raised: REJECT Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)")
+[PASS] frontend: first GKR coefficient set to p (non-canonical): REJECT Parse("non-canonical field element")
+[PASS] WHIR initial OOD answer word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR initial OOD answer word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] WHIR opened value X(r) word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR opened value X(r) word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] WHIR initial sumcheck message word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR initial sumcheck message word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] WHIR opened base-field row (initial tree) word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR opened base-field row (initial tree) word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] WHIR opened extension row (round-1 tree) word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR opened extension row (round-1 tree) word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] WHIR round-2 OOD answer word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR round-2 OOD answer word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] WHIR final polynomial value word set to p + 5 (non-canonical): REJECT Parse("WHIR proof")
+[PASS] WHIR final polynomial value word changed to a canonical value: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] nonzero grinding witness of WHIR round 0 (pow bits 0): REJECT Whir("NonCanonicalPowWitness { round: 0 }")
+[PASS] nonzero final grinding witness: REJECT Whir("NonCanonicalPowWitness { round: 3 }")
+[PASS] grinding witnesses inserted into a zero-difficulty sumcheck: REJECT Whir("Sumcheck(PowWitnessCountMismatch { expected: 0, actual: 6 })")
+[PASS] final polynomial removed (None): REJECT Whir("MissingFinalPoly")
+[PASS] profile id 0xffffffff (codec test profile): REJECT Profile("unregistered profile 0xffffffff for N = 2048")
+[PASS] profile id 0x00070002 (unregistered): REJECT Profile("unregistered profile 0x00070002 for N = 2048")
+[PASS] lab profile 0xfff7000b at the chain verifier: REJECT Profile("unregistered profile 0xfff7000b for N = 2048")
+[PASS] magic QLYAUTH5: REJECT Profile("unregistered manifest magic")
+[PASS] QLYAUTH7 certificate relabelled QLYAUTH4: REJECT Parse("length mismatch / trailing bytes")
+[PASS] registry: 0x00070001 fixes N = 2048 (no table at 1024), 0xffffffff and lab ids are not production profiles
+[PASS] explicit (P_leaf, Q_leaf) pair: one bit flipped: REJECT LeafPair
+GATES7 SUMMARY: 40/40 checks pass
+uptime at end: 15:37  up 11 days, 13:34, 1 user, load averages: 32.48 23.42 17.62
+       15.78 real        45.30 user         5.69 sys
+          2908979200  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1655177  page reclaims
+                  12  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   3  voluntary context switches
+              360982  involuntary context switches
+        631253393401  instructions retired
+        158109683283  cycles elapsed
+          5390340272  peak memory footprint
+# exit 0; end: 15:37  up 11 days, 13:34, 1 user, load averages: 32.48 23.42 17.62

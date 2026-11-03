@@ -1,0 +1,91 @@
+# lab commit 40a46c1 + round-8 working tree, binary sha256 fe9abb8050cf5552, Apple M3 Pro, rustc 1.96.0
+# command: r3-cert route8
+# start: 15:32  up 11 days, 13:29, 1 user, load averages: 15.58 13.38 12.91
+# r3-cert route8: routing invariant of the QLYAUTH7 leaf hasher (review r8 A.2)
+# matrices of 2048 rows x 64 base words (512-byte rows), global rayon pool of 11 threads
+## 1. route selected by the adapter at every tree commitment and query round
+[PASS] 0x00070001: before the commitment of tree 1, route = 1
+[PASS] 0x00070001: before the commitment of tree 330, route = 330
+[PASS] 0x00070001: before the commitment of tree 337, route = 337
+[PASS] 0x00070001: before the commitment of tree 344, route = 344
+[PASS] 0x00070001: query round 331 opens tree 1, route = 1
+[PASS] 0x00070001: query round 338 opens tree 330, route = 330
+[PASS] 0x00070001: query round 345 opens tree 337, route = 337
+[PASS] 0x00070001: query round 350 opens tree 344, route = 344
+[PASS] 0x00070001: registered old-tree mapping is 331->1, 338->330, 345->337, 350->344: [(331, 1), (338, 330), (345, 337), (350, 344)]
+[PASS] 0xfff7000b: before the commitment of tree 1, route = 1
+[PASS] 0xfff7000b: before the commitment of tree 330, route = 330
+[PASS] 0xfff7000b: before the commitment of tree 337, route = 337
+[PASS] 0xfff7000b: before the commitment of tree 344, route = 344
+[PASS] 0xfff7000b: query round 331 opens tree 1, route = 1
+[PASS] 0xfff7000b: query round 338 opens tree 330, route = 330
+[PASS] 0xfff7000b: query round 345 opens tree 337, route = 337
+[PASS] 0xfff7000b: query round 350 opens tree 344, route = 344
+[PASS] 0xfff7000b: registered old-tree mapping is 331->1, 338->330, 345->337, 350->344: [(331, 1), (338, 330), (345, 337), (350, 344)]
+## 2. forced interleaving: A pauses before a leaf call, B selects another route and hashes, A resumes (one cell per job)
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH7 lab 0xfff7000b commit tree 330: A agrees with its reference: route 1: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH7 lab 0xfff7000b commit tree 330: B agrees with its reference: route 330: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH7 lab 0xfff7000b commit tree 330: A's route unchanged while paused (1 -> 1)
+[PASS] A = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 338 (opens the tree it maps to): A agrees with its reference: route 1: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 338 (opens the tree it maps to): B agrees with its reference: route 330: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 338 (opens the tree it maps to): A's route unchanged while paused (1 -> 1)
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 345 (opens the tree it maps to): A agrees with its reference: route 330: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 345 (opens the tree it maps to): B agrees with its reference: route 337: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 345 (opens the tree it maps to): A's route unchanged while paused (330 -> 330)
+[PASS] A = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 350 (opens the tree it maps to): A agrees with its reference: route 337: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 350 (opens the tree it maps to): B agrees with its reference: route 344: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 350 (opens the tree it maps to): A's route unchanged while paused (337 -> 337)
+[PASS] A = QLYAUTH7 0x00070001 query round 350 (opens the tree it maps to) | B = QLYAUTH7 0x00070001 commit tree 1: A agrees with its reference: route 344: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 350 (opens the tree it maps to) | B = QLYAUTH7 0x00070001 commit tree 1: B agrees with its reference: route 1: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 350 (opens the tree it maps to) | B = QLYAUTH7 0x00070001 commit tree 1: A's route unchanged while paused (344 -> 344)
+[PASS] A = QLYAUTH7 0x00070001 commit tree 337 | B = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to): A agrees with its reference: route 337: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 337 | B = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to): B agrees with its reference: route 1: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 337 | B = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to): A's route unchanged while paused (337 -> 337)
+[PASS] A = QLYAUTH7 lab 0xfff7000b commit tree 344 | B = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to): A agrees with its reference: route 344: root and openings equal the reference
+[PASS] A = QLYAUTH7 lab 0xfff7000b commit tree 344 | B = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to): B agrees with its reference: route 337: root and openings equal the reference
+[PASS] A = QLYAUTH7 lab 0xfff7000b commit tree 344 | B = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to): A's route unchanged while paused (344 -> 344)
+[PASS] A = QLYAUTH4 commit | B = QLYAUTH7 0x00070001 commit tree 330: A agrees with its reference: route 0: root and openings equal the reference
+[PASS] A = QLYAUTH4 commit | B = QLYAUTH7 0x00070001 commit tree 330: B agrees with its reference: route 330: root and openings equal the reference
+[PASS] A = QLYAUTH4 commit | B = QLYAUTH7 0x00070001 commit tree 330: A's route unchanged while paused (0 -> 0)
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH4 commit: A agrees with its reference: route 1: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH4 commit: B agrees with its reference: route 0: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH4 commit: A's route unchanged while paused (1 -> 1)
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH4 verify: A agrees with its reference: route 330: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH4 verify: B agrees with its reference: route 0: root and openings equal the reference
+[PASS] A = QLYAUTH7 0x00070001 query round 338 (opens the tree it maps to) | B = QLYAUTH4 verify: A's route unchanged while paused (330 -> 330)
+## 3. control: one routing cell shared by both jobs (not the production design); the harness must see the race
+[PASS] shared cell, A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH7 lab 0xfff7000b commit tree 330: race detected (A disagrees with its reference after B moved the route 1 -> 330): root differs from the reference; opening 0 differs from the reference; opening 0 fails p3 verify_batch; opening 1023 differs from the reference; opening 1023 fails p3 verify_batch; opening 2047 differs from the reference; opening 2047 fails p3 verify_batch; 
+[PASS] shared cell, A = QLYAUTH7 0x00070001 commit tree 1 | B = QLYAUTH7 lab 0xfff7000b commit tree 330: B itself agrees with its reference: route 330: root and openings equal the reference
+[PASS] shared cell, A = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 338 (opens the tree it maps to): race detected (A disagrees with its reference after B moved the route 1 -> 330): reference opening 1023 of tree 1 rejected by p3 verify_batch; reference opening 2047 of tree 1 rejected by p3 verify_batch; 
+[PASS] shared cell, A = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 338 (opens the tree it maps to): B itself agrees with its reference: route 330: root and openings equal the reference
+[PASS] shared cell, A = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 350 (opens the tree it maps to): race detected (A disagrees with its reference after B moved the route 337 -> 344): reference opening 1023 of tree 337 rejected by p3 verify_batch; reference opening 2047 of tree 337 rejected by p3 verify_batch; 
+[PASS] shared cell, A = QLYAUTH7 0x00070001 query round 345 (opens the tree it maps to) | B = QLYAUTH7 lab 0xfff7000b query round 350 (opens the tree it maps to): B itself agrees with its reference: route 344: root and openings equal the reference
+[PASS] shared cell, A = QLYAUTH7 0x00070001 commit tree 337 | B = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to): race detected (A disagrees with its reference after B moved the route 337 -> 1): root differs from the reference; opening 0 differs from the reference; opening 0 fails p3 verify_batch; opening 1023 differs from the reference; opening 1023 fails p3 verify_batch; opening 2047 differs from the reference; opening 2047 fails p3 verify_batch; 
+[PASS] shared cell, A = QLYAUTH7 0x00070001 commit tree 337 | B = QLYAUTH7 0x00070001 query round 331 (opens the tree it maps to): B itself agrees with its reference: route 1: root and openings equal the reference
+## 4. the last leaf call of a parallel commitment paused; the driver cannot move the route until it joins
+[PASS] while the last call (2048/2048 started) is paused: commit has not returned and the route stays 1 (5 checks over 300 ms)
+[PASS] after the worker joins: root and openings equal the reference for (0x00070001, tree 1): route 1: root and openings equal the reference
+[PASS] only then does the driver move the route to the next tree (330): route now 330
+## 5. ownership: cert::B7::new builds one routing cell per certificate
+[PASS] two B7 instances do not share a routing cell
+[PASS] a fresh B7 starts with route 1 (round 1 is the initial tree)
+ROUTE8 SUMMARY: 61/61 checks behave as expected
+        1.77 real         0.85 user         0.45 sys
+           142245888  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              166919  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               24354  involuntary context switches
+          9790374825  instructions retired
+          4235530082  cycles elapsed
+           140214704  peak memory footprint
+# exit 0; end: 15:32  up 11 days, 13:29, 1 user, load averages: 14.89 13.27 12.88

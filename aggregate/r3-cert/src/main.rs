@@ -9,6 +9,7 @@ mod field;
 mod fs7;
 mod alloc;
 mod attack7;
+mod attack8;
 mod batch;
 mod gates7;
 mod gkr;
@@ -19,6 +20,7 @@ mod proj;
 mod reg7;
 mod region;
 mod relaxed;
+mod route8;
 mod sumcheck;
 mod witness;
 
@@ -531,9 +533,15 @@ fn verify_file(n: usize, path: &str) {
 /// recounted; that signature's count + 1. Applied after witness::build, i.e. below every check
 /// the honest builder makes. Returns (signature, cells) and checks that only ternarity breaks.
 fn inject_half(w: &mut witness::Witness) -> (usize, Vec<usize>) {
+    inject_half_from(w, 0)
+}
+
+/// The same mutation on the first eligible signature with index >= `from` (round 8: the
+/// production profile places it in the fourth 512-signature chunk).
+pub(crate) fn inject_half_from(w: &mut witness::Witness, from: usize) -> (usize, Vec<usize>) {
     let co = region::all_coeffs();
     let half = F::TWO.inverse();
-    let i = (0..w.n).find(|&i| w.counts[i] <= 74).expect("a signature with at most 74 hints");
+    let i = (from..w.n).find(|&i| w.counts[i] <= 74).expect("a signature with at most 74 hints");
     let base = i * SLOTS;
     let cells: Vec<usize> = (0..K * N)
         .map(|t| base + t)
@@ -1097,6 +1105,8 @@ fn main() {
         Some("vectors7") => vectors7(),
         Some("gates7") => gates7::run(),
         Some("attack7") => attack7::run(),
+        Some("attack8") => attack8::run(),
+        Some("route8") => route8::run(),
         Some("chainmeasure") => chain_measure(),
         Some("chainverify") => chain_verify(&args[2]),
         Some("run") => run(args.get(2).map_or(128, |s| s.parse().unwrap())),
@@ -1122,6 +1132,6 @@ fn main() {
         Some("keccak") => keccak_cmd(args.get(2).map_or(10, |s| s.parse().unwrap()), args.get(3).map(|s| s == "tests").unwrap_or(false)),
         Some("chain") => chain_cmd(args.get(2).map_or(8, |s| s.parse().unwrap())),
         Some("verify") => verify_file(args[2].parse().unwrap(), &args[3]),
-        _ => eprintln!("usage: r3-cert selftest | run <N> | soundness [v7] | verify <N> <file> | r4 [v7] | chain <per_block> [v7] | vectors7 | gates7 | keccak <log2 P> [tests] | bench-ef"),
+        _ => eprintln!("usage: r3-cert selftest | run <N> | soundness [v7] | verify <N> <file> | r4 [v7] | chain <per_block> [v7] | vectors7 | gates7 | attack7 | attack8 | route8 | keccak <log2 P> [tests] | bench-ef"),
     }
 }

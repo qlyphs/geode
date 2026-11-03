@@ -1,0 +1,79 @@
+# lab commit 40a46c1 + round-8 working tree, binary sha256 fe9abb8050cf5552, Apple M3 Pro, rustc 1.96.0
+# command: r3-cert r4 v7
+# start: 15:35  up 11 days, 13:33, 1 user, load averages: 28.70 21.00 16.30
+# r3-cert round 4 tests, N = 128
+transcript: QLYAUTH7 registered-round transcript (round 7)
+uptime at start: 15:35  up 11 days, 13:33, 1 user, load averages: 28.70 21.00 16.30
+## A.2 isolated S^3 = S test
+  signature 0, cells [0, 1, 5, 8]: S <- 1/2, Y <- e + 32735, count 61 -> 62; integer-witness violations Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+  checked: Y and K - Y in [0, 2^20), K = 458303, e = Y + start(S), sum S^2 = count, S^3 != S
+[PASS] S = 1/2 at four interior hint-zero cells, full verifier: REJECT Master("terminal check")
+[PASS] same witness, UNSAFE control without the S^3 = S zerocheck (same statement, profile, schedule): ACCEPT
+[PASS] honest batch, UNSAFE control (the control itself is complete): ACCEPT
+## A.1 challenge-prefix sensitivity
+[PASS] honest certificate: ACCEPT
+[PASS] verifier-derived projection seed and theta equal the prover's
+[PASS] each record's message (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each record's context (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each record's public key (one bit of t1), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each signature's public u (one bit), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] each signature's published hint count (+-1), projection seed: first applicable challenge changed in 128/128 mutations
+[PASS] initial commitment (each of 64 bytes), projection seed: first applicable challenge changed in 64/64 mutations
+[PASS] manifest (each of 512 bytes: magic, backend/profile id, parameter and layout digest, count N, statement digest, chunk count, reserved): first applicable challenge changed in 512/512 mutations
+[PASS] each lift quotient (+-1): seed unchanged, theta changed: first applicable challenge changed in 14/14 mutations
+## A.1 Gruen exceptional challenges (GKR rounds and betas, table rounds; both sides)
+  v = (1 + i)/2 with i^2 = -1: eq1(v, v) = true
+[PASS] Zero: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Zero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Zero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Zero: GKR layer 5, round 2, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Zero: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] One: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] One: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] One: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] One: GKR layer 5, round 2, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] One: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Half: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Half: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Half: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Half: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Half: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] EqZero: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] EqZero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] EqZero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] EqZero: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(5)")
+[PASS] EqZero: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] Vroot: honest certificate (no inverse-of-zero path): ACCEPT
+[PASS] Vroot: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Vroot: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Vroot: GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Vroot: table round 4, a1 tampered: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+## A.1 layout, claim-order and profile mismatches (prover deviates, verifier canonical)
+[PASS] SwapTables: REJECT Whir("OpeningBatchSizeMismatch { table_idx: 0, expected: 3, actual: 2 }")
+[PASS] SwapColumns: REJECT Master("terminal check")
+[PASS] ClaimOrder: REJECT Whir("SumcheckFailed { round: 6, expected: \"7920678064520075013 + 15019800412303831502 X + 7772313178869131679 X^2 + 6804488116943206289 X^3 + 13184588967725100499 X^4\", actual: \"17022311353270244823 + 12926385857663836821 X + 3988498109748848094 X^2 + 2102343791871160859 X^3 + 9624332481928828150 X^4\" }")
+[PASS] Profile: REJECT Whir("Sumcheck(RoundCountMismatch { expected: 5, actual: 4 })")
+## A.1 manifest vs transport length
+  WHIR proof lengths for three statements of 128 signatures: [404064, 402848, 404000] (data dependent)
+[PASS] manifest = function of the records only, computed before proving, reserved bytes zero; the 4-byte WHIR length is never absorbed
+R4 SUMMARY: 43/43 tests behave as expected
+uptime at end: 15:36  up 11 days, 13:33, 1 user, load averages: 26.18 21.10 16.49
+       30.47 real       117.75 user        17.27 sys
+           613531648  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             3297767  page reclaims
+                   8  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  12  voluntary context switches
+             1708739  involuntary context switches
+       1481596840338  instructions retired
+        407586499976  cycles elapsed
+           613368576  peak memory footprint
+# exit 0; end: 15:36  up 11 days, 13:33, 1 user, load averages: 26.18 21.10 16.49

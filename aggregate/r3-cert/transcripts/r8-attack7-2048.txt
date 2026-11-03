@@ -1,0 +1,113 @@
+# lab commit 40a46c1 + round-8 working tree, binary sha256 fe9abb8050cf5552, Apple M3 Pro, rustc 1.96.0
+# command: r3-cert attack7
+# start: 15:37  up 11 days, 13:34, 1 user, load averages: 32.48 23.42 17.62
+# r3-cert attack7: independent review of profile 0x00070001 at N = 2048
+[PASS] A0 honest QLYAUTH7 certificate: ACCEPT
+[PASS] A1 manifest profile id -> lab id 0xfff7000b: REJECT Profile("unregistered profile 0xfff7000b for N = 2048")
+[PASS] A1 manifest profile id -> codec test id 0xffffffff: REJECT Profile("unregistered profile 0xffffffff for N = 2048")
+[PASS] A1 manifest profile id -> 0x00070002: REJECT Profile("unregistered profile 0x00070002 for N = 2048")
+[PASS] A1 manifest profile id -> 0x00070000: REJECT Profile("unregistered profile 0x00070000 for N = 2048")
+[PASS] A1 manifest profile id -> QLYAUTH4 id 0x18013451: REJECT Profile("unregistered profile 0x18013451 for N = 2048")
+[PASS] A1 manifest magic -> QLYAUTH4: REJECT Parse("length mismatch / trailing bytes")
+[PASS] A1 manifest magic -> QLYLAB07: REJECT Profile("unregistered manifest magic")
+[PASS] A1 manifest magic -> QLYAUTH3: REJECT Profile("unregistered manifest magic")
+[PASS] A1 manifest magic -> qlyauth7: REJECT Profile("unregistered manifest magic")
+[PASS] A1 QLYAUTH7 proof relabelled QLYAUTH4 (manifest rewritten, pair removed): REJECT Gkr("LayerMismatch(1)")
+[PASS] A1 honest QLYAUTH4 certificate of the same range (control): ACCEPT
+[PASS] A1 QLYAUTH4 proof relabelled QLYAUTH7 (manifest rewritten, pair inserted): REJECT Gkr("LayerMismatch(1)")
+[PASS] A2 one trailing byte after the certificate: REJECT Parse("length mismatch / trailing bytes")
+[PASS] A2 certificate truncated by one byte: REJECT Parse("length mismatch / trailing bytes")
+[PASS] A2 byte appended inside the WHIR proof, length raised: REJECT Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)")
+[PASS] A2 QLYAUTH7 certificate without the 80-byte pair: REJECT Parse("length mismatch / trailing bytes")
+[PASS] A2 pair duplicated (160 bytes): REJECT Parse("length mismatch / trailing bytes")
+[PASS] A3 leaf pair: P_leaf + 1: REJECT LeafPair
+[PASS] A3 leaf pair: Q_leaf + 1: REJECT LeafPair
+[PASS] A3 leaf pair: pair swapped: REJECT LeafPair
+[PASS] A3 leaf pair: pair zero: REJECT LeafPair
+[PASS] A3 leaf pair: pair scaled by 2 (same fraction): REJECT LeafPair
+[PASS] A4 coefficient >= p in GKR layer-0 final (c0 large -> 0xffffffffffffffff): REJECT Parse("non-canonical field element")
+[PASS] A4 coefficient >= p in leaf pair (c0 large -> 0xffffffffffffffff): REJECT Parse("non-canonical field element")
+[PASS] A4 coefficient >= p in T (c0 large -> 0xffffffffffffffff): REJECT Parse("non-canonical field element")
+[PASS] A4 coefficient >= p in master round 0 (c0 large -> 0xffffffffffffffff): REJECT Parse("non-canonical field element")
+[PASS] A4 coefficient >= p in table round 0 (c0 large -> 0xffffffffffffffff): REJECT Parse("non-canonical field element")
+[PASS] A4 small WHIR word replaced by word + p (same residue): REJECT Parse("WHIR proof")
+[PASS] A5 nu_17 = 76 (out of range): REJECT HintCountByte(17)
+[PASS] A5 nu_17 changed by one in the certificate only: REJECT Gkr("LayerMismatch(1)")
+[PASS] A5 nu_17 + 1 and nu_18 - 1 (sum preserved): REJECT Gkr("LayerMismatch(1)")
+[PASS] A5 nu_17 and nu_18 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] A5 one nibble of U_5 changed: REJECT Chain("accumulator mismatch at height 0")
+[PASS] A5 reserved manifest byte set: REJECT Manifest
+[PASS] A5 reserved former digest byte set: REJECT Manifest
+[PASS] A6 master rounds 0 and 1 swapped: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A6 table rounds 0 and 1 swapped: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A6 quotients V_0,0 and V_0,1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] A6 last GKR finals: (Pa, Pb) and (Qa, Qb) swapped: REJECT Gkr("LayerMismatch(22)")
+[PASS] A7 control: WHIR proof decoded and re-encoded unchanged: ACCEPT
+[PASS] A7 WHIR round 0 pow witness = 1: REJECT Whir("NonCanonicalPowWitness { round: 0 }")
+[PASS] A7 WHIR round 2 pow witness = 1: REJECT Whir("NonCanonicalPowWitness { round: 2 }")
+[PASS] A7 WHIR final pow witness = 1: REJECT Whir("NonCanonicalPowWitness { round: 3 }")
+[PASS] A7 WHIR initial sumcheck pow witness vector [0]: REJECT Whir("Sumcheck(PowWitnessCountMismatch { expected: 0, actual: 1 })")
+[PASS] A7 WHIR round 1 sumcheck pow witness vector [0]: REJECT Whir("Sumcheck(PowWitnessCountMismatch { expected: 0, actual: 1 })")
+[PASS] A7 WHIR final sumcheck removed: REJECT Whir("Sumcheck(MissingSumcheckData { expected_rounds: 4 })")
+[PASS] A7 WHIR final polynomial removed: REJECT Whir("MissingFinalPoly")
+[PASS] A7 WHIR round 1 commitment removed: REJECT Whir("MissingRoundCommitment { round: 1 }")
+[PASS] A7 WHIR extra initial OOD answer: REJECT Whir("InitialOodAnswerCountMismatch { expected: 1, actual: 2 }")
+[PASS] A7 WHIR extra OOD answer in round 0: REJECT Whir("RoundOodAnswerCountMismatch { round: 0, expected: 1, actual: 2 }")
+[PASS] A7 WHIR initial OOD answer + 1: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR extra initial sumcheck round: REJECT Whir("Sumcheck(RoundCountMismatch { expected: 6, actual: 7 })")
+[PASS] A7 WHIR initial sumcheck rounds 0 and 1 swapped: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR evals: X(r) + 1: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR evals: X(r) and Y(r) swapped: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR evals: successor value added to batch 1: REJECT Whir("OpeningBatchSizeMismatch { table_idx: 1, expected: 2, actual: 3 }")
+[PASS] A7 WHIR evals: batch 0 and batch 1 swapped: REJECT Whir("OpeningBatchSizeMismatch { table_idx: 0, expected: 3, actual: 2 }")
+[PASS] A7 WHIR evals: third batch duplicated: REJECT Whir("OpeningBatchCountMismatch { expected: 2, actual: 3 }")
+[PASS] A7 WHIR final polynomial coefficient 0 + 1: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR round 0 query opening: first row duplicated over the second: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR round 0 query opening: one value + 1: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR final query opening: one value + 1: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] A7 WHIR round 0 query opening: extra row: REJECT Whir("StirQueryCountMismatch { round_index: 0, expected: 141, actual: 142 }")
+[PASS] A8 byte-flip sweep: 462/462 rejected
+      48 x GKR: Gkr
+       6 x T: Whir
+      12 x U: Chain
+       4 x WHIR length: Parse
+       1 x WHIR proof: Parse
+     299 x WHIR proof: Whir
+       8 x commitment: Gkr
+       8 x leaf pair: LeafPair
+      12 x manifest: Manifest
+      24 x master: Whir
+       7 x nu: Gkr
+       1 x nu: HintCountByte
+      16 x quotients: Gkr
+      16 x table: Whir
+[PASS] A9 prover publishes nu_9 off by one (instance X built with it): REJECT Master("terminal check")
+[PASS] A9 prover publishes nu_9 + 1, nu_10 - 1 (total preserved): REJECT Master("terminal check")
+[PASS] A9 prover shifts quotient V_0,0 by one: REJECT Master("terminal check")
+[PASS] A9 prover drops the ternarity weight (verifier keeps it): REJECT Master("terminal check")
+[PASS] A9 prover uses injected Gruen challenges Zero (verifier samples): REJECT Gkr("LayerMismatch(1)")
+[PASS] A9 prover uses injected Gruen challenges One (verifier samples): REJECT Gkr("LayerMismatch(1)")
+[PASS] A9 prover uses injected Gruen challenges Half (verifier samples): REJECT Gkr("LayerMismatch(1)")
+  lab table at N = 2048 has the same rounds as 0x00070001: true (coins still differ by profile)
+[PASS] A10 production and lab coin blocks differ on the same instance and root
+[PASS] A10 instance framing separates U and nu
+ATTACK7 SUMMARY: 74/74 behave as expected; unexpected ACCEPT: []
+      131.95 real       393.53 user        60.70 sys
+          4301815808  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            15445046  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 695  voluntary context switches
+             3603299  involuntary context switches
+       5152326404574  instructions retired
+       1399975267693  cycles elapsed
+          5402644680  peak memory footprint
+# exit 0; end: 15:39  up 11 days, 13:37, 1 user, load averages: 20.61 22.14 17.96
