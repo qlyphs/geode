@@ -1,3 +1,6 @@
+# Aborted run, kept for the record: a second queue was started by mistake while the advise job ran, and
+# was stopped by pid after 20 s. No certificate was written (exit 143), so the comparison below
+# reports DIFFERENT against a missing file; it is not a certificate comparison.
 # job dftmin | commit 95114c014217a5d007823b157314b3a844961f09 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
 # BASE /data/bin/r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 sha256 4a1ff4f062643376aee2321318dad98bfe281dfbc10c6f988de4aa39811df048
 # NEW /data/bin/r3-cert-95114c014217a5d007823b157314b3a844961f09 sha256 ac312edd32e82dbc1a602bdada856f6c4a8f38113d15d6ec39e5f5e65d28f979

@@ -1,0 +1,3 @@
+# base65 was stopped by pid after 11 min, still inside P1 (WHIR commit); last 5 s sample of /data/out/fin-base-65536.mem:
+# t_utc memory.current_MiB anon_MiB file_MiB file_dirty_MiB read_MiB write_MiB utime_s stime_s loadavg1
+21:56:16 22859 5417 16467 1195 423560 84074 95 14411 50.84

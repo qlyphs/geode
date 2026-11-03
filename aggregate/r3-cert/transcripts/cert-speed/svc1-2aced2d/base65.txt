@@ -1,0 +1,38 @@
+# job base65 | commit 80e2d572fc0af9c4ba3241aede44548270ad2f09 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
+# BASE /data/bin/r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 sha256 4a1ff4f062643376aee2321318dad98bfe281dfbc10c6f988de4aa39811df048
+# NEW /data/bin/r3-cert-2aced2d sha256 c731c31b09435a35cd5e82e320c950b65ddc2646e5d63d53856ebc8a67b4bf9a
+# LAB /data/bin/r3-cert-lab-80e2d572fc0af9c4ba3241aede44548270ad2f09 sha256 ba49635ba5caef2f71178c431e1c61c5d9014a67d1afefccf4eecd2b5d36ecc9
+# host: AMD EPYC 9655P 96-Core Processor, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## fin-base-65536 | 2026-10-24T21:45:01Z | load 8.29 20.44 29.26 | bin r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 | env H9_FAMILY=ud H9_PROGRESS=1 H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 H9_SPILL_SEQ=1 R3_OUT=/data/out/fin/base | r3-cert h9chain 65536
+# hidden-u chain-range certificate (lab chain profile 0xfff91310, family Unique), N = 65536, 512 blocks of 128
+host: cpu AMD EPYC 9655P 96-Core Processor; 24 logical CPUs visible; MemTotal:       338368116 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill; round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 21:45:01 up 51 days,  4:53,  0 users,  load average: 8.29, 20.44, 29.26
+rayon threads: 24
+chain built (512 blocks, 65536 signatures signed and natively verified): 7.7 s
+progress: 11335 ms, live 13401 MiB, disk-backed 8609 MiB, read 0 MiB, written 13809 MiB: P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+progress: 3723 ms, live 14780 MiB, disk-backed 9859 MiB, read 0 MiB, written 2127 MiB: P0 raw instance absorbed, registered-round transcript init
+Command terminated by signal 15
+	Command being timed: "/data/bin/r3-cert-base h9chain 65536"
+	User time (seconds): 95.07
+	System time (seconds): 14456.67
+	Percent of CPU this job got: 2137%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:20.69
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 22404840
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 251820
+	Minor (reclaiming a frame) page faults: 8908512
+	Voluntary context switches: 237187
+	Involuntary context switches: 2116175
+	Swaps: 0
+	File system inputs: 882506248
+	File system outputs: 172717368
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
