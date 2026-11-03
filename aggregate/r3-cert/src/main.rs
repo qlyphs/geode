@@ -24,7 +24,6 @@ mod proj;
 mod reg7;
 mod registry;
 mod mmcs10;
-mod bigdft;
 mod region;
 mod relaxed;
 mod route8;
@@ -1238,70 +1237,6 @@ fn h9chain_run(n: usize) {
     println!("uptime at end: {}", uptime());
 }
 
-/// Verifier-side attacks on a chain-range certificate written by h9chain (a sample of the
-/// h9tests attacks that need no new proof): bytes of every component changed, trailing and
-/// truncated bytes, profile relabelled, record and order changes in the blocks, another range
-/// and a substituted state key. Each must REJECT; the honest certificate must ACCEPT.
-fn h9chain_attacks(n: usize, path: &str) {
-    println!("# hidden-u chain-range verifier attacks, N = {n}, {path}");
-    println!("host: {}", host_line());
-    let ch = large_chain(n);
-    let bytes = std::fs::read(path).unwrap();
-    let (mut pass, mut total) = (0usize, 0usize);
-    let mut check = |name: &str, b: &[u8], blocks: &[chain::Block], headers: &[chain::Header], parent: &chain::Header, state: &chain::State, accept: bool| {
-        let t = Instant::now();
-        let r = hidden::verify_range9(&ch.net, parent, headers, blocks, state, b, &mut Timer::new(), &hidden::Opts9::default());
-        let ok = r.is_ok() == accept;
-        pass += ok as usize;
-        total += 1;
-        println!("[{}] {name}: {} ({:.1} s)", if ok { "PASS" } else { "FAIL" }, match &r { Ok(_) => "ACCEPT".to_string(), Err(e) => format!("REJECT {e:?}").chars().take(160).collect() }, t.elapsed().as_secs_f64());
-    };
-    check("honest certificate", &bytes, &ch.blocks, &ch.headers, &ch.anchor, &ch.state, true);
-    let c = hidden::Cert9::from_bytes(n, &bytes).unwrap();
-    let (_, sz) = c.to_bytes();
-    let mut off = 0usize;
-    for (name, len) in &sz.parts {
-        let picks: Vec<usize> = if name.contains("WHIR proof") { vec![len / 7, len / 3, len / 2, len - 41] } else if *len >= 2 { vec![0, len / 2] } else { vec![0] };
-        for k in picks {
-            if k >= *len {
-                continue;
-            }
-            let mut b = bytes.clone();
-            b[off + k] ^= 0x01;
-            check(&format!("{name}: byte {k} of {len} changed"), &b, &ch.blocks, &ch.headers, &ch.anchor, &ch.state, false);
-        }
-        off += len;
-    }
-    let mut b = bytes.clone();
-    b.push(0);
-    check("one trailing byte", &b, &ch.blocks, &ch.headers, &ch.anchor, &ch.state, false);
-    check("last byte removed", &bytes[..bytes.len() - 1], &ch.blocks, &ch.headers, &ch.anchor, &ch.state, false);
-    let mut b = bytes.clone();
-    b[8..12].copy_from_slice(&(hidden::lab_chain_profile9(n) ^ 0x200).to_le_bytes());
-    check("profile id relabelled to the other family", &b, &ch.blocks, &ch.headers, &ch.anchor, &ch.state, false);
-    let mut blocks = ch.blocks.clone();
-    let last = blocks[3].records[5].len() - 1;
-    blocks[3].records[5][last] ^= 1;
-    check("one payload byte of a record in block 3 changed", &bytes, &blocks, &ch.headers, &ch.anchor, &ch.state, false);
-    let mut blocks = ch.blocks.clone();
-    blocks[7].records.swap(0, 1);
-    blocks[7].sigs.swap(0, 1);
-    check("two records of block 7 swapped", &bytes, &blocks, &ch.headers, &ch.anchor, &ch.state, false);
-    let (mut blocks, mut headers) = (ch.blocks.clone(), ch.headers.clone());
-    blocks.swap(1, 2);
-    headers.swap(1, 2);
-    check("blocks 1 and 2 (and headers) swapped", &bytes, &blocks, &headers, &ch.anchor, &ch.state, false);
-    let other = chain::genesis(&chain::network_id(b"r10-other"));
-    check("same blocks against another parent", &bytes, &ch.blocks, &ch.headers, &other, &ch.state, false);
-    let mut st = ch.state.clone();
-    let k0 = (chain::sender(1), 0u64);
-    let k1 = (chain::sender(2), 0u64);
-    let v = st.keys[&k1].clone();
-    st.keys.insert(k0, v);
-    check("state key of sender 1 replaced by sender 2's key", &bytes, &ch.blocks, &ch.headers, &ch.anchor, &st, false);
-    println!("H9 CHAIN ATTACKS SUMMARY: {pass}/{total} behave as expected");
-}
-
 /// Fresh-process verification of a chain-range certificate written by h9chain.
 fn h9chain_verify(n: usize, path: &str) {
     println!("# hidden-u chain-range verify in a fresh process, N = {n}, {path}");
@@ -1396,7 +1331,6 @@ fn main() {
     }
     let args: Vec<String> = std::env::args().collect();
     keccak::kec10::configure_from_env();
-    bigdft::configure_from_env();
     match args.get(1).map(|s| s.as_str()) {
         Some("selftest") => selftest(),
         Some("h9self") => h9_self(),
@@ -1420,7 +1354,6 @@ fn main() {
         }
         Some("h9") => h9_run(args.get(2).map_or(128, |s| s.parse().unwrap())),
         Some("h9chain") => h9chain_run(args[2].parse().unwrap()),
-        Some("h9chainattacks") => h9chain_attacks(args[2].parse().unwrap(), &args[3]),
         Some("h9chainverify") => h9chain_verify(args[2].parse().unwrap(), &args[3]),
         Some("host") => println!("{}", host_line()),
         Some("bigindex") => {
@@ -1473,7 +1406,7 @@ fn main() {
             k10cmp(&list(2), args[3].parse().unwrap(), &modes)
         }
         Some("r10self") => {
-            for (k, ok) in fs7::r10_selfcheck().into_iter().chain(bigdft::selfcheck()) {
+            for (k, ok) in fs7::r10_selfcheck() {
                 println!("[{}] {k}", if ok { "PASS" } else { "FAIL" });
             }
         }

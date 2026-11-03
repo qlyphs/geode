@@ -33,8 +33,6 @@ static SPILL_MIN: AtomicUsize = AtomicUsize::new(256 << 20);
 /// NUL-terminated directory path (read once from the environment).
 static mut SPILL_DIR: [u8; 256] = [0; 256];
 static SPILL_SEQ: AtomicUsize = AtomicUsize::new(0);
-/// madvise(MADV_SEQUENTIAL) on new mappings (H9_SPILL_SEQ=1).
-static SEQUENTIAL: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Addresses of live spilled mappings (0 = free slot). Large arrays are few, so a linear scan on
 /// the large-size path is cheap, and no allocation happens inside the allocator.
@@ -62,9 +60,6 @@ fn spill_on() -> bool {
                         let dst: &mut [u8; 256] = &mut *(&raw mut SPILL_DIR);
                         dst[..d.len()].copy_from_slice(d);
                         dst[d.len()] = 0;
-                    }
-                    if getenv(b"H9_SPILL_SEQ\0").map(|v| v == b"1").unwrap_or(false) {
-                        SEQUENTIAL.store(true, Ordering::Relaxed);
                     }
                     if let Some(m) = getenv(b"H9_SPILL_MIN\0") {
                         let v = m.iter().try_fold(0usize, |a, &c| if c.is_ascii_digit() { Some(a * 10 + (c - b'0') as usize) } else { None });
@@ -131,10 +126,6 @@ unsafe fn spill_map(size: usize) -> *mut u8 {
     unsafe { libc::close(fd) };
     if p == libc::MAP_FAILED {
         return core::ptr::null_mut();
-    }
-    // Most passes over these arrays are sequential streams: ask for aggressive readahead.
-    if SEQUENTIAL.load(Ordering::Relaxed) {
-        unsafe { libc::madvise(p, len, libc::MADV_SEQUENTIAL) };
     }
     let a = p as usize;
     for s in MAPS.iter() {
