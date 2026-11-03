@@ -1,0 +1,18 @@
+== start 2026-10-26T03:57:27Z commit bc4788bc5d328141a07d780d0a223ca1d9fae200 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
+nproc 48; MemTotal:       515777388 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000
+model name	: AMD EPYC 9655P 96-Core Processor
+df: Filesystem      Size  Used Avail Use% Mounted on
+df: overlay         2.9T  1.2T  1.7T  42% /
+df: overlay         2.9T  1.2T  1.7T  42% /
+build r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 start 2026-10-26T03:57:27Z
+build r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 exit 0 2026-10-26T03:58:01Z
+build r3-cert-bc4788bc5d328141a07d780d0a223ca1d9fae200 start 2026-10-26T03:58:01Z
+build r3-cert-bc4788bc5d328141a07d780d0a223ca1d9fae200 exit 0 2026-10-26T03:58:40Z
+build r3-cert-lab-bc4788bc5d328141a07d780d0a223ca1d9fae200 start 2026-10-26T03:58:40Z
+build r3-cert-lab-bc4788bc5d328141a07d780d0a223ca1d9fae200 exit 0 2026-10-26T03:59:19Z
+r3-cert-base sha256 4a1ff4f062643376aee2321318dad98bfe281dfbc10c6f988de4aa39811df048
+r3-cert sha256 c731c31b09435a35cd5e82e320c950b65ddc2646e5d63d53856ebc8a67b4bf9a
+r3-cert-lab sha256 c17ec8f29194574e2a85c7c30fbab680ddb6cf311edb75177aaf306940b78ac2
+idle 2026-10-26T03:59:19Z
+2026-10-26T03:59:39Z request rerun65536t
+2026-10-26T04:19:19Z request rerun65536t
