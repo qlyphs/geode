@@ -1,0 +1,28 @@
+== start 2026-10-26T02:57:41Z commit bc4788bc5d328141a07d780d0a223ca1d9fae200 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
+nproc 48; MemTotal:       389816956 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000
+model name	: Intel(R) Xeon(R) 6975P-C
+df: Filesystem      Size  Used Avail Use% Mounted on
+df: overlay         1.9T  1.3T  672G  66% /
+df: overlay         1.9T  1.3T  672G  66% /
+build r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 start 2026-10-26T02:57:41Z
+build r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 exit 0 2026-10-26T02:58:13Z
+build r3-cert-bc4788bc5d328141a07d780d0a223ca1d9fae200 start 2026-10-26T02:58:13Z
+build r3-cert-bc4788bc5d328141a07d780d0a223ca1d9fae200 exit 0 2026-10-26T02:58:49Z
+build r3-cert-lab-bc4788bc5d328141a07d780d0a223ca1d9fae200 start 2026-10-26T02:58:49Z
+build r3-cert-lab-bc4788bc5d328141a07d780d0a223ca1d9fae200 exit 0 2026-10-26T02:59:26Z
+r3-cert-base sha256 8a6e5eb50acac5ef698a49e48bbfe2a45e233da9d914e52dbbf405b94e2379e0
+r3-cert sha256 ade44b0b48c9e9b1d1de69380e66537a740f06cb8c99dfae7515863ba5729245
+r3-cert-lab sha256 11dcb585e3009f08a90d3fc8d9e902efa9031e52e23b9c1df78b7c89027051c6
+idle 2026-10-26T02:59:26Z
+2026-10-26T02:59:46Z request rerun65536
+2026-10-26T02:59:26Z no job (unrelated request)
+2026-10-26T02:59:46Z start rerun65536
+2026-10-26T03:40:19Z end rerun65536 exit 0
+ade44b0b48c9e9b1d1de69380e66537a740f06cb8c99dfae7515863ba5729245  /data/bin/r3-cert
+8a6e5eb50acac5ef698a49e48bbfe2a45e233da9d914e52dbbf405b94e2379e0  /data/bin/r3-cert-base
+8a6e5eb50acac5ef698a49e48bbfe2a45e233da9d914e52dbbf405b94e2379e0  /data/bin/r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224
+ade44b0b48c9e9b1d1de69380e66537a740f06cb8c99dfae7515863ba5729245  /data/bin/r3-cert-bc4788bc5d328141a07d780d0a223ca1d9fae200
+11dcb585e3009f08a90d3fc8d9e902efa9031e52e23b9c1df78b7c89027051c6  /data/bin/r3-cert-lab
+11dcb585e3009f08a90d3fc8d9e902efa9031e52e23b9c1df78b7c89027051c6  /data/bin/r3-cert-lab-bc4788bc5d328141a07d780d0a223ca1d9fae200
+total 8124
+-rw-r--r-- 1 root root 8315630 Oct 26 03:33 h9chain-cert-65536-fff91310.bin
