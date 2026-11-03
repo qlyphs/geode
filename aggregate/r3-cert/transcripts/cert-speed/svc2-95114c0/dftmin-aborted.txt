@@ -1,0 +1,48 @@
+# job dftmin | commit 95114c014217a5d007823b157314b3a844961f09 baseline 0e7a1c922526fc641e9a861ea5d75438975d4224
+# BASE /data/bin/r3-cert-base-0e7a1c922526fc641e9a861ea5d75438975d4224 sha256 4a1ff4f062643376aee2321318dad98bfe281dfbc10c6f988de4aa39811df048
+# NEW /data/bin/r3-cert-95114c014217a5d007823b157314b3a844961f09 sha256 ac312edd32e82dbc1a602bdada856f6c4a8f38113d15d6ec39e5f5e65d28f979
+# LAB /data/bin/r3-cert-lab-95114c014217a5d007823b157314b3a844961f09 sha256 5a6517f44af9f08d0adacbeb1446c86bb7742da51bc4407beb9155ad6cc08c05
+# host: Intel Xeon Processor (Icelake), nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## dmin-256-16384 | 2026-10-24T20:20:34Z | load 475.29 472.40 470.49 | bin r3-cert-95114c014217a5d007823b157314b3a844961f09 | env H9_FAMILY=ud H9_PROGRESS=1 H9_BIGDFT_MIN=268435456 H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 H9_SPILL_SEQ=1 R3_OUT=/data/out/dmin | r3-cert h9chain 16384
+# hidden-u chain-range certificate (lab chain profile 0xfff9130e, family Unique), N = 16384, 128 blocks of 128
+host: cpu Intel Xeon Processor (Icelake); 24 logical CPUs visible; MemTotal:       402881460 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill; round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on, fused folds on)
+uptime at start: 20:20:34 up 527 days, 49 min,  0 users,  load average: 475.29, 472.40, 470.49
+rayon threads: 24
+chain built (128 blocks, 16384 signatures signed and natively verified): 6.0 s
+Command terminated by signal 15
+	Command being timed: "/data/bin/r3-cert h9chain 16384"
+	User time (seconds): 37.18
+	System time (seconds): 6.79
+	Percent of CPU this job got: 306%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:14.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3921208
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 10
+	Minor (reclaiming a frame) page faults: 1168612
+	Voluntary context switches: 14164
+	Involuntary context switches: 144060
+	Swaps: 0
+	File system inputs: 8
+	File system outputs: 4389192
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 21143 MiB, anon 5857 MiB
+## end dmin-256-16384 | exit 143 | 2026-10-24T20:20:49Z | load 475.32 472.56 470.58
+sha256sum: /data/out/dmin/h9chain-cert-16384-fff9130e.bin: No such file or directory
+## SHA256 N=16384 ud four-step from 256 MiB: DIFFERENT to the baseline 9d0ffb60fdbfc7276f1f722375799b8f59817b4c455d0675d4016487d49c0f01
+## dmin-64-16384 | 2026-10-24T20:20:49Z | load 475.32 472.56 470.58 | bin r3-cert-95114c014217a5d007823b157314b3a844961f09 | env H9_FAMILY=ud H9_PROGRESS=1 H9_BIGDFT_MIN=67108864 H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 H9_SPILL_SEQ=1 R3_OUT=/data/out/dmin | r3-cert h9chain 16384
+# hidden-u chain-range certificate (lab chain profile 0xfff9130e, family Unique), N = 16384, 128 blocks of 128
+host: cpu Intel Xeon Processor (Icelake); 24 logical CPUs visible; MemTotal:       402881460 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill; round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on, fused folds on)
+uptime at start: 20:20:49 up 527 days, 49 min,  0 users,  load average: 475.32, 472.56, 470.58
+rayon threads: 24
+chain built (128 blocks, 16384 signatures signed and natively verified): 5.5 s
+progress: 7843 ms, live 3356 MiB, disk-backed 2048 MiB, read 0 MiB, written 2048 MiB: P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+progress: 2078 ms, live 3957 MiB, disk-backed 2520 MiB, read 0 MiB, written 601 MiB: P0 raw instance absorbed, registered-round transcript init
