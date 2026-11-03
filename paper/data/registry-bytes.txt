@@ -1,0 +1,12 @@
+# fixed = 512 manifest + 64 N c_tilde + N hint counts + 64 root + sum of registered round bodies
+# rest = measured total - fixed (WHIR Merkle openings and framing); '-' where the registry records no honest run
+N =    128 family J profile 0xfff91007: bodies 377070 B, fixed 385966 B = 3015.36 B/sig, measured total 881223 B, rest 495257 B
+N =    128 family U profile 0xfff91207: bodies 376910 B, fixed 385806 B = 3014.11 B/sig, measured total 1991039 B, rest 1605233 B
+N =   2048 family J profile 0xfff9100b: bodies 428000 B, fixed 561696 B = 274.27 B/sig, measured total 1428193 B, rest 866497 B
+N =   2048 family U profile 0xfff9120b: bodies 427840 B, fixed 561536 B = 274.19 B/sig, measured total 2725233 B, rest 2163697 B
+N =   4096 family J profile 0xfff9100c: bodies 444800 B, fixed 711616 B = 173.73 B/sig, measured total - B, rest - B
+N =   4096 family U profile 0xfff9120c: bodies 444640 B, fixed 711456 B = 173.70 B/sig, measured total - B, rest - B
+N =  16384 family J profile 0xfff9100e: bodies 471000 B, fixed 1536536 B = 93.78 B/sig, measured total - B, rest - B
+N =  16384 family U profile 0xfff9120e: bodies 471760 B, fixed 1537296 B = 93.83 B/sig, measured total - B, rest - B
+N =  65536 family J profile 0xfff91010: bodies 505720 B, fixed 4766136 B = 72.73 B/sig, measured total - B, rest - B
+N =  65536 family U profile 0xfff91210: bodies 505520 B, fixed 4765936 B = 72.72 B/sig, measured total - B, rest - B

@@ -1,0 +1,7 @@
+# BCGM fallback (BCGM 2025/2051 Theorem 9.2 constant in place of DKT26 Theorem 5.12), registered Johnson schedules
+# computed with ledger10.py profile_report(regime='JB-BCGM'); R = 2^64, classical CF24 form, E = 2^20
+N =    128 (4, [7, 9, 11], [6, 5, 4, 4])     : BCGM eps_max 235.839, classical E=2^20 151.839 (sum: 148.833); DKT26 classical E=2^20 188.075
+N =   2048 (2, [5, 8, 10], [6, 5, 5, 5])     : BCGM eps_max 236.839, classical E=2^20 152.839 (sum: 149.435); DKT26 classical E=2^20 188.116
+N =   4096 (2, [4, 7, 10], [6, 5, 5, 5])     : BCGM eps_max 234.839, classical E=2^20 150.839 (sum: 148.097); DKT26 classical E=2^20 188.075
+N =  16384 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]): BCGM eps_max 234.339, classical E=2^20 150.339 (sum: 147.730); DKT26 classical E=2^20 188.116
+N =  65536 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]): BCGM eps_max 230.339, classical E=2^20 146.339 (sum: 143.730); DKT26 classical E=2^20 188.116
