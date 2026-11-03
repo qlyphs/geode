@@ -21,19 +21,22 @@
 //! selection-table and subset-sum helpers come from the round-9 kernel prototype (hist9.rs).
 
 use super::*;
-use std::sync::atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering::Relaxed};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering::Relaxed};
+#[cfg(feature = "lab-hooks")]
+use std::sync::atomic::AtomicU8;
 
 /// Use this path for canonical inputs (H9_K10, default on; H9_K10=0 is the reference path).
 pub static ON: AtomicBool = AtomicBool::new(true);
 /// Phase-A round at which the folded layer is materialized (H9_K10_J, 1..=4; capped at log2 N).
 pub static JMAT: AtomicUsize = AtomicUsize::new(4);
 /// Weighted-histogram rounds (round 9 section D) for the phase-A rounds j < 3 where a term's
-/// table fits (H9_K10_HIST=1; default off until its whole-kernel timing is measured).
-pub static HIST: AtomicBool = AtomicBool::new(false);
+/// table fits (default on: measured faster at N = 2048 and 4096 with byte-identical certificates; H9_K10_HIST=0 turns it off).
+pub static HIST: AtomicBool = AtomicBool::new(true);
 /// Test-only challenge injection in the phase-A rounds of every Keccak layer, applied in both
 /// prover paths after the challenge is sampled: 0 off (the protocol), 1 = 0, 2 = 1, 3 = 1/2,
 /// 4 = (1 - x)/(1 - 2x) (eq1(x, r) = 0, exceptional Gruen), 5 = (1 + i)/2, 6 = a base-field
 /// element, 7 = one of these chosen from the sample. Proofs made with injection do not verify.
+#[cfg(feature = "lab-hooks")]
 pub static INJECT: AtomicU8 = AtomicU8::new(0);
 /// Time split (microseconds): trace, selection rounds, materialization, folded rounds and
 /// phase B, wiring.
@@ -70,6 +73,14 @@ pub fn on() -> bool {
 }
 
 /// Injection of a phase-A challenge (identity unless a test mode is set).
+#[cfg(not(feature = "lab-hooks"))]
+#[inline(always)]
+pub fn inject_r(s: EF, _x: EF) -> EF {
+    s
+}
+
+/// Injection of a phase-A challenge (identity unless a test mode is set; lab-hooks only).
+#[cfg(feature = "lab-hooks")]
 pub fn inject_r(s: EF, x: EF) -> EF {
     let mut mode = INJECT.load(Relaxed);
     if mode == 0 {

@@ -632,6 +632,9 @@ pub fn run_all(n: usize) {
     // ---------------------------------------------------------------- G. hostile gates (r10 review E)
     hostile_gates(&mut t, &base, &h.bytes);
 
+    // ---------------------------------------------------------------- H. tree contexts and coin pools (r11)
+    contexts_and_pools(&mut t, &base, &h.bytes);
+
     println!("H9 TESTS SUMMARY: {}/{} behave as expected", t.pass, t.total);
     if !t.unexpected.is_empty() {
         println!("unexpected: {:?}", t.unexpected);
@@ -806,15 +809,23 @@ fn hostile_gates(t: &mut Tally, base: &Case, honest: &[u8]) {
     }
     // Multiplicities chosen after theta.
     t.expect("multiplicities moved after theta (committed ones unchanged)", &run(base, None, None, &Opts9 { mult_after_theta: true, ..Default::default() }).res, false);
-    // An opened value changed after alpha: the last 40 bytes of the WHIR proof are an opening.
+    // An opened value changed after alpha: the masked-output openings T1(r0) .. T8(r0) are sent
+    // in the first mask round (before alpha) and appear again among the WHIR proof's opened
+    // values; one byte of that copy is flipped.
     {
         let c = hidden::Cert9::from_bytes(n, honest).unwrap();
         let off = honest.len() - c.whir.len();
-        for (k, name) in [(1usize, "last opened value"), (41, "second-to-last opened value")] {
-            let mut b = honest.to_vec();
-            b[off + c.whir.len() - k] ^= 1;
-            t.expect(&format!("opening value changed after alpha ({name})"), &verify(base, &b), false);
+        let mut hits = 0;
+        for j in 0..8 {
+            let v = &c.kec[40 * j..40 * (j + 1)];
+            if let Some(pos) = c.whir.windows(40).position(|w| w == v) {
+                hits += 1;
+                let mut b = honest.to_vec();
+                b[off + pos + 3] ^= 1;
+                t.expect(&format!("opening value T{}(r0) changed inside the WHIR proof (after alpha)", j + 1), &verify(base, &b), false);
+            }
         }
+        t.check(&format!("the 8 masked-output openings located among the WHIR proof's opened values: {hits}/8"), hits == 8);
     }
     // Active-slot sign conversion of the packed trace.
     {
@@ -838,6 +849,116 @@ fn hostile_gates(t: &mut Tally, base: &Case, honest: &[u8]) {
         let reals: Vec<u32> = table.rounds.iter().enumerate().filter(|(_, x)| x.body == crate::reg7::Body::Real).map(|(i, _)| (i + 1) as u32).collect();
         let ok = o.res.is_ok() && m.keys().all(|k| reals.contains(k)) && reals.iter().all(|r| m.contains_key(r));
         t.check(&format!("per-tree hash domains: hashes only under the {} registered commit rounds {:?}, each tree hashed (prover and verifier counted together: {:?})", reals.len(), reals, m), ok);
+    }
+}
+
+/// Round-11 review: per-operation tree contexts (REQ-1) and injected coin pools (REQ-2).
+fn contexts_and_pools(t: &mut Tally, base: &Case, honest: &[u8]) {
+    use p3_commit::Mmcs;
+    use std::sync::atomic::Ordering::Relaxed;
+    println!("## H. per-operation tree contexts and injected coin pools (round-11 review)");
+    let n = base.records.len();
+    // Opening old trees while the ambient routing context names another tree.
+    for wrong in [1u32, 2, 4000] {
+        crate::reg7::CELL_OVERRIDE.store(wrong, Relaxed);
+        let r = verify(base, honest);
+        crate::reg7::CELL_OVERRIDE.store(0, Relaxed);
+        t.expect(&format!("every routing-cell write replaced by tree {wrong} during verification: openings hash with their originating trees"), &r, true);
+    }
+    {
+        // Control: the QLYAUTH7 lab profile still reads the routing cell (legacy scheme).
+        let ntt = Ntt::new();
+        let b = crate::honest_batch(&ntt, n, 0);
+        let (w, pubs) = crate::witness::build(&ntt, &b.records, &b.inputs);
+        let u: Vec<u8> = b.inputs.iter().flat_map(|i| i.u.clone()).collect();
+        let nu: Vec<u8> = w.counts.iter().map(|&c| c.min(crate::cert::NU_MAX)).collect();
+        let o = crate::cert::Opts { v7: true, ..Default::default() };
+        let (c, _) = crate::cert::prove_opts(&b.records, &u, &nu, &w, &pubs, &mut Timer::new(), &o);
+        let bytes = c.to_bytes().0;
+        crate::reg7::CELL_OVERRIDE.store(2, Relaxed);
+        let r = crate::cert::verify_opts(&b.records, &bytes, &mut Timer::new(), &o).map(|_| ());
+        crate::reg7::CELL_OVERRIDE.store(0, Relaxed);
+        t.expect("control: the QLYAUTH7 lab scheme (shared routing cell) under the same wrong ambient context", &r, false);
+    }
+    // Two verifier instances, different profiles and tree ids, interleaved on two threads.
+    {
+        let ntt = Ntt::new();
+        let small = honest_case(&ntt, n / 2, 3000);
+        let hs = run(&small, None, None, &Opts9::default());
+        let ts = hidden::registered_table9(hidden::lab_profile9(n / 2), n / 2).unwrap();
+        let tb = hidden::registered_table9(hidden::lab_profile9(n), n).unwrap();
+        let reals = |tb: &crate::reg7::Table| tb.rounds.iter().enumerate().filter(|(_, d)| d.body == crate::reg7::Body::Real).map(|(i, _)| i + 1).collect::<Vec<_>>();
+        let (ra, rb) = std::thread::scope(|sc| {
+            let a = sc.spawn(|| (0..3).map(|_| verify(base, honest)).collect::<Vec<_>>());
+            let b = sc.spawn(|| (0..3).map(|_| verify(&small, &hs.bytes)).collect::<Vec<_>>());
+            (a.join().unwrap(), b.join().unwrap())
+        });
+        t.check(&format!("interleaved verifiers on two threads: profile {:#010x} (trees {:?}) x3 and {:#010x} (trees {:?}) x3 all ACCEPT", hidden::lab_profile9(n), reals(&tb), hidden::lab_profile9(n / 2), reals(&ts)), ra.iter().chain(rb.iter()).all(|r| r.is_ok()));
+    }
+    // One immutable context per operation; out-of-range round ids.
+    {
+        use crate::mmcs10::{Mmcs10, narrow};
+        let cell = Arc::new(AtomicU32::new(5));
+        let roots: crate::mmcs10::Roots = Default::default();
+        let m = Mmcs10 { profile: hidden::lab_profile9(n), cell: cell.clone(), roots: roots.clone(), calls: Arc::new(std::sync::atomic::AtomicU64::new(0)) };
+        let mat = p3_matrix::dense::RowMajorMatrix::new((0..4096u64).map(F::from_u64).collect::<Vec<_>>(), 8);
+        let (root, pd) = m.commit_matrix(mat);
+        cell.store(9, Relaxed);
+        let (vals, proof) = m.open_multi_batch(&[3, 100], &pd);
+        let dims = [p3_matrix::Dimensions { width: 8, height: 512 }];
+        let rb = crate::reg7::to_bytes(&root.roots()[0]);
+        roots.lock().unwrap().push((5, rb));
+        let ok5 = m.verify_multi_batch(&root, &dims, &[3, 100], &vals, &proof).is_ok();
+        roots.lock().unwrap().clear();
+        roots.lock().unwrap().push((9, rb));
+        let bad9 = m.verify_multi_batch(&root, &dims, &[3, 100], &vals, &proof).is_err();
+        roots.lock().unwrap().push((5, rb));
+        let amb = m.verify_multi_batch(&root, &dims, &[3, 100], &vals, &proof).is_err();
+        roots.lock().unwrap().clear();
+        let unk = m.verify_multi_batch(&root, &dims, &[3, 100], &vals, &proof).is_err();
+        t.check(&format!("per-operation context: committed under tree 5 with the cell changed to 9 afterwards; verifies as tree 5 ({ok5}), not as tree 9 ({bad9}); an ambiguous root ({amb}) and an unobserved root ({unk}) are rejected"), ok5 && bad9 && amb && unk);
+        roots.lock().unwrap().push((70000, rb));
+        let big = m.verify_multi_batch(&root, &dims, &[3, 100], &vals, &proof).is_err();
+        cell.store(70000, Relaxed);
+        let commit_refused = quiet_panic(|| m.commit_matrix(p3_matrix::dense::RowMajorMatrix::new(vec![F::ONE; 64], 8))).is_err();
+        t.check(&format!("round id 70000 (> LE16): narrow() rejects it ({}), 65535 accepted ({}), the verifier rejects that tree ({big}), a commitment under it is refused ({commit_refused})", narrow(70000).is_err(), narrow(65535).is_ok()), narrow(70000).is_err() && narrow(65535).is_ok() && big && commit_refused);
+    }
+    // K pools: strict in the round-10 tables (reject when short, never pad).
+    {
+        let tb = hidden::registered_table9(hidden::lab_profile9(n), n).unwrap();
+        let sh = crate::fs7::Shape::k(1);
+        let d = crate::fs7::decode(&vec![0xff; sh.used()], &sh);
+        t.check(&format!("K pool of rejected words: flagged short ({}); the round-10 table is strict ({}; QLYAUTH7 tables keep the padded rule)", d.kshort, tb.strict_k), d.kshort && tb.strict_k);
+        crate::reg7::FORCE_SHORT_K.store(true, Relaxed);
+        let r = verify(base, honest);
+        let ntt = Ntt::new();
+        let (wit, pubs) = hidden::build9(&ntt, &base.records, &base.inputs);
+        let nu: Vec<u8> = wit.w.counts.iter().map(|&v| v.min(crate::cert::NU_MAX)).collect();
+        let pr = quiet_panic(|| hidden::prove_lab9(&base.records, &wit, &pubs, &nu, &mut Timer::new(), &Opts9::default()).1.transcript_error);
+        crate::reg7::FORCE_SHORT_K.store(false, Relaxed);
+        t.expect("forced-short K pools: the verifier rejects the honest certificate", &r, false);
+        t.check(&format!("forced-short K pools: the prover's transcript is poisoned or the prover stops ({:?})", pr.as_ref().map(|e| e.as_deref().map(|x| &x[..x.len().min(60)]))), !matches!(pr, Ok(None)));
+    }
+    // Every registered round-1 shape (N = 32 .. 65536) and the chunk transition (512 -> 1024).
+    {
+        let mut ok = true;
+        let mut lines = vec![];
+        for lg in 5..=16 {
+            let nn = 1usize << lg;
+            let tb = hidden::registered_table9(hidden::lab_profile9(nn), nn).unwrap();
+            let sh = &tb.def(1).shape;
+            let w = sh.nq + sh.qslack as usize;
+            let mk = |rej: usize| -> Vec<u8> { (0..w).flat_map(|i| { let x: u32 = if i < rej { 8_380_417 } else { (i as u32 * 2_654_435_761) % 8_380_417 }; [x as u8, (x >> 8) as u8, (x >> 16) as u8] }).collect() };
+            let full = crate::fs7::decode(&mk(sh.qslack as usize), sh);
+            let short = crate::fs7::decode(&mk(sh.qslack as usize + 1), sh);
+            let chunks = tb.def(2).body.clone();
+            ok &= !full.short && full.q.len() == sh.nq && short.short;
+            lines.push(format!("N={nn}: nq {} slack {} quotient body {:?}", sh.nq, sh.qslack, chunks));
+        }
+        t.check(&format!("every registered round-1 shape: exactly enough accepted words decodes in full, one fewer is short [{}]", lines.join("; ")), ok);
+        let q512 = hidden::registered_table9(hidden::lab_profile9(512), 512).unwrap().def(2).body.clone();
+        let q1024 = hidden::registered_table9(hidden::lab_profile9(1024), 1024).unwrap().def(2).body.clone();
+        t.check(&format!("chunk transition 512 -> 1024 signatures: quotient bodies {q512:?} -> {q1024:?} (14 trials x 5 bytes per chunk)"), q512 == crate::reg7::Body::Scalar(70) && q1024 == crate::reg7::Body::Scalar(140));
     }
 }
 

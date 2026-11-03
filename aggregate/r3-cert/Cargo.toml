@@ -37,6 +37,11 @@ libcrux-ml-dsa = "=0.0.11"
 libc = "=0.2.191"
 tikv-jemallocator = "=0.6.1"
 
+[features]
+# Test-only hooks (dishonest-prover overrides, forced short pools, challenge injection, the
+# UNSAFE verifier controls). Never part of a measurement or production-verifier build.
+lab-hooks = []
+
 [profile.release]
 debug = 0
 opt-level = 3

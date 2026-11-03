@@ -2,5 +2,5 @@
 . /src/r10-jobs/jobs/lib.sh
 header
 run sched -- sched
-run h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
-run h9tests-128-ud H9_FAMILY=ud -- h9tests 128
+runlab h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
+runlab h9tests-128-ud H9_FAMILY=ud -- h9tests 128

@@ -718,7 +718,7 @@ pub fn build_table9(profile: u32, n: usize, ws: &p3_whir::WhirShape) -> reg7::Ta
     rounds_now = r.len();
     let _ = rounds_now;
     let formal_len = r.iter().map(|d| d.shape.used()).max().unwrap();
-    reg7::Table { profile, n, formal_len, rounds: r }
+    reg7::Table { profile, n, formal_len, rounds: r, strict_k: true }
 }
 
 // ---------------------------------------------------------------- transcript backend
@@ -726,7 +726,7 @@ pub fn build_table9(profile: u32, n: usize, ws: &p3_whir::WhirShape) -> reg7::Ta
 /// The registered-round adapter (frontend and WHIR) over the hidden-u round table.
 pub struct B9 {
     pub tr: reg7::Tr7,
-    pub pcs: pcs::Pcs7,
+    pub pcs: pcs::Pcs10,
     fold0: usize,
     pub leaf_calls: Arc<AtomicU64>,
 }
@@ -779,17 +779,20 @@ pub fn schedule_of(profile: u32, nv: usize) -> ((usize, Vec<usize>, Vec<usize>),
     }
 }
 
-pub fn make_pcs9(n: usize, profile: u32, tree: Arc<AtomicU32>, leaf_calls: Arc<AtomicU64>) -> (pcs::Pcs7, usize) {
-    let nv = stacked_vars9(n);
-    if nv <= 24 && fam_of(profile) == Fam::Johnson {
-        pcs::make_pcs7(nv, NCLAIMS, false, profile, tree, leaf_calls)
-    } else {
-        let (sch, sec) = schedule_of(profile, nv);
-        pcs::make_pcs7_prof_sec(nv, NCLAIMS, sch, sec, profile, tree, leaf_calls)
-    }
+pub fn make_pcs9(n: usize, profile: u32, tree: Arc<AtomicU32>, leaf_calls: Arc<AtomicU64>) -> (pcs::Pcs10, usize) {
+    make_pcs9r(n, profile, tree, Default::default(), leaf_calls)
 }
 
-pub fn table_of9(profile: u32, n: usize, p: &pcs::Pcs7) -> reg7::Table {
+/// The round-10 lab PCS: the registered r2 schedule up to 2^24 cells for the Johnson family,
+/// schedule_of above; the commitment scheme takes its tree contexts from `tree` (commit) and
+/// `roots` (verify).
+pub fn make_pcs9r(n: usize, profile: u32, tree: Arc<AtomicU32>, roots: crate::mmcs10::Roots, leaf_calls: Arc<AtomicU64>) -> (pcs::Pcs10, usize) {
+    let nv = stacked_vars9(n);
+    let (sch, sec) = if nv <= 24 && fam_of(profile) == Fam::Johnson { (pcs::profile(nv), pcs::Sec::johnson(nv)) } else { schedule_of(profile, nv) };
+    pcs::make_pcs10(nv, NCLAIMS, sch, sec, profile, tree, roots, leaf_calls)
+}
+
+pub fn table_of9(profile: u32, n: usize, p: &pcs::Pcs10) -> reg7::Table {
     build_table9(profile, n, &p3_whir::WhirShape::new(&**p, NBATCH))
 }
 
@@ -807,9 +810,11 @@ impl B9 {
     pub fn new(n: usize, profile: u32, x: &[u8], inject: pcs::Inject, table: Option<Arc<reg7::Table>>) -> Self {
         let tree = Arc::new(AtomicU32::new(0));
         let leaf_calls = Arc::new(AtomicU64::new(0));
-        let (p, fold0) = make_pcs9(n, profile, tree.clone(), leaf_calls.clone());
+        let roots: crate::mmcs10::Roots = Default::default();
+        let (p, fold0) = make_pcs9r(n, profile, tree.clone(), roots.clone(), leaf_calls.clone());
         let table = table.unwrap_or_else(|| Arc::new(table_of9(profile, n, &p)));
-        let tr = reg7::Tr7::new(table, x, tree, inject);
+        let mut tr = reg7::Tr7::new(table, x, tree, inject);
+        tr.ch.roots = roots;
         B9 { tr, pcs: p, fold0, leaf_calls }
     }
 }
@@ -827,8 +832,8 @@ impl Fs for B9 {
 }
 
 impl Backend for B9 {
-    type PData = p3_whir::WhirProverData<F, EF, reg7::Mmcs7, Layout>;
-    type Proof = pcs::PcsProof7;
+    type PData = p3_whir::WhirProverData<F, EF, crate::mmcs10::Mmcs10, Layout>;
+    type Proof = pcs::PcsProof10;
     const V7: bool = true;
     fn fold0(&self) -> usize {
         self.fold0
@@ -1986,6 +1991,8 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
     let ctb: Vec<u8> = wit.ct.iter().flatten().copied().collect();
     let mclaim = masked_claim(&o_vals, &r0, &ctb);
     if k10 {
+        // The round-10 Keccak working set (packed trace, one folded layer) stays in memory.
+        crate::alloc::suppress(std::env::var("H9_SPILL_KECCAK").map(|v| v != "1").unwrap_or(true));
         let mut tr10 = keccak::kec10::Trace10::build(packed_input(wit), rows, NPERM, &sp);
         tm.lap(&format!("P5a Keccak trace (16 N slots; 25 packed round boundaries, {} MiB)", tr10.bytes() >> 20));
         b.absorb_efs(&o_vals);
@@ -2006,6 +2013,7 @@ fn prove_core9<B: Backend>(b: &mut B, man: Vec<u8>, wit: &Wit9, pubs: &[Pub9], n
             v = *kmsgs.last().unwrap();
         }
         drop(tr10);
+        crate::alloc::suppress(false);
         r2_v = (pt, v);
     } else {
         let lowmem = low_memory(n);
@@ -2184,7 +2192,7 @@ pub fn verify_stmt9(records: &[Record], man: &[u8], x: &[u8], table: Arc<reg7::T
     if table.n != n {
         return (Err(Reject::Profile(format!("profile {:#010x} fixes N = {}, statement has {n}", table.profile, table.n))), None);
     }
-    let pre = || -> Result<(Cert9, pcs::PcsProof7), Reject> {
+    let pre = || -> Result<(Cert9, pcs::PcsProof10), Reject> {
         let cert = Cert9::from_bytes(n, bytes)?;
         if cert.manifest != man {
             return Err(Reject::Manifest);
@@ -2192,7 +2200,7 @@ pub fn verify_stmt9(records: &[Record], man: &[u8], x: &[u8], table: Arc<reg7::T
         if let Some(i) = cert.nu.iter().position(|&v| v > NU_MAX) {
             return Err(Reject::HintCountByte(i));
         }
-        let proof: pcs::PcsProof7 = bincode::deserialize(&cert.whir).map_err(|_| Reject::Parse("WHIR proof"))?;
+        let proof: pcs::PcsProof10 = bincode::deserialize(&cert.whir).map_err(|_| Reject::Parse("WHIR proof"))?;
         if bincode::serialize(&proof).map_err(|_| Reject::Parse("WHIR proof"))? != cert.whir {
             return Err(Reject::Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)"));
         }
@@ -2202,7 +2210,9 @@ pub fn verify_stmt9(records: &[Record], man: &[u8], x: &[u8], table: Arc<reg7::T
         Ok(v) => v,
         Err(e) => return (Err(e), None),
     };
-    let mut b = B9::new(n, table.profile, x, o.inject, Some(table));
+    // The UNSAFE controls and the challenge injection reach a verifier only in lab-hooks builds.
+    let inject = if cfg!(feature = "lab-hooks") { o.inject } else { pcs::Inject::Off };
+    let mut b = B9::new(n, table.profile, x, inject, Some(table));
     if o.log {
         b.tr.ch.log = Some(vec![]);
     }
@@ -2248,8 +2258,9 @@ fn verify_core9<B: Backend>(b: &mut B, records: &[Record], cert: &Cert9, proof: 
     let omega = b.sample_efs(n);
     let mu: Vec<[EF; TRIALS]> = (0..nc).map(|_| core::array::from_fn(|_| b.sample_ef())).collect();
     let r0 = b.sample_efs(nvk(n));
-    let gz = if o.drop_ternarity { EF::ZERO } else { gz };
-    let gb = if o.drop_booleanity { [EF::ZERO; 4] } else { gb };
+    let lab = cfg!(feature = "lab-hooks");
+    let gz = if lab && o.drop_ternarity { EF::ZERO } else { gz };
+    let gb = if lab && o.drop_booleanity { [EF::ZERO; 4] } else { gb };
     if cert.master.len() != tree.log_dc {
         return Err(Reject::Master("round count"));
     }

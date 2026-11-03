@@ -114,7 +114,19 @@ pub fn qslack10(nq: usize) -> u32 {
 }
 
 /// Test-only: make every strict F_q pool look one coefficient short (both sides must reject).
+#[cfg(feature = "lab-hooks")]
 pub static FORCE_SHORT_Q: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn force_short_q() -> bool {
+    #[cfg(feature = "lab-hooks")]
+    {
+        FORCE_SHORT_Q.load(std::sync::atomic::Ordering::Relaxed)
+    }
+    #[cfg(not(feature = "lab-hooks"))]
+    {
+        false
+    }
+}
 
 /// Accept the first `count` candidates of `width` bytes (little endian, masked) below `modulus`,
 /// scanning the whole fixed pool; pad with zeros. No refill.
@@ -141,6 +153,8 @@ pub struct Decoded {
     pub idx: Vec<u32>,
     /// A strict (round-10) F_q pool held fewer than nq accepted words; `q` is then truncated.
     pub short: bool,
+    /// The K pool held fewer than 5 nk accepted words (padded here; a strict table rejects).
+    pub kshort: bool,
 }
 
 /// Accepted candidates without padding (strict pools).
@@ -172,7 +186,9 @@ pub fn decode(raw: &[u8], s: &Shape) -> Decoded {
     };
     let mut out = Decoded::default();
     if s.nk > 0 {
-        let a = pool(take(s.k_pool()), 5 * s.nk, 8, P, u64::MAX);
+        let raw_k = take(s.k_pool());
+        out.kshort = pool_strict(raw_k, 5 * s.nk, 8, P, u64::MAX).len() < 5 * s.nk;
+        let a = pool(raw_k, 5 * s.nk, 8, P, u64::MAX);
         out.k = a.chunks_exact(5).map(|c| [c[0], c[1], c[2], c[3], c[4]]).collect();
     }
     if s.theta {
@@ -185,7 +201,7 @@ pub fn decode(raw: &[u8], s: &Shape) -> Decoded {
             out.q = pool(take(s.q_pool()), s.nq, 3, Q, 0x7f_ffff).into_iter().map(|x| x as u32).collect();
         } else {
             let mut q: Vec<u32> = pool_strict(take(s.q_pool()), s.nq, 3, Q, 0x7f_ffff).into_iter().map(|x| x as u32).collect();
-            if FORCE_SHORT_Q.load(std::sync::atomic::Ordering::Relaxed) {
+            if force_short_q() {
                 q.truncate(s.nq - 1);
             }
             out.short = q.len() < s.nq;
@@ -262,6 +278,38 @@ pub fn r10_selfcheck() -> Vec<(String, bool)> {
     v.push(("same (L, R) under tree rounds 1 and 2: different digests".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash_tree(0xfff9_100b, 2, &l, &r)));
     v.push(("same (L, R) under two profiles: different digests".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash_tree(0xfff9_110b, 1, &l, &r)));
     v.push(("tree-separated node differs from the QLYAUTH7 node".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash(&l, &r)));
+    // Injected coin blocks (3-byte words, low 23 bits, accepted below q).
+    let wq = |x: u32| -> [u8; 3] { [x as u8, (x >> 8) as u8, (x >> 16) as u8] };
+    let block = |nq: usize, slack: usize, rejects: &[usize], fill: u32| -> Vec<u8> {
+        let mut b = Vec::with_capacity(3 * (nq + slack));
+        for i in 0..nq + slack {
+            b.extend_from_slice(&wq(if rejects.contains(&i) { Q as u32 } else { fill }));
+        }
+        b
+    };
+    let nq = 100usize;
+    let sh = Shape { nq, qslack: qslack10(nq), ..Default::default() };
+    let sl = sh.qslack as usize;
+    let all_rej: Vec<usize> = (0..sl).collect();
+    let d = decode(&block(nq, sl, &all_rej, 7), &sh);
+    v.push((format!("injected pool, exactly enough accepted words ({sl} rejected of {}): accepted, {} coefficients", nq + sl, d.q.len()), !d.short && d.q.len() == nq && d.q.iter().all(|&x| x == 7)));
+    let one_more: Vec<usize> = (0..=sl).collect();
+    let d = decode(&block(nq, sl, &one_more, 7), &sh);
+    v.push(("injected pool, one accepted word fewer: short (rejected), not padded".to_string(), d.short && d.q.len() == nq - 1));
+    // Exhaustion in the last required entry: the last accepted word is the last word of the pool.
+    let tail: Vec<usize> = (0..sl).collect();
+    let mut b = block(nq, sl, &tail, 5);
+    let last = b.len() - 3;
+    b[last..].copy_from_slice(&wq(Q as u32 - 1));
+    let d = decode(&b, &sh);
+    v.push(("injected pool, the last required coefficient is the last word of the pool: accepted (value q - 1)".to_string(), !d.short && d.q.len() == nq && d.q[nq - 1] == Q as u32 - 1));
+    b[last..].copy_from_slice(&wq(Q as u32));
+    v.push(("the same pool with that last word = q: short".to_string(), decode(&b, &sh).short));
+    // Field boundary and masking.
+    let one = Shape { nq: 1, qslack: 1, ..Default::default() };
+    let dec1 = |w: [u8; 3], w2: [u8; 3]| decode(&[w, w2].concat(), &one);
+    v.push(("boundary: q - 1 accepted, q rejected, 2^23 - 1 rejected, top bit of the third byte masked off".to_string(),
+        dec1(wq(Q as u32 - 1), wq(0)).q == vec![Q as u32 - 1] && dec1(wq(Q as u32), wq(3)).q == vec![3] && dec1(wq((1 << 23) - 1), wq(4)).q == vec![4] && dec1([1, 0, 0x80], wq(9)).q == vec![1] && dec1(wq(Q as u32), wq(Q as u32)).short));
     for (nq, need) in [(14 * (2048 + 2048), 512usize), (14 * (16384 + 2048), 960), (14 * (65536 + 2048), 2112)] {
         v.push((format!("qslack10({nq}) = {} >= {need} (failure <= 2^-768)", qslack10(nq)), qslack10(nq) as usize >= need));
     }

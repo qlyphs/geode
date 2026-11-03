@@ -13,6 +13,7 @@ mod attack8;
 mod batch;
 mod gates7;
 mod gkr;
+#[cfg(feature = "lab-hooks")]
 mod h9tests;
 mod hidden;
 mod whirbench;
@@ -22,6 +23,8 @@ mod pcs;
 mod proj;
 mod reg7;
 mod registry;
+mod mmcs10;
+mod bigdft;
 mod region;
 mod relaxed;
 mod route8;
@@ -1204,6 +1207,8 @@ fn h9chain_run(n: usize) {
     drop(wit);
     drop(pubs);
     print_timer("prover", &tp);
+    let pf = |i: usize| keccak::kec10::PROF[i].load(std::sync::atomic::Ordering::Relaxed) as f64 / 1e3;
+    println!("  round-10 Keccak path split (ms): {}", keccak::kec10::PROF_NAMES.iter().enumerate().map(|(i, k)| format!("{k} {:.0}", pf(i))).collect::<Vec<_>>().join(", "));
     println!("prover wall clock (prove_stmt9 only): {prove_s:.1} s; throughput {:.2} signatures/s", n as f64 / prove_s);
     println!("prover transcript error: {:?}; rounds {}; FS calls {}; coin bytes {}; singleton hashes {}; seeds declined {}; grinding {}; plain bit samples {}", rep.transcript_error, rep.rounds, rep.stats.fs_calls, rep.stats.fs_bytes, rep.stats.singleton_hashes, rep.stats.seeds_declined, rep.stats.grind_calls, rep.stats.bits_calls);
     println!("quotients inexact: {}; WHIR evals equal frontend claims: {}", rep.quotient_inexact, rep.evals_match_whir);
@@ -1252,6 +1257,7 @@ fn h9chain_verify(n: usize, path: &str) {
     println!("uptime at end: {}", uptime());
 }
 
+#[cfg(feature = "lab-hooks")]
 /// Round-10 Keccak path against the reference prover: complete hidden-u certificates compared
 /// byte for byte, for each N in `ns`, `seeds` batches each, and the challenge injections in
 /// `modes` (kec10::INJECT; 0 is the protocol). At N < 512 the reference is run twice, with the
@@ -1326,6 +1332,7 @@ fn main() {
     }
     let args: Vec<String> = std::env::args().collect();
     keccak::kec10::configure_from_env();
+    bigdft::configure_from_env();
     match args.get(1).map(|s| s.as_str()) {
         Some("selftest") => selftest(),
         Some("h9self") => h9_self(),
@@ -1334,6 +1341,7 @@ fn main() {
             let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };
             whirbench::run(args[2].parse().unwrap(), (args[3].parse().unwrap(), list(4), list(5)))
         }
+        #[cfg(feature = "lab-hooks")]
         Some("h9tests") => h9tests::run_all(args.get(2).map_or(128, |s| s.parse().unwrap())),
         Some("h9verify") => {
             let n: usize = args[2].parse().unwrap();
@@ -1393,13 +1401,14 @@ fn main() {
                 }
             }
         }
+        #[cfg(feature = "lab-hooks")]
         Some("k10cmp") => {
             let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };
             let modes: Vec<u8> = list(4).into_iter().map(|m| m as u8).collect();
             k10cmp(&list(2), args[3].parse().unwrap(), &modes)
         }
         Some("r10self") => {
-            for (k, ok) in fs7::r10_selfcheck() {
+            for (k, ok) in fs7::r10_selfcheck().into_iter().chain(bigdft::selfcheck()) {
                 println!("[{}] {k}", if ok { "PASS" } else { "FAIL" });
             }
         }

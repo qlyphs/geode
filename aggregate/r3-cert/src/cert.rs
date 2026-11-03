@@ -456,6 +456,10 @@ impl Timer {
         self.phases.push((name.to_string(), ms, cur, peak, hpeak, live));
         let io = disk_io();
         self.io.push((io.0.saturating_sub(self.io0.0), io.1.saturating_sub(self.io0.1), crate::alloc::spill().0, peak));
+        if std::env::var("H9_PROGRESS").is_ok() {
+            // Live progress for long runs (stderr; the full table is printed at the end).
+            eprintln!("progress: {ms:.0} ms, live {} MiB, disk-backed {} MiB, read {} MiB, written {} MiB: {name}", live >> 20, crate::alloc::spill().0 >> 20, (io.0.saturating_sub(self.io0.0)) >> 20, (io.1.saturating_sub(self.io0.1)) >> 20);
+        }
         self.io0 = io;
         crate::alloc::reset_peak();
         self.t = Instant::now();

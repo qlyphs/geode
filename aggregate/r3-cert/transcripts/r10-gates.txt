@@ -1,0 +1,665 @@
+# job gates | commit fea3f280527a258f3d091524adc85df1d9a233f7 | binary sha256 cdc84d6686d7c24672228d1098ca8ccff2a29b842d323f9ea04ca710926e9b75 | lab binary sha256 ae208c80f811d4602d2139bad55a16382993961a5b375f13ec268a0e370c5dd8
+# host: Intel(R) Xeon(R) 6975P-C, nproc 48, cgroup memory.max 24000000000, cpu.max 2400000 100000; rustc 1.96.0 (ac68faa20 2026-05-25)
+## default-build-has-no-h9tests | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92 | env none | r3-cert h9tests 32
+usage: r3-cert selftest | run <N> | soundness [v7] | verify <N> <file> | r4 [v7] | chain <per_block> [v7] | vectors7 | gates7 | attack7 | attack8 | route8 | keccak <log2 P> [tests] | bench-ef
+	Command being timed: "/data/bin/r3-cert h9tests 32"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 10048
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 167
+	Voluntary context switches: 0
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+awk: cannot open "/proc/7419/io" (No such file or directory)
+## memory: cgroup memory.peak 2916 MiB (container lifetime); sampled max memory.current 0 MiB, anon 0 MiB
+## end default-build-has-no-h9tests | exit 0 | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92
+## ident-4096 | 2026-10-23T21:29:37Z | load 19.76 26.41 27.92 | env H9_FAMILY=johnson H9_K10_HIST=1 R3_OUT=/data/out/ident | r3-cert h9chain 4096
+# hidden-u chain-range certificate (lab chain profile 0xfff9110c, family Johnson), N = 4096, 32 blocks of 128
+host: cpu Intel(R) Xeon(R) 6975P-C; 24 logical CPUs visible; MemTotal:       389816952 kB; cgroup memory.max 24000000000; cpu.max 2400000 100000; SSD-backed arrays off (all arrays in anonymous memory); round-10 Keccak path (packed trace, selection rounds, materialization at round 4, histogram rounds on)
+uptime at start: 21:29:37 up 217 days,  7:54,  0 users,  load average: 19.76, 26.41, 27.92
+rayon threads: 24
+chain built (32 blocks, 4096 signatures signed and natively verified): 0.6 s
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint (RSS) MiB at end | read MiB | written MiB | SSD-backed MiB at end | RSS peak MiB so far) --
+       508.2 |     942 |     845 |     980 |        0 |        0 |       0 |    1068  P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+       123.9 |     998 |     996 |    1121 |        0 |        0 |       0 |    1121  P0 raw instance absorbed, registered-round transcript init
+      2479.2 |    7604 |    7604 |    7737 |        0 |        0 |       0 |    7737  P1 WHIR commit (one table of 15 columns + multiplicities)
+       423.5 |    7997 |    7997 |    8130 |        0 |        0 |       0 |    8130  P2 projections, integer lifts (u term r' in the witness), quotients
+      5616.5 |   13117 |    7997 |    8129 |        0 |        0 |       0 |   13239  P3 LogUp leaves and fractional GKR
+      1637.5 |   10926 |    9894 |   10030 |        0 |        0 |       0 |   13239  P4a master weights, public columns, claimed sum
+      4246.9 |   11014 |    7654 |    7790 |        0 |        0 |       0 |   13239  P4b master sumcheck (degree 8)
+        41.2 |    7709 |    7614 |    7750 |        0 |        0 |       0 |   13239  P4c table sumcheck
+      1115.4 |   11456 |    8016 |    8155 |        0 |        0 |       0 |   13239  P5a Keccak trace (16 N slots; 25 packed round boundaries, 400 MiB)
+        28.0 |    8092 |    8016 |    8145 |        0 |        0 |       0 |   13239  P5b masked output and mask sumcheck
+     25906.1 |    8356 |    7617 |    7744 |        0 |        0 |       0 |   13239  P5c Keccak GKR (72 layer reductions)
+      6180.8 |   11969 |    8129 |    8264 |        0 |        0 |       0 |   13239  P5d input-link sumcheck
+        64.6 |    8130 |    8129 |    8265 |        0 |        0 |       0 |   13239  P5e bit-wiring sumcheck
+      1968.4 |    8817 |    2043 |    2181 |        0 |        0 |       0 |   13239  P6 WHIR opening (29 values, 5 points)
+  storage traffic over all prover phases: read 0.00 GiB, written 0.00 GiB; SSD-backed peak 0.00 GiB
+  peak live heap over all prover phases: 13117 MiB = 12.81 GiB
+     50340.3  TOTAL prover
+  round-10 Keccak path split (ms): packed trace 967, selection rounds 9921, materialization 8508, folded rounds and phase B 4783, wiring 561
+prover wall clock (prove_stmt9 only): 49.8 s; throughput 82.17 signatures/s
+prover transcript error: None; rounds 3279; FS calls 3279; coin bytes 1412984; singleton hashes 3275; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- certificate bytes by component (exact):
+         512  manifest
+      262144  c_tilde
+        4096  hint counts
+         560  quotients
+          64  commitment
+       28000  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        7360  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2160  mask sumcheck
+          40  Keccak output claim
+      394560  Keccak GKR, 72 layers
+        2760  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      976461  WHIR proof
+     1682041  TOTAL = 410.65 B/signature (headers add 64 B per block = 0.50 B/signature)
+WHIR: dimension 27, schedule (2, [4, 7, 10], [6, 5, 5, 5]), Sec { assumption: JohnsonBound, target: 272 }; prescribed security (p3 planner, composed, 29-value protocol): 270.25 bits; log2 max candidates 5.32
+WHIR queries per phase (library): [293, 141, 80] + final 56
+certificate written to /data/out/ident/h9chain-cert-4096-fff9110c.bin
+uptime at end: 21:30:29 up 217 days,  7:55,  0 users,  load average: 24.53, 26.45, 27.84
+	Command being timed: "/data/bin/r3-cert h9chain 4096"
+	User time (seconds): 599.54
+	System time (seconds): 46.50
+	Percent of CPU this job got: 1263%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:51.15
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 13556652
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 17450330
+	Voluntary context switches: 177027
+	Involuntary context switches: 199129
+	Swaps: 0
+	File system inputs: 232
+	File system outputs: 3304
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 14317 MiB (container lifetime); sampled max memory.current 9566 MiB, anon 8934 MiB
+## end ident-4096 | exit 0 | 2026-10-23T21:30:29Z | load 24.53 26.45 27.84
+## N=4096 Johnson certificate sha256 97f3cd102d065a2c1d6dc75cf1fd0bdfcc89bf7b8ce028db581ddc872ac755d7; before the rewrite 97f3cd102d065a2c1d6dc75cf1fd0bdfcc89bf7b8ce028db581ddc872ac755d7: IDENTICAL
+## bigindex | 2026-10-23T21:30:29Z | load 24.53 26.45 27.84 | env H9_SPILL_DIR=/tmp/spill H9_SPILL_MIN=67108864 | r3-cert bigindex
+SSD-backed arrays on: allocations >= 65536 KiB are shared mappings of unlinked files in /tmp/spill
+array of 4294971392 field elements (32.00 GiB): elements around 2^32 read back: true; matrix of width 64, height 67108928: rows 67108863 and 67108864 straddle 2^32 correctly: true; SSD-backed now 32.00 GiB
+BIGINDEX PASS
+	Command being timed: "/data/bin/r3-cert-lab bigindex"
+	User time (seconds): 0.87
+	System time (seconds): 16.42
+	Percent of CPU this job got: 51%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:33.49
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 22588064
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 3
+	Minor (reclaiming a frame) page faults: 772208
+	Voluntary context switches: 1187
+	Involuntary context switches: 5917
+	Swaps: 0
+	File system inputs: 1512
+	File system outputs: 67108944
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 22887 MiB, anon 7 MiB
+## end bigindex | exit 0 | 2026-10-23T21:31:02Z | load 25.83 26.57 27.84
+## h9tests-128-johnson | 2026-10-23T21:31:02Z | load 25.83 26.57 27.84 | env H9_FAMILY=johnson | r3-cert h9tests 128
+# hidden-u acceptance tests, N = 128, lab profile 0xfff91007, lab chain profile 0xfff91107
+uptime at start: 21:31:02 up 217 days,  7:56,  0 users,  load average: 26.40, 26.68, 27.86
+## A. honest controls, extraction, profile isolation
+[PASS] honest certificate: ACCEPT
+[PASS] prover and verifier round logs identical (2785 rounds: roots, bodies, coin prefixes); verify true
+[PASS] registered calls only: 2785 FS derivations, 935503 coin bytes, 2781 singleton hashes, 14 p3 seeds declined, 0 grinding calls, 0 plain bit samples
+[PASS] canonical extraction: signatures rebuilt from (X, S, bit planes, public c_tilde) equal the originals and are accepted by libcrux: 128/128
+[PASS] registry: no hidden-u table for the production id, the QLYAUTH7 lab id, or another count
+[PASS] hidden-u certificate relabelled with the QLYAUTH7 lab id: REJECT Manifest
+[PASS] hidden-u certificate given to the QLYAUTH7 lab verifier: REJECT Parse("length mismatch / trailing bytes")
+[PASS] honest certificate under the UNSAFE no-Booleanity control (the control is complete): ACCEPT
+## B. hash-side attacks (relaxed key in slot 0 unless stated)
+[PASS] control: relaxed signer, true SHAKE256 challenge, all bounds respected: ACCEPT
+[PASS] wrong SHAKE suffix: c_tilde from the 0x06-padded sponge, prover's trace uses that padding block: REJECT Hash("input-link terminal check")
+[PASS] omitted padding permutation: c_tilde = first 64 bytes of S_8, honest nine-permutation trace: REJECT Hash("mask terminal check")
+[PASS] omitted padding: prover also drops the padding block from slot 8: REJECT Hash("mask terminal check")
+[PASS] wrong nibble order: U encoded high nibble first; c_tilde and the prover's trace use that encoding, the bits are the true u: REJECT Hash("input-link terminal check")
+[PASS] wrong bit order: bits reversed inside each nibble; c_tilde and the prover's trace use that encoding, the bits are the true u: REJECT Hash("input-link terminal check")
+[PASS] committed states T3 and T4 exchanged (columns swapped), honest trace: REJECT Hash("masked-output openings differ from the claimed values")
+[PASS] signature 0 only: committed T3 and T4 exchanged: REJECT Hash("mask terminal check")
+[PASS] permutation slots 3 and 4 of signature 0 exchanged in the trace: REJECT Hash("mask terminal check")
+[PASS] sponge traces of signatures 0 and 1 exchanged (states, blocks and committed T): REJECT Hash("mask terminal check")
+[PASS] capacity-only mutation: one capacity bit of committed T4 flipped: REJECT Hash("mask terminal check")
+[PASS] capacity-only mutation of S4 carried through the rest of the sponge (consistent trace and T): REJECT Hash("mask terminal check")
+[PASS] capacity bit of the slot-5 input changed, committed T5 unchanged (capacity not carried): REJECT Hash("mask terminal check")
+[PASS] non-Boolean bit: u = 5 as (1, 2, 0, 0) (arithmetic unchanged), honest trace: REJECT Hash("input-link terminal check")
+[PASS] same witness under the UNSAFE no-Booleanity control (the hash link still binds the bits): REJECT Hash("input-link terminal check")
+[PASS] non-Boolean bit also fed into the Keccak input (in = T (1 - 2 B) with B = 2): REJECT Hash("mask terminal check")
+[PASS] nonzero padded coordinate of committed T2 (cell 1700): REJECT Hash("mask terminal check")
+[PASS] nonzero padded coordinate of the slot-2 Keccak input row (cell 1700; the layers ignore it): REJECT Hash("input-link terminal check")
+[PASS] nonzero cell in dummy slot 12 of signature 0: REJECT Hash("input-link terminal check")
+  alternative decomposition at signature 3, coefficient 48: (u, e, S=1) -> (u+1, e-a, S=0); every arithmetic bound holds, hint count 51
+[PASS] different u: arithmetic and bits use u_a (alternative decomposition), the hash trace uses the true U: REJECT Hash("input-link terminal check")
+[PASS] u_a everywhere (arithmetic, bits, trace), c_tilde unchanged: REJECT Hash("mask terminal check")
+[PASS] false shortcut on the honest certificate: input claim 6955539434208392639.. vs XOR link evaluated on multilinear evaluations 6301611441043557327.. (a verifier using it rejects honest proofs)
+[PASS] false shortcut for d0 = prod (1 - Bj): MLE(d0)(r) != prod (1 - MLE(Bj)(r)) on honest bits
+[PASS] prover sends shortcut values for the re-indexed bit claims: REJECT Hash("input-link terminal check")
+## C. ported response, ternarity, hint-budget, statement, byte, Gruen, layout tests
+[PASS] out-of-range z = +524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] out-of-range z = -524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] residual outside its region (u moved by 2 at one coefficient; all else exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] z coefficient + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero")
+[PASS] signature 0 has 76 hints, published nu_0 = 75 and nu_1 + 1 (total unchanged): REJECT Master("terminal check")
+[PASS] signature 0 has 76 hints, published nu_0 = 76: REJECT HintCountByte(0)
+[PASS] honest certificate, records 0 and 1 reordered in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, records 0 and 1 reordered: REJECT Gkr("LayerMismatch(1)")
+[PASS] records 0 and 1 reordered: prover runs on the resulting witness (witness in the original order): REJECT Gkr("RootNumeratorNonzero")
+[PASS] honest certificate, contexts of records 0 and 1 swapped in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, contexts of records 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] contexts of records 0 and 1 swapped: prover runs on the resulting witness (witness in the original order): REJECT Hash("mask terminal check")
+[PASS] honest certificate, public keys of records 0 and 1 swapped in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, public keys of records 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] public keys of records 0 and 1 swapped: prover runs on the resulting witness (witness in the original order): REJECT Gkr("RootNumeratorNonzero")
+[PASS] wrong u: one nibble of u_0 changed, prover runs on the resulting witness: REJECT Gkr("RootNumeratorNonzero")
+[PASS] residual cell Y + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero")
+[PASS] multiplicity table: one count moved from t to t+1: REJECT Gkr("RootNumeratorNonzero")
+[PASS] one lift quotient V + 1, everything else honest: REJECT Master("terminal check")
+[PASS] selector moved between two cells of signature 0 (count unchanged): REJECT Gkr("RootNumeratorNonzero")
+[PASS] final real X coordinate (last signature, z_6[255]) + 1, multiplicities recounted: REJECT Master("terminal check")
+[PASS] final residual coordinate (last signature, slot 2047) + 1, multiplicities recounted: REJECT Master("terminal check")
+[PASS] final bit of the last signature flipped (B3 at slot 2047): REJECT Hash("input-link terminal check")
+[PASS] S = 1/2 at four interior hint-zero cells, full verifier: REJECT Master("terminal check")
+[PASS] same witness, UNSAFE control without the S^3 = S weight (same statement, profile, schedule): ACCEPT
+[PASS] honest batch, UNSAFE ternarity control (the control is complete): ACCEPT
+[PASS] columns committed as [Y, X, S, ...]: REJECT Master("terminal check")
+[PASS] bit planes B0 and B1 committed in the other order: REJECT Hash("bit-wiring terminal check")
+[PASS] Zero: honest certificate: ACCEPT
+[PASS] Zero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Zero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Zero: LogUp GKR layer 5, round 2, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Zero: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] One: honest certificate: ACCEPT
+[PASS] One: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] One: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] One: LogUp GKR layer 5, round 2, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] One: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Half: honest certificate: ACCEPT
+[PASS] Half: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Half: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Half: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Half: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] EqZero: honest certificate: ACCEPT
+[PASS] EqZero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] EqZero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] EqZero: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(5)")
+[PASS] EqZero: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Vroot: honest certificate: ACCEPT
+[PASS] Vroot: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Vroot: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Vroot: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Vroot: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] tampered byte 170 (manifest): REJECT Manifest
+[PASS] tampered byte 511 (manifest): REJECT Manifest
+[PASS] tampered byte 3242 (c_tilde): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8703 (c_tilde): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8746 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8831 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8855 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8901 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8923 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8965 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 15099 (LogUp GKR): REJECT Gkr("LayerMismatch(10)")
+[PASS] tampered byte 27365 (LogUp GKR): REJECT Gkr("LayerMismatch(19)")
+[PASS] tampered byte 27392 (leaf pair): REJECT LeafPair
+[PASS] tampered byte 27445 (leaf pair): REJECT LeafPair
+[PASS] tampered byte 27459 (table claim T): REJECT Hash("mask terminal check")
+[PASS] tampered byte 27485 (table claim T): REJECT Hash("mask terminal check")
+[PASS] tampered byte 29406 (master sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 33245 (master sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 33752 (table sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 34765 (table sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 34872 (masked-output T openings): REJECT Hash("mask terminal check")
+[PASS] tampered byte 35085 (masked-output T openings): REJECT Hash("mask terminal check")
+[PASS] tampered byte 35672 (mask sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36845 (mask sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36859 (Keccak output claim): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36885 (Keccak output claim): REJECT Hash("mask terminal check")
+[PASS] tampered byte 150806 (Keccak GKR, 72 layers): REJECT Hash("round 15 rho-pi-chi-iota: main terminal check")
+[PASS] tampered byte 378645 (Keccak GKR, 72 layers): REJECT Hash("round 0 theta-a: wiring terminal check")
+[PASS] tampered byte 379366 (input-link sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 380805 (input-link sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 380912 (re-indexed bit claims): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 381125 (re-indexed bit claims): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 381472 (bit-wiring sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 382165 (bit-wiring sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 397801 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 429064 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 460327 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 491589 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 522852 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 554115 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 585378 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 616641 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 647903 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 679166 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 710429 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 741692 (WHIR proof): REJECT Parse("WHIR proof")
+[PASS] tampered byte 772955 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 804217 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 835480 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 866743 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] one trailing byte appended: REJECT Parse("length mismatch / trailing bytes")
+[PASS] byte appended inside the WHIR proof, length raised: REJECT Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)")
+[PASS] each record's message (one bit): round-1 projection pool changed in 128/128
+[PASS] each record's context (one bit): round-1 projection pool changed in 128/128
+[PASS] each record's public key (one bit): round-1 projection pool changed in 128/128
+[PASS] each signature's public c_tilde (one bit): pool changed in 128/128
+[PASS] each hint count (+-1): pool changed in 128/128
+[PASS] initial commitment (each of 64 bytes): pool changed in 64/64
+[PASS] manifest (each of 512 bytes): pool changed in 512/512
+[PASS] each lift quotient (+-1): pool unchanged, theta changed in 14/14
+## D. range binding (lab chain profile, 16 blocks x 8 records)
+[PASS] honest certificate for heights 0..15: ACCEPT
+[PASS] the production chain verifier on the hidden-u lab certificate: REJECT Profile("unregistered manifest magic")
+[PASS] replayed bodies with records 0 and 1 of block 2 reordered: REJECT Chain("accumulator mismatch at height 2")
+[PASS] state resolves one record to another key: REJECT Chain("accumulator mismatch at height 1")
+[PASS] header A[7] changed (ids relinked): REJECT Chain("accumulator mismatch at height 7")
+[PASS] cross-fork: same bodies on another parent: REJECT Manifest
+[PASS] cross-fork with the manifest rewritten to fork B: REJECT Gkr("LayerMismatch(1)")
+[PASS] certificate for heights 0..15 checked as heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] the same with the manifest rewritten to heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] prover proves block 2 with records 0 and 1 reordered (valid proof of the permuted list): REJECT Chain("accumulator mismatch at height 2")
+  key rotation: transaction 0 rotated: true
+[PASS] prover authorizes a record with the rotated-out epoch-0 key (valid signature under that key): REJECT Chain("accumulator mismatch at height 0")
+[PASS] one c_tilde bit of record 9 changed in the certificate (accumulator): REJECT Chain("accumulator mismatch at height 1")
+## E. round-10 profile rules: strict F_q pool, tree-separated Merkle nodes
+[PASS] strict pool of rejected words: short, not padded
+[PASS] legacy pool of rejected words: padded with zeros (QLYAUTH7 rule kept)
+[PASS] strict pool of accepted words: full
+[PASS] strict descriptor differs from the legacy one
+[PASS] legacy descriptor unchanged (13 bytes + widths)
+[PASS] same (L, R) under tree rounds 1 and 2: different digests
+[PASS] same (L, R) under two profiles: different digests
+[PASS] tree-separated node differs from the QLYAUTH7 node
+[PASS] injected pool, exactly enough accepted words (513 rejected of 613): accepted, 100 coefficients
+[PASS] injected pool, one accepted word fewer: short (rejected), not padded
+[PASS] injected pool, the last required coefficient is the last word of the pool: accepted (value q - 1)
+[PASS] the same pool with that last word = q: short
+[PASS] boundary: q - 1 accepted, q rejected, 2^23 - 1 rejected, top bit of the third byte masked off
+[PASS] qslack10(57344) = 656 >= 512 (failure <= 2^-768)
+[PASS] qslack10(258048) = 1158 >= 960 (failure <= 2^-768)
+[PASS] qslack10(946176) = 2878 >= 2112 (failure <= 2^-768)
+[PASS] round 1 registers nq = 30464 with slack 589 (512 + ceil(nq / 400))
+[PASS] forced-short F_q pool: the prover refuses (no padding)
+[PASS] forced-short F_q pool: the verifier rejects the honest certificate: REJECT Transcript("F_q projection pool short")
+[PASS] pool rule restored: the honest certificate verifies again: ACCEPT
+[PASS] fold-tree nodes hashed with the witness tree's round: the commitment roots change
+[PASS] fold-tree nodes hashed with the witness tree's round: rejected: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+## F. Fiat-Shamir on GKR: the raw instance is absorbed in full, before the first coin
+[PASS] T-FS1 coins derived with the records frame replaced by an empty frame: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS2 coins derived from SHA3-512(instance) instead of the instance: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 one message byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (message): the round-1 coin prefix changes
+[PASS] T-FS3 one context byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (context): the round-1 coin prefix changes
+[PASS] T-FS3 one public key byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (public key): the round-1 coin prefix changes
+[PASS] T-FS3 one c_tilde byte changed, proof kept: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 (c_tilde): the round-1 coin prefix changes
+[PASS] T-FS3 one hint count changed, proof kept: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 (hint count): the round-1 coin prefix changes
+[PASS] T-FS4 records swapped after the round-1 coins (verified against x): REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS4 the same proof against the swapped statement: REJECT Manifest
+[PASS] T-FS5 coins derived for another round-1 descriptor (slack + 1): REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS5 coins derived with the other family's profile id in the coin input: REJECT Gkr("LayerMismatch(1)")
+## G. hostile gates (round-10 review, section E)
+[PASS] coordinated planes: sqrt2^2 = 2 (true), B0 = 1/2, B1 = (1 + sqrt 2)/2, unweighted Booleanity sum at the cell = 0 (true)
+[PASS] coordinated non-Boolean planes cancelling under a fixed sum (Booleanity uses four independent weights): REJECT Hash("input-link terminal check")
+[PASS] multiplicities moved after theta (committed ones unchanged): REJECT Gkr("RootNumeratorNonzero")
+[PASS] opening value T1(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T2(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T3(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T4(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T5(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T6(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T7(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T8(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] the 8 masked-output openings located among the WHIR proof's opened values: 8/8
+[PASS] sign conversion: packed input layer unpacks to the field input rows (bit 0 -> +1, 1 -> -1, padding and dummy slots -> 0): 4194304/4194304 cells
+[PASS] chi under A = 1 - 2a: truth table (8 triples) and A(1 - B + C + BC)/2 at 64 random points: 72/72
+[PASS] every layer term vanishes on the zero vector (skipped dummy pairs contribute 0): 96/96
+[PASS] per-tree hash domains: hashes only under the 4 registered commit rounds [1, 2762, 2769, 2775], each tree hashed (prover and verifier counted together: {1: (2097293, 2099117), 2762: (524368, 525324), 2769: (131134, 131760), 2775: (32819, 33253)})
+## H. per-operation tree contexts and injected coin pools (round-11 review)
+[PASS] every routing-cell write replaced by tree 1 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 2 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 4000 during verification: openings hash with their originating trees: ACCEPT
+[PASS] control: the QLYAUTH7 lab scheme (shared routing cell) under the same wrong ambient context: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] interleaved verifiers on two threads: profile 0xfff91007 (trees [1, 2762, 2769, 2775]) x3 and 0xfff91006 (trees [1, 2687, 2693, 2699]) x3 all ACCEPT
+[PASS] per-operation context: committed under tree 5 with the cell changed to 9 afterwards; verifies as tree 5 (true), not as tree 9 (true); an ambiguous root (true) and an unobserved root (true) are rejected
+[PASS] round id 70000 (> LE16): narrow() rejects it (true), 65535 accepted (true), the verifier rejects that tree (true), a commitment under it is refused (true)
+[PASS] K pool of rejected words: flagged short (true); the round-10 table is strict (true; QLYAUTH7 tables keep the padded rule)
+[PASS] forced-short K pools: the verifier rejects the honest certificate: REJECT Gkr("LayerMismatch(1)")
+[PASS] forced-short K pools: the prover's transcript is poisoned or the prover stops (Ok(Some("round 3: K pool short")))
+[PASS] every registered round-1 shape: exactly enough accepted words decodes in full, one fewer is short [N=32: nq 29120 slack 585 quotient body Scalar(70); N=64: nq 29568 slack 586 quotient body Scalar(70); N=128: nq 30464 slack 589 quotient body Scalar(70); N=256: nq 32256 slack 593 quotient body Scalar(70); N=512: nq 35840 slack 602 quotient body Scalar(70); N=1024: nq 43008 slack 620 quotient body Scalar(140); N=2048: nq 57344 slack 656 quotient body Scalar(280); N=4096: nq 86016 slack 728 quotient body Scalar(560); N=8192: nq 143360 slack 871 quotient body Scalar(1120); N=16384: nq 258048 slack 1158 quotient body Scalar(2240); N=32768: nq 487424 slack 1731 quotient body Scalar(4480); N=65536: nq 946176 slack 2878 quotient body Scalar(8960)]
+[PASS] chunk transition 512 -> 1024 signatures: quotient bodies Scalar(70) -> Scalar(140) (14 trials x 5 bytes per chunk)
+H9 TESTS SUMMARY: 223/223 behave as expected
+uptime at end: 21:36:08 up 217 days,  8:01,  0 users,  load average: 42.00, 36.34, 31.80
+	Command being timed: "/data/bin/r3-cert-lab h9tests 128"
+	User time (seconds): 4433.80
+	System time (seconds): 411.04
+	Percent of CPU this job got: 1585%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:05.58
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 4354628
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 4
+	Minor (reclaiming a frame) page faults: 49999472
+	Voluntary context switches: 6218817
+	Involuntary context switches: 1758660
+	Swaps: 0
+	File system inputs: 18224
+	File system outputs: 112
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 3174 MiB, anon 2944 MiB
+## end h9tests-128-johnson | exit 0 | 2026-10-23T21:36:08Z | load 42.00 36.34 31.80
+## h9tests-128-ud | 2026-10-23T21:36:08Z | load 42.00 36.34 31.80 | env H9_FAMILY=ud | r3-cert h9tests 128
+# hidden-u acceptance tests, N = 128, lab profile 0xfff91207, lab chain profile 0xfff91307
+uptime at start: 21:36:08 up 217 days,  8:01,  0 users,  load average: 42.00, 36.34, 31.80
+## A. honest controls, extraction, profile isolation
+[PASS] honest certificate: ACCEPT
+[PASS] prover and verifier round logs identical (2781 rounds: roots, bodies, coin prefixes); verify true
+[PASS] registered calls only: 2781 FS derivations, 938171 coin bytes, 2777 singleton hashes, 13 p3 seeds declined, 0 grinding calls, 0 plain bit samples
+[PASS] canonical extraction: signatures rebuilt from (X, S, bit planes, public c_tilde) equal the originals and are accepted by libcrux: 128/128
+[PASS] registry: no hidden-u table for the production id, the QLYAUTH7 lab id, or another count
+[PASS] hidden-u certificate relabelled with the QLYAUTH7 lab id: REJECT Manifest
+[PASS] hidden-u certificate given to the QLYAUTH7 lab verifier: REJECT Parse("length mismatch / trailing bytes")
+[PASS] honest certificate under the UNSAFE no-Booleanity control (the control is complete): ACCEPT
+## B. hash-side attacks (relaxed key in slot 0 unless stated)
+[PASS] control: relaxed signer, true SHAKE256 challenge, all bounds respected: ACCEPT
+[PASS] wrong SHAKE suffix: c_tilde from the 0x06-padded sponge, prover's trace uses that padding block: REJECT Hash("input-link terminal check")
+[PASS] omitted padding permutation: c_tilde = first 64 bytes of S_8, honest nine-permutation trace: REJECT Hash("mask terminal check")
+[PASS] omitted padding: prover also drops the padding block from slot 8: REJECT Hash("mask terminal check")
+[PASS] wrong nibble order: U encoded high nibble first; c_tilde and the prover's trace use that encoding, the bits are the true u: REJECT Hash("input-link terminal check")
+[PASS] wrong bit order: bits reversed inside each nibble; c_tilde and the prover's trace use that encoding, the bits are the true u: REJECT Hash("input-link terminal check")
+[PASS] committed states T3 and T4 exchanged (columns swapped), honest trace: REJECT Hash("masked-output openings differ from the claimed values")
+[PASS] signature 0 only: committed T3 and T4 exchanged: REJECT Hash("mask terminal check")
+[PASS] permutation slots 3 and 4 of signature 0 exchanged in the trace: REJECT Hash("mask terminal check")
+[PASS] sponge traces of signatures 0 and 1 exchanged (states, blocks and committed T): REJECT Hash("mask terminal check")
+[PASS] capacity-only mutation: one capacity bit of committed T4 flipped: REJECT Hash("mask terminal check")
+[PASS] capacity-only mutation of S4 carried through the rest of the sponge (consistent trace and T): REJECT Hash("mask terminal check")
+[PASS] capacity bit of the slot-5 input changed, committed T5 unchanged (capacity not carried): REJECT Hash("mask terminal check")
+[PASS] non-Boolean bit: u = 5 as (1, 2, 0, 0) (arithmetic unchanged), honest trace: REJECT Hash("input-link terminal check")
+[PASS] same witness under the UNSAFE no-Booleanity control (the hash link still binds the bits): REJECT Hash("input-link terminal check")
+[PASS] non-Boolean bit also fed into the Keccak input (in = T (1 - 2 B) with B = 2): REJECT Hash("mask terminal check")
+[PASS] nonzero padded coordinate of committed T2 (cell 1700): REJECT Hash("mask terminal check")
+[PASS] nonzero padded coordinate of the slot-2 Keccak input row (cell 1700; the layers ignore it): REJECT Hash("input-link terminal check")
+[PASS] nonzero cell in dummy slot 12 of signature 0: REJECT Hash("input-link terminal check")
+  alternative decomposition at signature 3, coefficient 48: (u, e, S=1) -> (u+1, e-a, S=0); every arithmetic bound holds, hint count 51
+[PASS] different u: arithmetic and bits use u_a (alternative decomposition), the hash trace uses the true U: REJECT Hash("input-link terminal check")
+[PASS] u_a everywhere (arithmetic, bits, trace), c_tilde unchanged: REJECT Hash("mask terminal check")
+[PASS] false shortcut on the honest certificate: input claim 10119115102191270189.. vs XOR link evaluated on multilinear evaluations 6564526700477515259.. (a verifier using it rejects honest proofs)
+[PASS] false shortcut for d0 = prod (1 - Bj): MLE(d0)(r) != prod (1 - MLE(Bj)(r)) on honest bits
+[PASS] prover sends shortcut values for the re-indexed bit claims: REJECT Hash("input-link terminal check")
+## C. ported response, ternarity, hint-budget, statement, byte, Gruen, layout tests
+[PASS] out-of-range z = +524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] out-of-range z = -524168 (one coefficient; relation and all other bounds exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] residual outside its region (u moved by 2 at one coefficient; all else exact): REJECT Gkr("RootNumeratorNonzero")
+[PASS] z coefficient + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero")
+[PASS] signature 0 has 76 hints, published nu_0 = 75 and nu_1 + 1 (total unchanged): REJECT Master("terminal check")
+[PASS] signature 0 has 76 hints, published nu_0 = 76: REJECT HintCountByte(0)
+[PASS] honest certificate, records 0 and 1 reordered in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, records 0 and 1 reordered: REJECT Gkr("LayerMismatch(1)")
+[PASS] records 0 and 1 reordered: prover runs on the resulting witness (witness in the original order): REJECT Gkr("RootNumeratorNonzero")
+[PASS] honest certificate, contexts of records 0 and 1 swapped in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, contexts of records 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] contexts of records 0 and 1 swapped: prover runs on the resulting witness (witness in the original order): REJECT Hash("mask terminal check")
+[PASS] honest certificate, public keys of records 0 and 1 swapped in the statement: REJECT Manifest
+[PASS] honest certificate + rewritten manifest, public keys of records 0 and 1 swapped: REJECT Gkr("LayerMismatch(1)")
+[PASS] public keys of records 0 and 1 swapped: prover runs on the resulting witness (witness in the original order): REJECT Gkr("RootNumeratorNonzero")
+[PASS] wrong u: one nibble of u_0 changed, prover runs on the resulting witness: REJECT Gkr("RootNumeratorNonzero")
+[PASS] residual cell Y + q (mod-q relation unchanged, range only): REJECT Gkr("RootNumeratorNonzero")
+[PASS] multiplicity table: one count moved from t to t+1: REJECT Gkr("RootNumeratorNonzero")
+[PASS] one lift quotient V + 1, everything else honest: REJECT Master("terminal check")
+[PASS] selector moved between two cells of signature 0 (count unchanged): REJECT Gkr("RootNumeratorNonzero")
+[PASS] final real X coordinate (last signature, z_6[255]) + 1, multiplicities recounted: REJECT Master("terminal check")
+[PASS] final residual coordinate (last signature, slot 2047) + 1, multiplicities recounted: REJECT Master("terminal check")
+[PASS] final bit of the last signature flipped (B3 at slot 2047): REJECT Hash("input-link terminal check")
+[PASS] S = 1/2 at four interior hint-zero cells, full verifier: REJECT Master("terminal check")
+[PASS] same witness, UNSAFE control without the S^3 = S weight (same statement, profile, schedule): ACCEPT
+[PASS] honest batch, UNSAFE ternarity control (the control is complete): ACCEPT
+[PASS] columns committed as [Y, X, S, ...]: REJECT Master("terminal check")
+[PASS] bit planes B0 and B1 committed in the other order: REJECT Hash("bit-wiring terminal check")
+[PASS] Zero: honest certificate: ACCEPT
+[PASS] Zero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Zero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Zero: LogUp GKR layer 5, round 2, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Zero: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] One: honest certificate: ACCEPT
+[PASS] One: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] One: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] One: LogUp GKR layer 5, round 2, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] One: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Half: honest certificate: ACCEPT
+[PASS] Half: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Half: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Half: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Half: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] EqZero: honest certificate: ACCEPT
+[PASS] EqZero: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] EqZero: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] EqZero: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(5)")
+[PASS] EqZero: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] Vroot: honest certificate: ACCEPT
+[PASS] Vroot: S = 1/2 witness: REJECT Master("terminal check")
+[PASS] Vroot: one multiplicity moved: REJECT Gkr("RootNumeratorNonzero")
+[PASS] Vroot: LogUp GKR layer 5, round 2, a1 tampered: REJECT Gkr("LayerMismatch(6)")
+[PASS] Vroot: table round 4, a1 tampered: REJECT Hash("mask terminal check")
+[PASS] tampered byte 170 (manifest): REJECT Manifest
+[PASS] tampered byte 511 (manifest): REJECT Manifest
+[PASS] tampered byte 3242 (c_tilde): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8703 (c_tilde): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8746 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8831 (hint counts): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8855 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8901 (quotients): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8923 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 8965 (commitment): REJECT Gkr("LayerMismatch(1)")
+[PASS] tampered byte 15099 (LogUp GKR): REJECT Gkr("LayerMismatch(10)")
+[PASS] tampered byte 27365 (LogUp GKR): REJECT Gkr("LayerMismatch(19)")
+[PASS] tampered byte 27392 (leaf pair): REJECT LeafPair
+[PASS] tampered byte 27445 (leaf pair): REJECT LeafPair
+[PASS] tampered byte 27459 (table claim T): REJECT Hash("mask terminal check")
+[PASS] tampered byte 27485 (table claim T): REJECT Hash("mask terminal check")
+[PASS] tampered byte 29406 (master sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 33245 (master sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 33752 (table sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 34765 (table sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 34872 (masked-output T openings): REJECT Hash("mask terminal check")
+[PASS] tampered byte 35085 (masked-output T openings): REJECT Hash("mask terminal check")
+[PASS] tampered byte 35672 (mask sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36845 (mask sumcheck): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36859 (Keccak output claim): REJECT Hash("mask terminal check")
+[PASS] tampered byte 36885 (Keccak output claim): REJECT Hash("mask terminal check")
+[PASS] tampered byte 150806 (Keccak GKR, 72 layers): REJECT Hash("round 15 rho-pi-chi-iota: main terminal check")
+[PASS] tampered byte 378645 (Keccak GKR, 72 layers): REJECT Hash("round 0 theta-a: wiring terminal check")
+[PASS] tampered byte 379366 (input-link sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 380805 (input-link sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 380912 (re-indexed bit claims): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 381125 (re-indexed bit claims): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 381472 (bit-wiring sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 382165 (bit-wiring sumcheck): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 432423 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 532929 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 633435 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 733942 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 834448 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 934954 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1035461 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1135967 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1236473 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1336979 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1437486 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1537992 (WHIR proof): REJECT Parse("WHIR proof")
+[PASS] tampered byte 1638498 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1739005 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1839511 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] tampered byte 1940017 (WHIR proof): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+[PASS] one trailing byte appended: REJECT Parse("length mismatch / trailing bytes")
+[PASS] byte appended inside the WHIR proof, length raised: REJECT Parse("WHIR proof is not the canonical encoding (trailing or non-canonical bytes)")
+[PASS] each record's message (one bit): round-1 projection pool changed in 128/128
+[PASS] each record's context (one bit): round-1 projection pool changed in 128/128
+[PASS] each record's public key (one bit): round-1 projection pool changed in 128/128
+[PASS] each signature's public c_tilde (one bit): pool changed in 128/128
+[PASS] each hint count (+-1): pool changed in 128/128
+[PASS] initial commitment (each of 64 bytes): pool changed in 64/64
+[PASS] manifest (each of 512 bytes): pool changed in 512/512
+[PASS] each lift quotient (+-1): pool unchanged, theta changed in 14/14
+## D. range binding (lab chain profile, 16 blocks x 8 records)
+[PASS] honest certificate for heights 0..15: ACCEPT
+[PASS] the production chain verifier on the hidden-u lab certificate: REJECT Profile("unregistered manifest magic")
+[PASS] replayed bodies with records 0 and 1 of block 2 reordered: REJECT Chain("accumulator mismatch at height 2")
+[PASS] state resolves one record to another key: REJECT Chain("accumulator mismatch at height 1")
+[PASS] header A[7] changed (ids relinked): REJECT Chain("accumulator mismatch at height 7")
+[PASS] cross-fork: same bodies on another parent: REJECT Manifest
+[PASS] cross-fork with the manifest rewritten to fork B: REJECT Gkr("LayerMismatch(1)")
+[PASS] certificate for heights 0..15 checked as heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] the same with the manifest rewritten to heights 16..31: REJECT Chain("accumulator mismatch at height 16")
+[PASS] prover proves block 2 with records 0 and 1 reordered (valid proof of the permuted list): REJECT Chain("accumulator mismatch at height 2")
+  key rotation: transaction 0 rotated: true
+[PASS] prover authorizes a record with the rotated-out epoch-0 key (valid signature under that key): REJECT Chain("accumulator mismatch at height 0")
+[PASS] one c_tilde bit of record 9 changed in the certificate (accumulator): REJECT Chain("accumulator mismatch at height 1")
+## E. round-10 profile rules: strict F_q pool, tree-separated Merkle nodes
+[PASS] strict pool of rejected words: short, not padded
+[PASS] legacy pool of rejected words: padded with zeros (QLYAUTH7 rule kept)
+[PASS] strict pool of accepted words: full
+[PASS] strict descriptor differs from the legacy one
+[PASS] legacy descriptor unchanged (13 bytes + widths)
+[PASS] same (L, R) under tree rounds 1 and 2: different digests
+[PASS] same (L, R) under two profiles: different digests
+[PASS] tree-separated node differs from the QLYAUTH7 node
+[PASS] injected pool, exactly enough accepted words (513 rejected of 613): accepted, 100 coefficients
+[PASS] injected pool, one accepted word fewer: short (rejected), not padded
+[PASS] injected pool, the last required coefficient is the last word of the pool: accepted (value q - 1)
+[PASS] the same pool with that last word = q: short
+[PASS] boundary: q - 1 accepted, q rejected, 2^23 - 1 rejected, top bit of the third byte masked off
+[PASS] qslack10(57344) = 656 >= 512 (failure <= 2^-768)
+[PASS] qslack10(258048) = 1158 >= 960 (failure <= 2^-768)
+[PASS] qslack10(946176) = 2878 >= 2112 (failure <= 2^-768)
+[PASS] round 1 registers nq = 30464 with slack 589 (512 + ceil(nq / 400))
+[PASS] forced-short F_q pool: the prover refuses (no padding)
+[PASS] forced-short F_q pool: the verifier rejects the honest certificate: REJECT Transcript("F_q projection pool short")
+[PASS] pool rule restored: the honest certificate verifies again: ACCEPT
+[PASS] fold-tree nodes hashed with the witness tree's round: the commitment roots change
+[PASS] fold-tree nodes hashed with the witness tree's round: rejected: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Extension field Merkle multiproof verification failed\" }")
+## F. Fiat-Shamir on GKR: the raw instance is absorbed in full, before the first coin
+[PASS] T-FS1 coins derived with the records frame replaced by an empty frame: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS2 coins derived from SHA3-512(instance) instead of the instance: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 one message byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (message): the round-1 coin prefix changes
+[PASS] T-FS3 one context byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (context): the round-1 coin prefix changes
+[PASS] T-FS3 one public key byte of record 64 changed, proof kept: REJECT Manifest
+[PASS] T-FS3 (public key): the round-1 coin prefix changes
+[PASS] T-FS3 one c_tilde byte changed, proof kept: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 (c_tilde): the round-1 coin prefix changes
+[PASS] T-FS3 one hint count changed, proof kept: REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS3 (hint count): the round-1 coin prefix changes
+[PASS] T-FS4 records swapped after the round-1 coins (verified against x): REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS4 the same proof against the swapped statement: REJECT Manifest
+[PASS] T-FS5 coins derived for another round-1 descriptor (slack + 1): REJECT Gkr("LayerMismatch(1)")
+[PASS] T-FS5 coins derived with the other family's profile id in the coin input: REJECT Gkr("LayerMismatch(1)")
+## G. hostile gates (round-10 review, section E)
+[PASS] coordinated planes: sqrt2^2 = 2 (true), B0 = 1/2, B1 = (1 + sqrt 2)/2, unweighted Booleanity sum at the cell = 0 (true)
+[PASS] coordinated non-Boolean planes cancelling under a fixed sum (Booleanity uses four independent weights): REJECT Hash("input-link terminal check")
+[PASS] multiplicities moved after theta (committed ones unchanged): REJECT Gkr("RootNumeratorNonzero")
+[PASS] opening value T1(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T2(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T3(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T4(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T5(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T6(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T7(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] opening value T8(r0) changed inside the WHIR proof (after alpha): REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] the 8 masked-output openings located among the WHIR proof's opened values: 8/8
+[PASS] sign conversion: packed input layer unpacks to the field input rows (bit 0 -> +1, 1 -> -1, padding and dummy slots -> 0): 4194304/4194304 cells
+[PASS] chi under A = 1 - 2a: truth table (8 triples) and A(1 - B + C + BC)/2 at 64 random points: 72/72
+[PASS] every layer term vanishes on the zero vector (skipped dummy pairs contribute 0): 96/96
+[PASS] per-tree hash domains: hashes only under the 4 registered commit rounds [1, 2761, 2767, 2772], each tree hashed (prover and verifier counted together: {1: (524710, 528667), 2761: (131372, 133742), 2767: (65823, 67835), 2772: (16669, 18095)})
+## H. per-operation tree contexts and injected coin pools (round-11 review)
+[PASS] every routing-cell write replaced by tree 1 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 2 during verification: openings hash with their originating trees: ACCEPT
+[PASS] every routing-cell write replaced by tree 4000 during verification: openings hash with their originating trees: ACCEPT
+[PASS] control: the QLYAUTH7 lab scheme (shared routing cell) under the same wrong ambient context: REJECT Whir("MerkleProofInvalid { position: 0, reason: \"Base field Merkle multiproof verification failed\" }")
+[PASS] interleaved verifiers on two threads: profile 0xfff91207 (trees [1, 2761, 2767, 2772]) x3 and 0xfff91206 (trees [1, 2686, 2691, 2696]) x3 all ACCEPT
+[PASS] per-operation context: committed under tree 5 with the cell changed to 9 afterwards; verifies as tree 5 (true), not as tree 9 (true); an ambiguous root (true) and an unobserved root (true) are rejected
+[PASS] round id 70000 (> LE16): narrow() rejects it (true), 65535 accepted (true), the verifier rejects that tree (true), a commitment under it is refused (true)
+[PASS] K pool of rejected words: flagged short (true); the round-10 table is strict (true; QLYAUTH7 tables keep the padded rule)
+[PASS] forced-short K pools: the verifier rejects the honest certificate: REJECT Gkr("LayerMismatch(1)")
+[PASS] forced-short K pools: the prover's transcript is poisoned or the prover stops (Ok(Some("round 3: K pool short")))
+[PASS] every registered round-1 shape: exactly enough accepted words decodes in full, one fewer is short [N=32: nq 29120 slack 585 quotient body Scalar(70); N=64: nq 29568 slack 586 quotient body Scalar(70); N=128: nq 30464 slack 589 quotient body Scalar(70); N=256: nq 32256 slack 593 quotient body Scalar(70); N=512: nq 35840 slack 602 quotient body Scalar(70); N=1024: nq 43008 slack 620 quotient body Scalar(140); N=2048: nq 57344 slack 656 quotient body Scalar(280); N=4096: nq 86016 slack 728 quotient body Scalar(560); N=8192: nq 143360 slack 871 quotient body Scalar(1120); N=16384: nq 258048 slack 1158 quotient body Scalar(2240); N=32768: nq 487424 slack 1731 quotient body Scalar(4480); N=65536: nq 946176 slack 2878 quotient body Scalar(8960)]
+[PASS] chunk transition 512 -> 1024 signatures: quotient bodies Scalar(70) -> Scalar(140) (14 trials x 5 bytes per chunk)
+H9 TESTS SUMMARY: 223/223 behave as expected
+uptime at end: 21:40:28 up 217 days,  8:05,  0 users,  load average: 40.04, 38.91, 33.95
+	Command being timed: "/data/bin/r3-cert-lab h9tests 128"
+	User time (seconds): 3448.19
+	System time (seconds): 354.21
+	Percent of CPU this job got: 1463%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:19.81
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3353596
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 50684678
+	Voluntary context switches: 5663012
+	Involuntary context switches: 1473171
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 112
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+## memory: cgroup memory.peak 22888 MiB (container lifetime); sampled max memory.current 1975 MiB, anon 1741 MiB
+## end h9tests-128-ud | exit 0 | 2026-10-23T21:40:28Z | load 40.04 38.91 33.95

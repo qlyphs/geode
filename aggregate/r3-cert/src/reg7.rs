@@ -49,6 +49,9 @@ pub struct Table {
     pub formal_len: usize,
     /// rounds[i] is round i + 1.
     pub rounds: Vec<RoundDef>,
+    /// Round-10 lab profiles: a K pool that runs short is an error (never padded). The rule is
+    /// fixed by the profile; it does not change the coin derivation.
+    pub strict_k: bool,
 }
 
 impl Table {
@@ -130,7 +133,7 @@ pub fn build_table(profile: u32, n: usize, fr: &Front, ws: &WhirShape) -> Table 
         push!(Body::Scalar(2 * K), Shape::k(1), None, "final sumcheck");
     }
     let formal_len = r.iter().map(|d| d.shape.used()).max().unwrap();
-    Table { profile, n, formal_len, rounds: r }
+    Table { profile, n, formal_len, rounds: r, strict_k: false }
 }
 
 // ---------------------------------------------------------------- global Merkle oracle (§3.1)
@@ -173,6 +176,51 @@ impl Node7 {
     }
 }
 
+/// Test-only: every write to a routing cell stores this value instead (0 = off), to check that
+/// a verifier does not depend on the ambient routing state.
+#[cfg(feature = "lab-hooks")]
+pub static CELL_OVERRIDE: AtomicU32 = AtomicU32::new(0);
+
+#[cfg(feature = "lab-hooks")]
+fn cell_value(t: u32) -> u32 {
+    match CELL_OVERRIDE.load(Ordering::Relaxed) {
+        0 => t,
+        o => o,
+    }
+}
+
+#[cfg(not(feature = "lab-hooks"))]
+fn cell_value(t: u32) -> u32 {
+    t
+}
+
+/// Test-only: report every strict K pool as short (lab-hooks builds only).
+#[cfg(feature = "lab-hooks")]
+pub static FORCE_SHORT_K: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn force_short_k() -> bool {
+    #[cfg(feature = "lab-hooks")]
+    {
+        FORCE_SHORT_K.load(Ordering::Relaxed)
+    }
+    #[cfg(not(feature = "lab-hooks"))]
+    {
+        false
+    }
+}
+
+/// The dishonest-prover node override (lab-hooks builds only; 0 otherwise).
+pub fn node_round_override() -> u32 {
+    #[cfg(feature = "lab-hooks")]
+    {
+        NODE_ROUND_OVERRIDE.load(Ordering::Relaxed)
+    }
+    #[cfg(not(feature = "lab-hooks"))]
+    {
+        0
+    }
+}
+
 /// Hash counting for the registry census and the per-tree barrier test (off by default: the
 /// counters are only touched when COUNT is set).
 pub static COUNT: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -181,7 +229,7 @@ pub static LEAF_CALLS: AtomicU64 = AtomicU64::new(0);
 /// Per tree id: (leaf hashes, node hashes) while COUNT is set.
 pub static TREE_COUNTS: std::sync::Mutex<std::collections::BTreeMap<u32, (u64, u64)>> = std::sync::Mutex::new(std::collections::BTreeMap::new());
 
-fn count(tree: u32, leaf: bool) {
+pub fn count(tree: u32, leaf: bool) {
     if COUNT.load(Ordering::Relaxed) {
         if leaf { &LEAF_CALLS } else { &NODE_CALLS }.fetch_add(1, Ordering::Relaxed);
         let mut m = TREE_COUNTS.lock().unwrap();
@@ -192,6 +240,7 @@ fn count(tree: u32, leaf: bool) {
 
 /// Test-only (dishonest prover): hash every tagged node with this tree round instead of the
 /// routing cell's (0 = off).
+#[cfg(feature = "lab-hooks")]
 pub static NODE_ROUND_OVERRIDE: AtomicU32 = AtomicU32::new(0);
 
 impl PseudoCompressionFunction<[u64; 8], 2> for Node7 {
@@ -203,7 +252,7 @@ impl PseudoCompressionFunction<[u64; 8], 2> for Node7 {
                 count(t, false);
                 assert!(t != 0, "node hash outside a registered tree");
                 assert!(t <= u16::MAX as u32, "tree round does not fit LE16");
-                let o = NODE_ROUND_OVERRIDE.load(Ordering::Relaxed);
+                let o = node_round_override();
                 let t = if o != 0 { o } else { t };
                 to_words(&fs7::node_hash_tree(*profile, t as u16, &to_bytes(&input[0]), &to_bytes(&input[1])))
             }
@@ -263,6 +312,9 @@ pub struct Reg {
     idx: Vec<u32>,
     ic: usize,
     pub tree: Arc<AtomicU32>,
+    /// Observed roots of real trees: (registered round, root), for the round-10 commitment
+    /// scheme's per-operation tree context.
+    pub roots: crate::mmcs10::Roots,
     pub stats: Stats,
     pub log: Option<Vec<Logged>>,
     pub error: Option<String>,
@@ -272,7 +324,7 @@ pub struct Reg {
 impl Reg {
     pub fn new(table: Arc<Table>, statement: &[u8], tree: Arc<AtomicU32>) -> Self {
         let coins = CoinState::new(table.profile, table.formal_len, statement);
-        let mut r = Reg { table, coins, cur: 0, body: vec![], root: None, k: vec![], kc: 0, theta: None, q: None, idx: vec![], ic: 0, tree, stats: Stats::default(), log: None, error: None, inject: Inject::Off };
+        let mut r = Reg { table, coins, cur: 0, body: vec![], root: None, k: vec![], kc: 0, theta: None, q: None, idx: vec![], ic: 0, tree, roots: Default::default(), stats: Stats::default(), log: None, error: None, inject: Inject::Off };
         r.route_next();
         r
     }
@@ -298,7 +350,7 @@ impl Reg {
     /// hasher must frame that tree's rows with the next round id (prover-side commit).
     fn route_next(&mut self) {
         if self.exhausted() && self.cur < self.table.len() && self.table.def(self.cur + 1).body == Body::Real {
-            self.tree.store((self.cur + 1) as u32, Ordering::Relaxed);
+            self.tree.store(cell_value((self.cur + 1) as u32), Ordering::Relaxed);
         }
     }
     fn begin(&mut self) {
@@ -340,6 +392,9 @@ impl Reg {
         self.stats.fs_calls += 1;
         self.stats.fs_bytes += used;
         let d = fs7::decode(&raw, &def.shape);
+        if self.table.strict_k && (d.kshort || (force_short_k() && def.shape.nk > 0)) {
+            return self.poison(format!("round {next}: K pool short"));
+        }
         if d.short {
             // Round-10 strict pool: never padded; prover and verifier both stop here.
             return self.poison(format!("round {next}: F_q pool short ({} of {} coefficients accepted)", d.q.len(), def.shape.nq));
@@ -356,7 +411,7 @@ impl Reg {
         self.ic = 0;
         self.cur = next;
         if let Some(t) = def.opens {
-            self.tree.store(t, Ordering::Relaxed);
+            self.tree.store(cell_value(t), Ordering::Relaxed);
         }
         self.route_next();
     }
@@ -383,6 +438,7 @@ impl Reg {
         if !self.exhausted() || next > self.table.len() || self.table.def(next).body != Body::Real || self.root.is_some() || !self.body.is_empty() {
             return self.poison(format!("round {next}: commitment not registered here"));
         }
+        self.roots.lock().unwrap().push((next as u32, root));
         self.root = Some(root);
     }
     fn next_coeff(&mut self) -> F {

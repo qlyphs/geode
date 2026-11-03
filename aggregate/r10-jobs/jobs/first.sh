@@ -6,6 +6,6 @@ run host -- host
 run r10self -- r10self
 run digests -- digests
 run h9self -- h9self
-run k10cmp-small -- k10cmp 32,128 2 0,1,2,3,4,5,6,7
-run h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
-run h9tests-128-ud H9_FAMILY=ud -- h9tests 128
+runlab k10cmp-small -- k10cmp 32,128 2 0,1,2,3,4,5,6,7
+runlab h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
+runlab h9tests-128-ud H9_FAMILY=ud -- h9tests 128

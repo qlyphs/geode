@@ -6,5 +6,5 @@ run host -- host
 run r10self -- r10self
 run digests -- digests
 run h9self -- h9self
-run h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
-run h9tests-128-ud H9_FAMILY=ud -- h9tests 128
+runlab h9tests-128-johnson H9_FAMILY=johnson -- h9tests 128
+runlab h9tests-128-ud H9_FAMILY=ud -- h9tests 128

@@ -189,6 +189,20 @@ pub fn make_pcs7_prof_sec(num_vars: usize, claims: usize, prof: (usize, Vec<usiz
     (Pcs7::new(config, dft, crate::reg7::Mmcs7::new(leaf, node, 0)), fold0)
 }
 
+/// The round-10 lab PCS: the registered-round adapter and the per-operation tree context
+/// commitment scheme (`mmcs10`).
+pub type Pcs10 = WhirProver<EF, F, crate::bigdft::BigDft, crate::mmcs10::Mmcs10, crate::reg7::Reg, Layout>;
+pub type PcsProof10 = p3_whir::PcsProof<F, EF, crate::mmcs10::Mmcs10>;
+
+#[allow(clippy::too_many_arguments)]
+pub fn make_pcs10(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<usize>), sec: Sec, profile_id: u32, tree: std::sync::Arc<std::sync::atomic::AtomicU32>, roots: crate::mmcs10::Roots, leaf_calls: std::sync::Arc<std::sync::atomic::AtomicU64>) -> (Pcs10, usize) {
+    let config = WhirConfig::<EF, F, crate::reg7::Reg>::new_with_initial_claims(num_vars, params_of(prof, sec), claims).expect("WHIR config");
+    let fold0 = config.folding_schedule()[0];
+    let dft = crate::bigdft::BigDft::new(1 << config.max_fft_size());
+    let m = crate::mmcs10::Mmcs10 { profile: profile_id, cell: tree, roots, calls: leaf_calls };
+    (Pcs10::new(config, dft, m), fold0)
+}
+
 /// Profile 0x00070001: the same WHIR configuration, the global Merkle oracle framing (§3.1) and
 /// the registered-round adapter as challenger. `tree` is the adapter's routing cell.
 pub type Pcs7 = WhirProver<EF, F, Dft, crate::reg7::Mmcs7, crate::reg7::Reg, Layout>;
