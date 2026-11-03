@@ -1,0 +1,10 @@
+# binary sha256: b1ad581fd78266f4ae55a6d91d8aa500789dd5cf92a6152d1b2f510e399ec795; lab commit 0ee5a43
+# hidden-u self checks
+[PASS] nine-permutation trace output = SHAKE256(mu || U, 64)
+[PASS] U positions: 8192 cells, bijective onto the 4 x 2048 bit cells, inverse map consistent
+[PASS] absorbed bits = mu bits and (u >> plane) & 1 at the mapped cells
+[PASS] padding block 0x1f .. 0x80 (cells 0..4 and 1087)
+[PASS] 72-layer circuit on 16 slots: slots 0..8 = the nine states, padding cells and dummy slots 9..15 stay 0
+[PASS] XOR MLE example s = (0,1), b = (1,0), r = 2: MLE(s xor b)(r) = 1, shortcut = 5 (differ)
+[PASS] hidden-u lift bound at 512 signatures 8923771996974608384 < p
+HIDDEN-U SELF CHECKS: all pass

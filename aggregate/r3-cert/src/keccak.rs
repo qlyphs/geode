@@ -287,6 +287,9 @@ fn hist_on() -> bool {
     HIST.load(std::sync::atomic::Ordering::Relaxed)
 }
 
+#[path = "kec10.rs"]
+pub mod kec10;
+
 /// Operation counters, per thread, merged on demand. Counts are added once per row or per
 /// buffer from the loop sizes (never per operation), so counting does not perturb the timing.
 pub mod ops {
@@ -787,7 +790,7 @@ fn next_a(claim: EF, x: EF, msg: &[EF], r: EF) -> EF {
 /// (base field); epool holds the folded extension-field copies (reused across layers).
 /// Returns the final point (variable-indexed, LSB first) and the T_j values.
 #[allow(clippy::too_many_arguments)]
-fn main_prove(spec: &Spec, gpool: &[Vec<F>], epool: &mut [Vec<EF>], rp: &[EF], mut w: Vec<Vec<EF>>, mut claim: EF, logp: usize, tr: &mut Tr, msgs: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
+pub(crate) fn main_prove<T: crate::pcs::Fs>(spec: &Spec, gpool: &[Vec<F>], epool: &mut [Vec<EF>], rp: &[EF], mut w: Vec<Vec<EF>>, mut claim: EF, logp: usize, tr: &mut T, msgs: &mut Vec<EF>) -> (Vec<EF>, Vec<EF>) {
     let nv = logp + LOGW;
     let ng = spec.gathers.len();
     let df = spec.deg_f();
@@ -819,7 +822,7 @@ fn main_prove(spec: &Spec, gpool: &[Vec<F>], epool: &mut [Vec<EF>], rp: &[EF], m
         let msg = &co[1..];
         tr.absorb_efs(msg);
         msgs.extend_from_slice(msg);
-        let r = tr.sample_ef();
+        let r = kec10::inject_r(tr.sample_ef(), x);
         claim = next_a(claim, x, msg, r);
         pt[var] = r;
         let t0 = Instant::now();
@@ -885,8 +888,147 @@ fn main_prove(spec: &Spec, gpool: &[Vec<F>], epool: &mut [Vec<EF>], rp: &[EF], m
     (pt, vals)
 }
 
+/// Low-memory variant of `main_prove` with the same round messages and transcript: instead of
+/// one compact array per gather it folds the layer input `vin` (rows x W) once and reads every
+/// gather through its map, since folding over the slot variables commutes with the cell gather.
+/// With `skip(p)` true for a row pair whose rows are both zero (fixed dummy slots), the pair adds
+/// nothing and folds to zero, so it is skipped; the caller only passes rows that are zero.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn main_prove_lm<T: crate::pcs::Fs>(spec: &Spec, vin: &[F], rp: &[EF], mut w: Vec<Vec<EF>>, mut claim: EF, logp: usize, tr: &mut T, msgs: &mut Vec<EF>, skip: &(dyn Fn(usize, usize) -> bool + Sync)) -> (Vec<EF>, Vec<EF>) {
+    let nv = logp + LOGW;
+    let ng = spec.gathers.len();
+    let df = spec.deg_f();
+    let mut pt = vec![EF::ZERO; nv];
+    let mut rows = 1usize << logp;
+    let mut ep = eq_table(&rp[..logp - 1]);
+    let wc: Vec<Vec<EF>> = spec.terms.iter().enumerate().map(|(ti, t)| t.active.iter().map(|&s| w[ti][s as usize]).collect()).collect();
+    let mut vf: Vec<EF> = Vec::new();
+    while rows > 1 {
+        let var = LOGW + rows.trailing_zeros() as usize - 1;
+        let x = rp[var - LOGW];
+        let hr = rows / 2;
+        let with1 = x == EF::ZERO;
+        let first = vf.is_empty();
+        let pair = |p: usize| -> [EF; MAXJ] {
+            let mut acc = [EF::ZERO; MAXJ];
+            if skip(rows, p) {
+                return acc;
+            }
+            let get = |row: usize, c: usize| -> EF { if first { EF::from(vin[row * W + c]) } else { vf[row * W + c] } };
+            let mut vals = [[EF::ZERO; MAXJ]; MAXJ];
+            for (ti, t) in spec.terms.iter().enumerate() {
+                let uses = t.kind.uses();
+                if let Kind::Lin(j) = t.kind {
+                    let (mut sl, mut sh) = (EF::ZERO, EF::ZERO);
+                    for (a, &s) in t.active.iter().enumerate() {
+                        let c = spec.gathers[j][s as usize] as usize;
+                        sl += wc[ti][a] * get(p, c);
+                        sh += wc[ti][a] * get(p + hr, c);
+                    }
+                    let d = sh - sl;
+                    let mut v = sl;
+                    for a in acc.iter_mut().take(df + 1) {
+                        *a += v;
+                        v += d;
+                    }
+                    continue;
+                }
+                for (a, &s) in t.active.iter().enumerate() {
+                    for &j in &uses {
+                        let c = spec.gathers[j][s as usize] as usize;
+                        let (lo, hi) = (get(p, c), get(p + hr, c));
+                        let dl = hi - lo;
+                        vals[0][j] = lo;
+                        vals[1][j] = hi;
+                        let mut v = hi;
+                        for row in vals.iter_mut().take(df + 1).skip(2) {
+                            v += dl;
+                            row[j] = v;
+                        }
+                    }
+                    let ws = wc[ti][a];
+                    acc[0] += ws * eval_f(&t.kind, &vals[0]);
+                    if with1 {
+                        acc[1] += ws * eval_f(&t.kind, &vals[1]);
+                    }
+                    for k in 2..=df {
+                        acc[k] += ws * eval_f(&t.kind, &vals[k]);
+                    }
+                }
+            }
+            let e = ep[p];
+            core::array::from_fn(|k| e * acc[k])
+        };
+        let mut q = (0..hr).into_par_iter().map(pair).reduce(|| [EF::ZERO; MAXJ], |a, b| core::array::from_fn(|k| a[k] + b[k]));
+        if x != EF::ZERO {
+            q[1] = (claim - (EF::ONE - x) * q[0]) * x.inverse();
+        }
+        let co = to_coeffs(&q[..=df]);
+        let msg = &co[1..];
+        tr.absorb_efs(msg);
+        msgs.extend_from_slice(msg);
+        let r = kec10::inject_r(tr.sample_ef(), x);
+        claim = next_a(claim, x, msg, r);
+        pt[var] = r;
+        if first {
+            let mut nf = vec![EF::ZERO; hr * W];
+            nf.par_chunks_mut(W).enumerate().for_each(|(p, row)| {
+                if skip(rows, p) {
+                    return;
+                }
+                let (lo, hi) = (&vin[p * W..(p + 1) * W], &vin[(p + hr) * W..(p + hr + 1) * W]);
+                for c in 0..W {
+                    row[c] = r * (hi[c] - lo[c]) + lo[c];
+                }
+            });
+            vf = nf;
+        } else {
+            let (lo, hi) = vf.split_at_mut(hr * W);
+            lo.par_chunks_mut(W).zip(hi.par_chunks(W)).enumerate().for_each(|(p, (a, b))| {
+                if skip(rows, p) {
+                    return;
+                }
+                for c in 0..W {
+                    a[c] += r * (b[c] - a[c]);
+                }
+            });
+            vf.truncate(hr * W);
+        }
+        if ep.len() > 1 {
+            halve_eq(&mut ep);
+        }
+        rows /= 2;
+    }
+    let mut g: Vec<Vec<EF>> = (0..ng)
+        .map(|j| {
+            let mut full = vec![EF::ZERO; W];
+            for &s in &spec.terms[spec.owner[j]].active {
+                full[s as usize] = vf[spec.gathers[j][s as usize] as usize];
+            }
+            full
+        })
+        .collect();
+    let mut cols = W;
+    while cols > 1 {
+        let h = round_b(spec, &g, &w, cols);
+        tr.absorb_efs(&h);
+        msgs.extend_from_slice(&h);
+        let r = tr.sample_ef();
+        claim = interp(&h, claim, r);
+        pt[cols.trailing_zeros() as usize - 1] = r;
+        g.iter_mut().for_each(|c| fold_half(c, r));
+        w.iter_mut().for_each(|c| fold_half(c, r));
+        cols /= 2;
+    }
+    let vals: Vec<EF> = g.iter().map(|c| c[0]).collect();
+    debug_assert_eq!(claim, spec.terms.iter().enumerate().map(|(ti, t)| w[ti][0] * eval_f(&t.kind, &vals)).sum::<EF>());
+    tr.absorb_efs(&vals);
+    msgs.extend_from_slice(&vals);
+    (pt, vals)
+}
+
 /// Verifier side of main_prove: returns (point, T_j values) after the terminal check.
-fn main_verify(spec: &Spec, r_in: &[EF], mut claim: EF, logp: usize, tr: &mut Tr, rd: &mut Reader) -> Result<(Vec<EF>, Vec<EF>), String> {
+pub(crate) fn main_verify<T: crate::pcs::Fs>(spec: &Spec, r_in: &[EF], mut claim: EF, logp: usize, tr: &mut T, rd: &mut Reader) -> Result<(Vec<EF>, Vec<EF>), String> {
     let nv = logp + LOGW;
     let (d, df) = (spec.d(), spec.deg_f());
     let mut pt = vec![EF::ZERO; nv];
@@ -939,7 +1081,7 @@ fn wiring_m(spec: &Spec, r_s: &[EF], betas: &[EF]) -> Vec<EF> {
 }
 
 /// Wiring sumcheck: reduce sum_j beta_j T_j(r') to one claim on the input layer.
-fn wiring_prove(spec: &Spec, vin: &[F], pt: &[EF], vals: &[EF], logp: usize, tr: &mut Tr, msgs: &mut Vec<EF>) -> Vec<EF> {
+pub(crate) fn wiring_prove<T: crate::pcs::Fs>(spec: &Spec, vin: &[F], pt: &[EF], vals: &[EF], logp: usize, tr: &mut T, msgs: &mut Vec<EF>) -> Vec<EF> {
     let betas = tr.sample_efs(spec.gathers.len());
     let mut claim: EF = betas.iter().zip(vals).map(|(&b, &v)| b * v).sum();
     let ep = eq_table(&pt[LOGW..]);
@@ -991,7 +1133,7 @@ fn wiring_prove(spec: &Spec, vin: &[F], pt: &[EF], vals: &[EF], logp: usize, tr:
     out
 }
 
-fn wiring_verify(spec: &Spec, pt: &[EF], vals: &[EF], tr: &mut Tr, rd: &mut Reader) -> Result<(Vec<EF>, EF), String> {
+pub(crate) fn wiring_verify<T: crate::pcs::Fs>(spec: &Spec, pt: &[EF], vals: &[EF], tr: &mut T, rd: &mut Reader) -> Result<(Vec<EF>, EF), String> {
     let betas = tr.sample_efs(spec.gathers.len());
     let mut claim: EF = betas.iter().zip(vals).map(|(&b, &v)| b * v).sum();
     let mut ps = vec![EF::ZERO; LOGW];
@@ -1018,8 +1160,11 @@ pub struct Reader<'a> {
     b: &'a [u8],
     pub pos: usize,
 }
-impl Reader<'_> {
-    fn take(&mut self, k: usize) -> Result<Vec<EF>, String> {
+impl<'a> Reader<'a> {
+    pub(crate) fn new(b: &'a [u8]) -> Self {
+        Reader { b, pos: 0 }
+    }
+    pub(crate) fn take(&mut self, k: usize) -> Result<Vec<EF>, String> {
         (0..k)
             .map(|_| {
                 let s = self.b.get(self.pos..self.pos + 40).ok_or("truncated")?;

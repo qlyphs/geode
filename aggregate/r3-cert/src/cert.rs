@@ -103,7 +103,7 @@ impl<T> SendPtr<T> {
     }
 }
 
-fn leaves(tree: &Tree, w: &Witness, theta: EF, co: &[Coeffs; 3]) -> (Vec<EF>, Vec<EF>) {
+pub(crate) fn leaves(tree: &Tree, w: &Witness, theta: EF, co: &[Coeffs; 3]) -> (Vec<EF>, Vec<EF>) {
     let size = 1usize << tree.d;
     let dc = 1usize << tree.log_dc;
     let mut p = vec![EF::ZERO; size];
@@ -405,31 +405,58 @@ pub enum Reject {
     LeafPair,
     /// QLYAUTH7: the registered-round adapter was poisoned or did not finish.
     Transcript(String),
+    /// Hidden-u lab profiles: a hash-side (Keccak GKR or link) check failed.
+    Hash(String),
 }
 
 /// (current, lifetime peak) physical footprint of this process in bytes (macOS rusage v4).
+#[cfg(target_os = "macos")]
 pub fn footprint() -> (u64, u64) {
     let mut info: libc::rusage_info_v4 = unsafe { std::mem::zeroed() };
     let rc = unsafe { libc::proc_pid_rusage(std::process::id() as i32, libc::RUSAGE_INFO_V4, &mut info as *mut _ as *mut libc::rusage_info_t) };
     if rc == 0 { (info.ri_phys_footprint, info.ri_lifetime_max_phys_footprint) } else { (0, 0) }
 }
 
+/// (current, lifetime peak) resident set of this process in bytes (Linux: VmRSS, VmHWM). The
+/// resident set includes file pages of SSD-backed arrays that are currently in RAM.
+#[cfg(not(target_os = "macos"))]
+pub fn footprint() -> (u64, u64) {
+    let s = std::fs::read_to_string("/proc/self/status").unwrap_or_default();
+    let kb = |k: &str| s.lines().find(|l| l.starts_with(k)).and_then(|l| l.split_whitespace().nth(1)).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0) * 1024;
+    (kb("VmRSS:"), kb("VmHWM:"))
+}
+
+/// (bytes read from storage, bytes written to storage) by this process so far (Linux
+/// /proc/self/io read_bytes, write_bytes; zero elsewhere).
+pub fn disk_io() -> (u64, u64) {
+    let s = std::fs::read_to_string("/proc/self/io").unwrap_or_default();
+    let v = |k: &str| s.lines().find(|l| l.starts_with(k)).and_then(|l| l.split_whitespace().nth(1)).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0);
+    (v("read_bytes:"), v("write_bytes:"))
+}
+
 pub struct Timer {
     /// (phase, ms, footprint at end, lifetime peak footprint at end, peak live heap within
     /// the phase, live heap at end)
     pub phases: Vec<(String, f64, u64, u64, usize, usize)>,
+    /// Per phase: (bytes read, bytes written) from storage within the phase, live SSD-backed
+    /// bytes at the end, and the process resident peak so far.
+    pub io: Vec<(u64, u64, usize, u64)>,
     t: Instant,
+    io0: (u64, u64),
 }
 impl Timer {
     pub fn new() -> Self {
         crate::alloc::reset_peak();
-        Timer { phases: vec![], t: Instant::now() }
+        Timer { phases: vec![], io: vec![], t: Instant::now(), io0: disk_io() }
     }
     pub fn lap(&mut self, name: &str) {
         let ms = self.t.elapsed().as_secs_f64() * 1e3;
         let (cur, peak) = footprint();
         let (live, hpeak) = crate::alloc::heap();
         self.phases.push((name.to_string(), ms, cur, peak, hpeak, live));
+        let io = disk_io();
+        self.io.push((io.0.saturating_sub(self.io0.0), io.1.saturating_sub(self.io0.1), crate::alloc::spill().0, peak));
+        self.io0 = io;
         crate::alloc::reset_peak();
         self.t = Instant::now();
     }

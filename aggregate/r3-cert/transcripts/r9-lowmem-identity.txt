@@ -1,0 +1,6 @@
+# hidden-u: stored-layer prover vs low-memory prover (checkpointed rounds, folded-input layer rounds, factored mask weights); same binary, H9_LOWMEM selects the second
+# 22:04  up 11 days, 20:01, 1 user, load averages: 21.85 30.80 38.27
+319206133ebd48b3302157630243f1744fa3db55d7e08ef210e3015401808862  full/h9-cert-32.bin
+319206133ebd48b3302157630243f1744fa3db55d7e08ef210e3015401808862  lm/h9-cert-32.bin
+429bcdc86ea1d5151606059dd96cc21690d80213a123a1454b5e04512b88ba9c  full/h9-cert-128.bin
+429bcdc86ea1d5151606059dd96cc21690d80213a123a1454b5e04512b88ba9c  lm/h9-cert-128.bin

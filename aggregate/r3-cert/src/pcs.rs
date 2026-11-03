@@ -114,13 +114,80 @@ fn make_pcs_from(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<u
         round_log_inv_rates: rounds,
         folding_factor: FoldingFactor::PerRound(folds),
         soundness_type: SecurityAssumption::JohnsonBound,
-        security_level: 272,
+        security_level: target_for(num_vars),
         pow_bits: 0,
     };
     let config = WhirConfig::<EF, F, MyChallenger>::new_with_initial_claims(num_vars, params, claims).expect("WHIR config");
     let fold0 = config.folding_schedule()[0];
     let dft = Dft::new(1 << config.max_fft_size());
     (Pcs::new(config, dft, MyMmcs::new(ShakeLeaf, ShakeNode, 0)), fold0)
+}
+
+/// Per-term planner target: 272 as in every registered profile, 273 from dimension 31 on (the
+/// hidden-u schedule there needs it to keep the composed WHIR figure at 270 bits).
+pub fn target_for(num_vars: usize) -> usize {
+    if num_vars >= 31 { 273 } else { 272 }
+}
+
+/// Soundness regime and per-term planner target of a PCS.
+#[derive(Clone, Copy, Debug)]
+pub struct Sec {
+    pub assumption: SecurityAssumption,
+    pub target: usize,
+}
+
+impl Sec {
+    /// JohnsonBound at the round-10 target for this dimension (classical figures).
+    pub fn johnson(num_vars: usize) -> Self {
+        Sec { assumption: SecurityAssumption::JohnsonBound, target: target_for(num_vars) }
+    }
+    /// The proven unique-decoding regime (list size 1, no OOD samples) at per-term target 286,
+    /// the quantum-ready round-10 lab family.
+    pub fn unique() -> Self {
+        Sec { assumption: SecurityAssumption::UniqueDecoding, target: 286 }
+    }
+}
+
+fn params_of(prof: (usize, Vec<usize>, Vec<usize>), sec: Sec) -> ProtocolParameters {
+    let (start, rounds, folds) = prof;
+    ProtocolParameters {
+        starting_log_inv_rate: start,
+        round_log_inv_rates: rounds,
+        folding_factor: FoldingFactor::PerRound(folds),
+        soundness_type: sec.assumption,
+        security_level: sec.target,
+        pow_bits: 0,
+    }
+}
+
+/// A PCS with an explicit (start rate, round rates, folds) schedule (hidden-u lab sizes above
+/// 2^24 and the schedule benchmark). The registered profiles above are unchanged.
+pub fn make_pcs_prof(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<usize>)) -> (Pcs, usize) {
+    make_pcs_prof_sec(num_vars, claims, prof, Sec::johnson(num_vars))
+}
+
+pub fn make_pcs_prof_sec(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<usize>), sec: Sec) -> (Pcs, usize) {
+    let config = WhirConfig::<EF, F, MyChallenger>::new_with_initial_claims(num_vars, params_of(prof, sec), claims).expect("WHIR config");
+    let fold0 = config.folding_schedule()[0];
+    let dft = Dft::new(1 << config.max_fft_size());
+    (Pcs::new(config, dft, MyMmcs::new(ShakeLeaf, ShakeNode, 0)), fold0)
+}
+
+/// The QLYAUTH7-style PCS (global Merkle oracle, registered-round adapter) with an explicit
+/// schedule.
+pub fn make_pcs7_prof(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<usize>), profile_id: u32, tree: std::sync::Arc<std::sync::atomic::AtomicU32>, leaf_calls: std::sync::Arc<std::sync::atomic::AtomicU64>) -> (Pcs7, usize) {
+    make_pcs7_prof_sec(num_vars, claims, prof, Sec::johnson(num_vars), profile_id, tree, leaf_calls)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn make_pcs7_prof_sec(num_vars: usize, claims: usize, prof: (usize, Vec<usize>, Vec<usize>), sec: Sec, profile_id: u32, tree: std::sync::Arc<std::sync::atomic::AtomicU32>, leaf_calls: std::sync::Arc<std::sync::atomic::AtomicU64>) -> (Pcs7, usize) {
+    let config = WhirConfig::<EF, F, crate::reg7::Reg>::new_with_initial_claims(num_vars, params_of(prof, sec), claims).expect("WHIR config");
+    let fold0 = config.folding_schedule()[0];
+    let dft = Dft::new(1 << config.max_fft_size());
+    let leaf = crate::reg7::Leaf7 { profile: profile_id, tree, calls: leaf_calls };
+    // Round-10 lab profiles (0xfff910xx .. 0xfff913xx) separate the trees in the node hash too.
+    let node = if crate::hidden::is_r10(profile_id) { crate::reg7::Node7::tagged(profile_id, leaf.tree.clone()) } else { crate::reg7::Node7::default() };
+    (Pcs7::new(config, dft, crate::reg7::Mmcs7::new(leaf, node, 0)), fold0)
 }
 
 /// Profile 0x00070001: the same WHIR configuration, the global Merkle oracle framing (§3.1) and
@@ -150,7 +217,8 @@ pub fn make_pcs7(num_vars: usize, claims: usize, alt: bool, profile_id: u32, tre
     let fold0 = config.folding_schedule()[0];
     let dft = Dft::new(1 << config.max_fft_size());
     let leaf = crate::reg7::Leaf7 { profile: profile_id, tree, calls: leaf_calls };
-    (Pcs7::new(config, dft, crate::reg7::Mmcs7::new(leaf, crate::reg7::Node7, 0)), fold0)
+    let node = if crate::hidden::is_r10(profile_id) { crate::reg7::Node7::tagged(profile_id, leaf.tree.clone()) } else { crate::reg7::Node7::default() };
+    (Pcs7::new(config, dft, crate::reg7::Mmcs7::new(leaf, node, 0)), fold0)
 }
 
 /// Test-only replacement of the Gruen round challenges (GKR rounds and betas, table rounds).

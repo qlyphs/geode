@@ -1,0 +1,57 @@
+# WHIR schedule benchmark at the N = 2048 hidden-u shape (random witness), binary 3fecbfb82c0cd5a9
+# WHIR schedule benchmark: N = 2048, committed 2^26 cells (15 x 2^22 + 2 x 2^19), 29 claims at 5 points
+schedule: start log inverse rate 2, round log inverse rates [5, 8, 10], folds [6, 5, 5, 5]; JohnsonBound, per-term target 272, grinding 0
+p3 prescribed security (composed, internal IOP, excludes hashing): 270.37 bits; log2 max candidates 5.32
+phase 0: base-field codeword 2^28 words = 2.000 GiB; initial sumcheck 6 rounds
+phase 1: extension codeword 2^25 words = 1.250 GiB; 293 queries of 22 bits into the previous codeword; sumcheck 5 rounds
+phase 2: extension codeword 2^23 words = 0.312 GiB; 112 queries of 20 bits into the previous codeword; sumcheck 5 rounds
+phase 3: extension codeword 2^20 words = 0.039 GiB; 70 queries of 18 bits into the previous codeword; sumcheck 5 rounds
+final: polynomial of 32 coefficients, 56 queries of 15 bits, final sumcheck 5 rounds
+-- whir phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        95.7 |     552 |     552 |     557  witness (random field values of the committed shape)
+      4186.0 |    3112 |    3112 |    3119  WHIR commit
+      3593.6 |    4157 |      66 |      73  WHIR opening (29 values, 5 points)
+         7.2 |      67 |      67 |      74  WHIR verification
+  peak live heap over all whir phases: 4157 MiB = 4.06 GiB
+      7882.4  TOTAL whir
+WHIR proof bytes: 873285 (426.4 B per signature); verify true
+        7.93 real        25.37 user         4.34 sys
+          2297249792  maximum resident set size
+          4370189792  peak memory footprint
+
+# WHIR schedule benchmark: N = 2048, committed 2^26 cells (15 x 2^22 + 2 x 2^19), 29 claims at 5 points
+schedule: start log inverse rate 3, round log inverse rates [5, 8, 10], folds [6, 5, 5, 5]; JohnsonBound, per-term target 272, grinding 0
+uptime at start: 22:05  up 11 days, 20:02, 1 user, load averages: 20.63 28.32 36.57
+p3 prescribed security (composed, internal IOP, excludes hashing): 270.13 bits; log2 max candidates 6.32
+phase 0: base-field codeword 2^29 words = 4.000 GiB; initial sumcheck 6 rounds
+phase 1: extension codeword 2^25 words = 1.250 GiB; 191 queries of 23 bits into the previous codeword; sumcheck 5 rounds
+phase 2: extension codeword 2^23 words = 0.312 GiB; 112 queries of 20 bits into the previous codeword; sumcheck 5 rounds
+phase 3: extension codeword 2^20 words = 0.039 GiB; 70 queries of 18 bits into the previous codeword; sumcheck 5 rounds
+final: polynomial of 32 coefficients, 56 queries of 15 bits, final sumcheck 5 rounds
+-- whir phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        23.3 |     616 |     616 |     621  witness (random field values of the committed shape)
+      5897.3 |    5736 |    5736 |    5745  WHIR commit
+      4636.4 |    6780 |     130 |     137  WHIR opening (29 values, 5 points)
+         9.8 |     131 |     130 |     138  WHIR verification
+  peak live heap over all whir phases: 6780 MiB = 6.62 GiB
+     10566.8  TOTAL whir
+WHIR proof bytes: 756629 (369.4 B per signature); verify true
+uptime at end: 22:05  up 11 days, 20:03, 1 user, load averages: 21.24 28.20 36.43
+# WHIR schedule benchmark: N = 2048, committed 2^26 cells (15 x 2^22 + 2 x 2^19), 29 claims at 5 points
+schedule: start log inverse rate 3, round log inverse rates [6, 8, 10], folds [6, 5, 5, 5]; JohnsonBound, per-term target 272, grinding 0
+uptime at start: 22:05  up 11 days, 20:03, 1 user, load averages: 21.24 28.20 36.43
+p3 prescribed security (composed, internal IOP, excludes hashing): 269.94 bits; log2 max candidates 6.32
+phase 0: base-field codeword 2^29 words = 4.000 GiB; initial sumcheck 6 rounds
+phase 1: extension codeword 2^26 words = 2.500 GiB; 191 queries of 23 bits into the previous codeword; sumcheck 5 rounds
+phase 2: extension codeword 2^23 words = 0.312 GiB; 93 queries of 21 bits into the previous codeword; sumcheck 5 rounds
+phase 3: extension codeword 2^20 words = 0.039 GiB; 70 queries of 18 bits into the previous codeword; sumcheck 5 rounds
+final: polynomial of 32 coefficients, 56 queries of 15 bits, final sumcheck 5 rounds
+-- whir phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        25.5 |     616 |     616 |     621  witness (random field values of the committed shape)
+      4867.6 |    5736 |    5736 |    5745  WHIR commit
+      9584.1 |    8188 |     130 |     137  WHIR opening (29 values, 5 points)
+         8.6 |     131 |     130 |     138  WHIR verification
+  peak live heap over all whir phases: 8188 MiB = 8.00 GiB
+     14485.9  TOTAL whir
+WHIR proof bytes: 720701 (351.9 B per signature); verify true
+uptime at end: 22:05  up 11 days, 20:03, 1 user, load averages: 23.85 28.42 36.37

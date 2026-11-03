@@ -13,6 +13,9 @@ mod attack8;
 mod batch;
 mod gates7;
 mod gkr;
+mod h9tests;
+mod hidden;
+mod whirbench;
 mod keccak;
 mod mlnat;
 mod pcs;
@@ -41,10 +44,13 @@ fn uptime() -> String {
 }
 
 fn print_timer(label: &str, t: &Timer) {
-    println!("-- {label} phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --");
-    for (name, ms, cur, _peak, hpeak, hlive) in &t.phases {
-        println!("  {ms:>10.1} | {:>7.0} | {:>7.0} | {:>7.0}  {name}", *hpeak as f64 / 1048576.0, *hlive as f64 / 1048576.0, *cur as f64 / 1048576.0);
+    println!("-- {label} phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint (RSS) MiB at end | read MiB | written MiB | SSD-backed MiB at end | RSS peak MiB so far) --");
+    for (k, (name, ms, cur, _peak, hpeak, hlive)) in t.phases.iter().enumerate() {
+        let io = t.io.get(k).map(|&(r, w, sp, pk)| format!(" | {:>8.0} | {:>8.0} | {:>7.0} | {:>7.0}", r as f64 / 1048576.0, w as f64 / 1048576.0, sp as f64 / 1048576.0, pk as f64 / 1048576.0)).unwrap_or_default();
+        println!("  {ms:>10.1} | {:>7.0} | {:>7.0} | {:>7.0}{io}  {name}", *hpeak as f64 / 1048576.0, *hlive as f64 / 1048576.0, *cur as f64 / 1048576.0);
     }
+    let (rd, wr) = t.io.iter().fold((0u64, 0u64), |a, x| (a.0 + x.0, a.1 + x.1));
+    println!("  storage traffic over all {label} phases: read {:.2} GiB, written {:.2} GiB; SSD-backed peak {:.2} GiB", rd as f64 / 1073741824.0, wr as f64 / 1073741824.0, alloc::spill().1 as f64 / 1073741824.0);
     let hp = t.phases.iter().map(|p| p.4).max().unwrap_or(0);
     println!("  peak live heap over all {label} phases: {:.0} MiB = {:.2} GiB", hp as f64 / 1048576.0, hp as f64 / 1073741824.0);
     println!("  {:>10.1}  TOTAL {label}", t.total());
@@ -1095,13 +1101,264 @@ fn vectors7() {
     println!("VECTORS7: {}", if ok && same { "PASS" } else { "FAIL" });
 }
 
+fn h9_self() {
+    println!("# hidden-u self checks");
+    let mut all = true;
+    for (name, ok) in hidden::selfcheck() {
+        println!("[{}] {name}", if ok { "PASS" } else { "FAIL" });
+        all &= ok;
+    }
+    println!("HIDDEN-U SELF CHECKS: {}", if all { "all pass" } else { "FAILURES" });
+}
+
+/// Honest hidden-u certificate at N signatures: prove, verify, sizes by component, timings,
+/// canonical extraction checked by libcrux.
+fn h9_run(n: usize) {
+    println!("# hidden-u certificate (lab profile {:#010x}), N = {n}", hidden::lab_profile9(n));
+    println!("uptime at start: {}", uptime());
+    println!("rayon threads: {}", rayon::current_num_threads());
+    let ntt = Ntt::new();
+    let (records, sigs) = batch::libcrux_batch(n, 0);
+    let inputs: Vec<hidden::SigIn9> = records.par_iter().zip(sigs.par_iter()).map(|(r, s)| hidden::input_from_raw9(&ntt, r, s)).collect();
+    let mut tp = Timer::new();
+    let (wit, pubs) = hidden::build9(&ntt, &records, &inputs);
+    tp.lap("P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)");
+    println!("witness violations: {:?}", wit.w.viol);
+    let ext_ok = (0..n).into_par_iter().filter(|&i| hidden::reconstruct9(&wit, &records[i], i).map(|s| s == sigs[i] && batch::libcrux_verify(&records[i], &s)).unwrap_or(false)).count();
+    println!("canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: {ext_ok}/{n}");
+    let nu: Vec<u8> = wit.w.counts.iter().map(|&c| c.min(cert::NU_MAX)).collect();
+    let (c, rep) = hidden::prove_lab9(&records, &wit, &pubs, &nu, &mut tp, &hidden::Opts9::default());
+    drop(wit);
+    drop(pubs);
+    print_timer("prover", &tp);
+    println!("prover transcript error: {:?}; rounds {}; FS calls {}; coin bytes {}; singleton hashes {}; seeds declined {}; grinding {}; plain bit samples {}", rep.transcript_error, rep.rounds, rep.stats.fs_calls, rep.stats.fs_bytes, rep.stats.singleton_hashes, rep.stats.seeds_declined, rep.stats.grind_calls, rep.stats.bits_calls);
+    println!("quotients inexact: {}; WHIR evals equal frontend claims: {}", rep.quotient_inexact, rep.evals_match_whir);
+    let (bytes, sz) = c.to_bytes();
+    let mut tv = Timer::new();
+    let res = hidden::verify_lab9(&records, &bytes, &mut tv, &hidden::Opts9::default());
+    print_timer("verifier", &tv);
+    println!("VERIFY: {}", match &res { Ok(_) => "ACCEPT".to_string(), Err(e) => format!("REJECT {e:?}") });
+    println!("-- certificate bytes by component (exact):");
+    for (k, v) in &sz.parts {
+        println!("  {v:>10}  {k}");
+    }
+    println!("  {:>10}  TOTAL = {:.2} B/signature", sz.total, sz.total as f64 / n as f64);
+    let (bits, cands) = hidden::pcs_security_bits9(n);
+    println!("WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): {bits:.2} bits; log2 max candidates {cands:.2}");
+    let path = format!("{}/h9-cert-{n}.bin", std::env::var("R3_OUT").unwrap_or_else(|_| ".".into()));
+    if std::fs::write(&path, &bytes).is_ok() {
+        println!("certificate written to {path}");
+    }
+    println!("uptime at end: {}", uptime());
+}
+
+/// Host description for transcripts (Linux: CPU model, cgroup limits; elsewhere a short line).
+fn host_line() -> String {
+    let rd = |p: &str| std::fs::read_to_string(p).map(|s| s.trim().to_string()).unwrap_or_else(|_| "-".into());
+    let model = rd("/proc/cpuinfo").lines().find(|l| l.starts_with("model name")).map(|l| l.split(':').nth(1).unwrap_or("").trim().to_string()).unwrap_or_else(|| "-".into());
+    let mem = rd("/proc/meminfo").lines().next().unwrap_or("").to_string();
+    format!("cpu {model}; {} logical CPUs visible; {mem}; cgroup memory.max {}; cpu.max {}; {}", std::thread::available_parallelism().map(|n| n.get()).unwrap_or(0), rd("/sys/fs/cgroup/memory.max"), rd("/sys/fs/cgroup/cpu.max"), alloc::describe()) + "; " + &keccak::kec10::describe()
+}
+
+/// The lab chain of `n` records in full blocks of 128 (one block every 2 s on the WAN lab
+/// network): N / 128 blocks on top of the genesis of network "r10-large-n", global transactions
+/// 0 .. N-1. Every key and signature comes from chain::keypair / chain::sign with deterministic
+/// SHAKE256 seeds (chain-keygen/2g+epoch, chain-sign/g), signed by libcrux-ml-dsa 0.0.11, and
+/// verified natively when the block is built.
+fn large_chain(n: usize) -> chain::Chain {
+    assert!(n % 128 == 0, "full blocks of 128");
+    let net = chain::network_id(b"r10-large-n");
+    chain::build(net, chain::genesis(&net), 0, n / 128, 128, 0)
+}
+
+/// Prove the lab chain range of N records (round-10 lab chain profile) and write the
+/// certificate; `H9_INPROC_VERIFY=1` also verifies it in this process.
+fn h9chain_run(n: usize) {
+    println!("# hidden-u chain-range certificate (lab chain profile {:#010x}, family {:?}), N = {n}, {} blocks of 128", hidden::lab_chain_profile9(n), hidden::family(), n / 128);
+    println!("host: {}", host_line());
+    println!("uptime at start: {}", uptime());
+    println!("rayon threads: {}", rayon::current_num_threads());
+    let t0 = Instant::now();
+    let ch = large_chain(n);
+    println!("chain built ({} blocks, {} signatures signed and natively verified): {:.1} s", ch.blocks.len(), n, t0.elapsed().as_secs_f64());
+    let ntt = Ntt::new();
+    let mut tp = Timer::new();
+    let parent = &ch.anchor;
+    let records = chain::replay(&ch.net, &ch.blocks, &ch.state).unwrap();
+    let sigs: Vec<Vec<u8>> = ch.blocks.iter().flat_map(|b| b.sigs.clone()).collect();
+    let inputs: Vec<hidden::SigIn9> = records.par_iter().zip(sigs.par_iter()).map(|(rc, sg)| hidden::input_from_raw9(&ntt, rc, sg)).collect();
+    drop(sigs);
+    let (wit, pubs) = hidden::build9(&ntt, &records, &inputs);
+    drop(inputs);
+    tp.lap("P-1 replay, witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)");
+    println!("witness violations: {:?}", wit.w.viol);
+    let nu: Vec<u8> = wit.w.counts.iter().map(|&c| c.min(cert::NU_MAX)).collect();
+    let man = hidden::manifest_chain9(&ch.net, n, parent, &ch.headers);
+    let ct: Vec<u8> = wit.ct.iter().flatten().copied().collect();
+    let x = hidden::instance_chain9(&ch.net, parent, &ch.headers, &ch.blocks, &records, &ct, &nu);
+    drop(ct);
+    let tprove = Instant::now();
+    let (c, rep) = hidden::prove_stmt9(&records, &man, &x, hidden::lab_chain_profile9(n), &wit, &pubs, &nu, &mut tp, &hidden::Opts9::default());
+    let prove_s = tprove.elapsed().as_secs_f64();
+    drop(wit);
+    drop(pubs);
+    print_timer("prover", &tp);
+    println!("prover wall clock (prove_stmt9 only): {prove_s:.1} s; throughput {:.2} signatures/s", n as f64 / prove_s);
+    println!("prover transcript error: {:?}; rounds {}; FS calls {}; coin bytes {}; singleton hashes {}; seeds declined {}; grinding {}; plain bit samples {}", rep.transcript_error, rep.rounds, rep.stats.fs_calls, rep.stats.fs_bytes, rep.stats.singleton_hashes, rep.stats.seeds_declined, rep.stats.grind_calls, rep.stats.bits_calls);
+    println!("quotients inexact: {}; WHIR evals equal frontend claims: {}", rep.quotient_inexact, rep.evals_match_whir);
+    let (bytes, sz) = c.to_bytes();
+    println!("-- certificate bytes by component (exact):");
+    for (k, v) in &sz.parts {
+        println!("  {v:>10}  {k}");
+    }
+    println!("  {:>10}  TOTAL = {:.2} B/signature (headers add 64 B per block = {:.2} B/signature)", sz.total, sz.total as f64 / n as f64, 64.0 * (n / 128) as f64 / n as f64);
+    let (bits, cands) = hidden::pcs_security_bits9(n);
+    let nv = hidden::stacked_vars9(n);
+    let (sch, sec) = hidden::schedule_of(hidden::lab_chain_profile9(n), nv);
+    println!("WHIR: dimension {nv}, schedule {sch:?}, {sec:?}; prescribed security (p3 planner, composed, 29-value protocol): {bits:.2} bits; log2 max candidates {cands:.2}");
+    let shape = hidden::whir_shape9(n);
+    println!("WHIR queries per phase (library): {:?} + final {}", shape.rounds.iter().map(|r| r.query_draws).collect::<Vec<_>>(), shape.final_query_draws);
+    let dir = std::env::var("R3_OUT").unwrap_or_else(|_| ".".into());
+    let path = format!("{dir}/h9chain-cert-{n}-{:08x}.bin", hidden::lab_chain_profile9(n));
+    if std::fs::write(&path, &bytes).is_ok() {
+        println!("certificate written to {path}");
+    }
+    if std::env::var("H9_INPROC_VERIFY").is_ok() {
+        let mut tv = Timer::new();
+        let res = hidden::verify_range9(&ch.net, parent, &ch.headers, &ch.blocks, &ch.state, &bytes, &mut tv, &hidden::Opts9::default());
+        print_timer("verifier (same process)", &tv);
+        println!("VERIFY: {}", match &res { Ok(_) => "ACCEPT".to_string(), Err(e) => format!("REJECT {e:?}") });
+    }
+    println!("uptime at end: {}", uptime());
+}
+
+/// Fresh-process verification of a chain-range certificate written by h9chain.
+fn h9chain_verify(n: usize, path: &str) {
+    println!("# hidden-u chain-range verify in a fresh process, N = {n}, {path}");
+    println!("host: {}", host_line());
+    println!("uptime at start: {}", uptime());
+    let t0 = Instant::now();
+    let ch = large_chain(n);
+    println!("chain rebuilt for the verifier's inputs (not timed below): {:.1} s", t0.elapsed().as_secs_f64());
+    let bytes = std::fs::read(path).unwrap();
+    let mut tv = Timer::new();
+    let t1 = Instant::now();
+    let res = hidden::verify_range9(&ch.net, &ch.anchor, &ch.headers, &ch.blocks, &ch.state, &bytes, &mut tv, &hidden::Opts9::default());
+    let vs = t1.elapsed().as_secs_f64();
+    print_timer("verifier (fresh process)", &tv);
+    println!("verifier wall clock: {:.1} ms", vs * 1e3);
+    println!("VERIFY: {}", match &res { Ok(_) => "ACCEPT".to_string(), Err(e) => format!("REJECT {e:?}") });
+    println!("uptime at end: {}", uptime());
+}
+
+/// Round-10 Keccak path against the reference prover: complete hidden-u certificates compared
+/// byte for byte, for each N in `ns`, `seeds` batches each, and the challenge injections in
+/// `modes` (kec10::INJECT; 0 is the protocol). At N < 512 the reference is run twice, with the
+/// stored-layer path and with the low-memory path.
+fn k10cmp(ns: &[usize], seeds: u64, modes: &[u8]) {
+    use std::sync::atomic::Ordering::Relaxed;
+    use keccak::kec10;
+    println!("# round-10 Keccak prover path: byte equality of complete hidden-u certificates with the reference prover");
+    println!("host: {}", host_line());
+    println!("uptime at start: {}", uptime());
+    let (mut pass, mut total) = (0usize, 0usize);
+    for seed in 0..4u64 {
+        let (a, b) = kec10::selfcheck(0x9e37_79b9_7f4a_7c15 ^ seed, 9);
+        println!("packed layers = field layers and packed wiring sum = field wiring sum (64 rows, 9 real slots of 16, seed {seed}): {a}/{b}");
+        pass += (a == b) as usize;
+        total += 1;
+    }
+    let names = ["protocol (random extension challenges)", "0", "1", "1/2", "eq1(x,r)=0 (exceptional Gruen)", "(1+i)/2", "base field", "mixed per round"];
+    let ntt = Ntt::new();
+    for &n in ns {
+        for seed in 0..seeds {
+            let (records, sigs) = batch::libcrux_batch(n, 50_000 + seed * 100_000);
+            let inputs: Vec<hidden::SigIn9> = records.par_iter().zip(sigs.par_iter()).map(|(r, s)| hidden::input_from_raw9(&ntt, r, s)).collect();
+            let (wit, pubs) = hidden::build9(&ntt, &records, &inputs);
+            let nu: Vec<u8> = wit.w.counts.iter().map(|&c| c.min(cert::NU_MAX)).collect();
+            for &m in modes {
+                kec10::INJECT.store(m, Relaxed);
+                let mut prove = |r10: bool, lowmem: bool| -> (Vec<u8>, f64) {
+                    kec10::ON.store(r10, Relaxed);
+                    unsafe {
+                        if lowmem { std::env::set_var("H9_LOWMEM", "1") } else { std::env::remove_var("H9_LOWMEM") }
+                    }
+                    let t = Instant::now();
+                    let (c, _) = hidden::prove_lab9(&records, &wit, &pubs, &nu, &mut Timer::new(), &hidden::Opts9::default());
+                    (c.to_bytes().0, t.elapsed().as_secs_f64())
+                };
+                let (b10, t10) = prove(true, false);
+                let (blm, tlm) = prove(false, true);
+                let mut line = format!("N = {n}, seed {seed}, challenges {}: r10 {} B in {t10:.1} s, reference (low-memory) {} B in {tlm:.1} s: {}", names[m as usize], b10.len(), blm.len(), if b10 == blm { "IDENTICAL" } else { "DIFFERENT" });
+                pass += (b10 == blm) as usize;
+                total += 1;
+                if b10 != blm {
+                    line += &format!(" (first difference at byte {:?})", b10.iter().zip(&blm).position(|(x, y)| x != y));
+                }
+                if n < 512 {
+                    let (bfull, tf) = prove(false, false);
+                    line += &format!("; reference (stored layers) {tf:.1} s: {}", if bfull == b10 { "IDENTICAL" } else { "DIFFERENT" });
+                    pass += (bfull == b10) as usize;
+                    total += 1;
+                }
+                if m == 0 {
+                    kec10::INJECT.store(0, Relaxed);
+                    let v = hidden::verify_lab9(&records, &b10, &mut Timer::new(), &hidden::Opts9::default());
+                    line += &format!("; r10 certificate verifies: {}", v.is_ok());
+                    pass += v.is_ok() as usize;
+                    total += 1;
+                }
+                println!("{line}");
+            }
+            println!("N = {n} seed {seed} done: {pass}/{total} so far | {}", uptime());
+        }
+    }
+    kec10::INJECT.store(0, Relaxed);
+    kec10::ON.store(true, Relaxed);
+    println!("K10 EQUALITY SUMMARY: {pass}/{total}");
+    println!("uptime at end: {}", uptime());
+}
+
 fn main() {
     if std::env::args().any(|a| a == "v7") {
         V7.store(true, std::sync::atomic::Ordering::Relaxed);
     }
     let args: Vec<String> = std::env::args().collect();
+    keccak::kec10::configure_from_env();
     match args.get(1).map(|s| s.as_str()) {
         Some("selftest") => selftest(),
+        Some("h9self") => h9_self(),
+        Some("digests") => digests(),
+        Some("whirbench") => {
+            let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };
+            whirbench::run(args[2].parse().unwrap(), (args[3].parse().unwrap(), list(4), list(5)))
+        }
+        Some("h9tests") => h9tests::run_all(args.get(2).map_or(128, |s| s.parse().unwrap())),
+        Some("h9verify") => {
+            let n: usize = args[2].parse().unwrap();
+            println!("# hidden-u verify in a fresh process, N = {n}, {}", args[3]);
+            println!("uptime at start: {}", uptime());
+            let (records, _) = batch::libcrux_batch(n, 0);
+            let bytes = std::fs::read(&args[3]).unwrap();
+            let mut tv = Timer::new();
+            let res = hidden::verify_lab9(&records, &bytes, &mut tv, &hidden::Opts9::default());
+            print_timer("verifier (fresh process)", &tv);
+            println!("VERIFY: {}", match &res { Ok(_) => "ACCEPT".to_string(), Err(e) => format!("REJECT {e:?}") });
+        }
+        Some("h9") => h9_run(args.get(2).map_or(128, |s| s.parse().unwrap())),
+        Some("h9chain") => h9chain_run(args[2].parse().unwrap()),
+        Some("h9chainverify") => h9chain_verify(args[2].parse().unwrap(), &args[3]),
+        Some("host") => println!("{}", host_line()),
+        Some("k10cmp") => {
+            let list = |k: usize| -> Vec<usize> { args[k].split(',').map(|x| x.parse().unwrap()).collect() };
+            let modes: Vec<u8> = list(4).into_iter().map(|m| m as u8).collect();
+            k10cmp(&list(2), args[3].parse().unwrap(), &modes)
+        }
+        Some("r10self") => {
+            for (k, ok) in fs7::r10_selfcheck() {
+                println!("[{}] {k}", if ok { "PASS" } else { "FAIL" });
+            }
+        }
         Some("vectors7") => vectors7(),
         Some("gates7") => gates7::run(),
         Some("attack7") => attack7::run(),
@@ -1134,4 +1391,27 @@ fn main() {
         Some("verify") => verify_file(args[2].parse().unwrap(), &args[3]),
         _ => eprintln!("usage: r3-cert selftest | run <N> | soundness [v7] | verify <N> <file> | r4 [v7] | chain <per_block> [v7] | vectors7 | gates7 | attack7 | attack8 | route8 | keccak <log2 P> [tests] | bench-ef"),
     }
+}
+
+/// Byte-identity check: SHA3-256 of a QLYAUTH3/QLYAUTH4-transcript certificate and a QLYAUTH7
+/// lab certificate at N = 128 (libcrux batch, offset 0) and of a Keccak kernel proof at P = 256.
+fn digests() {
+    use sha3::{Digest, Sha3_256};
+    let hex = |b: &[u8]| b.iter().map(|x| format!("{x:02x}")).collect::<String>();
+    let ntt = Ntt::new();
+    let b = honest_batch(&ntt, 128, 0);
+    let (w, pubs) = witness::build(&ntt, &b.records, &b.inputs);
+    let u: Vec<u8> = b.inputs.iter().flat_map(|i| i.u.clone()).collect();
+    let nu: Vec<u8> = w.counts.iter().map(|&c| c.min(cert::NU_MAX)).collect();
+    for v7 in [false, true] {
+        let (c, _) = cert::prove_opts(&b.records, &u, &nu, &w, &pubs, &mut Timer::new(), &cert::Opts { v7, ..Default::default() });
+        let bytes = c.to_bytes().0;
+        let ok = cert::verify_opts(&b.records, &bytes, &mut Timer::new(), &cert::Opts { v7, ..Default::default() }).is_ok();
+        println!("DIGEST {} N=128: {} B, verify {ok}, sha3-256 {}", if v7 { "QLYAUTH7-lab-0xfff70007" } else { "QLYAUTH3-QLYAUTH4-transcript" }, bytes.len(), hex(&Sha3_256::digest(&bytes)));
+    }
+    let p = 256usize;
+    let states: Vec<[u64; 25]> = (0..p).map(|i| core::array::from_fn(|l| u64::from_le_bytes(batch::xof(b"keccak-input", (i * 25 + l) as u64, 8).try_into().unwrap()))).collect();
+    let (bytes, _) = keccak::prove(keccak::encode(&states), 8, keccak::KOpts::default(), None, &mut Timer::new());
+    let ok = keccak::verify(8, keccak::KOpts::default(), &bytes, &mut Timer::new()).is_ok();
+    println!("DIGEST keccak-kernel P=256: {} B, verify {ok}, sha3-256 {}", bytes.len(), hex(&Sha3_256::digest(&bytes)));
 }

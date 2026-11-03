@@ -157,11 +157,38 @@ impl CryptographicHasher<F, [u64; 8]> for Leaf7 {
     }
 }
 
+/// Internal node hash. Without a tag (QLYAUTH7 and the round-9 lab profiles) it is
+/// H64(0x81 || L || R). With a tag (round-10 lab profiles) it reads the same routing cell as
+/// `Leaf7`, so every committed tree is its own oracle: H64(0x81 || LE32(profile) ||
+/// LE16(tree commit round) || L || R).
 #[derive(Clone, Default)]
-pub struct Node7;
+pub struct Node7 {
+    pub tag: Option<(u32, Arc<AtomicU32>)>,
+}
+
+impl Node7 {
+    pub fn tagged(profile: u32, tree: Arc<AtomicU32>) -> Self {
+        Node7 { tag: Some((profile, tree)) }
+    }
+}
+
+/// Test-only (dishonest prover): hash every tagged node with this tree round instead of the
+/// routing cell's (0 = off).
+pub static NODE_ROUND_OVERRIDE: AtomicU32 = AtomicU32::new(0);
+
 impl PseudoCompressionFunction<[u64; 8], 2> for Node7 {
     fn compress(&self, input: [[u64; 8]; 2]) -> [u64; 8] {
-        to_words(&fs7::node_hash(&to_bytes(&input[0]), &to_bytes(&input[1])))
+        match &self.tag {
+            None => to_words(&fs7::node_hash(&to_bytes(&input[0]), &to_bytes(&input[1]))),
+            Some((profile, cell)) => {
+                let t = cell.load(Ordering::Relaxed);
+                assert!(t != 0, "node hash outside a registered tree");
+                assert!(t <= u16::MAX as u32, "tree round does not fit LE16");
+                let o = NODE_ROUND_OVERRIDE.load(Ordering::Relaxed);
+                let t = if o != 0 { o } else { t };
+                to_words(&fs7::node_hash_tree(*profile, t as u16, &to_bytes(&input[0]), &to_bytes(&input[1])))
+            }
+        }
     }
 }
 
@@ -294,6 +321,10 @@ impl Reg {
         self.stats.fs_calls += 1;
         self.stats.fs_bytes += used;
         let d = fs7::decode(&raw, &def.shape);
+        if d.short {
+            // Round-10 strict pool: never padded; prover and verifier both stop here.
+            return self.poison(format!("round {next}: F_q pool short ({} of {} coefficients accepted)", d.q.len(), def.shape.nq));
+        }
         if let Some(log) = self.log.as_mut() {
             log.push(Logged { root, body: std::mem::take(&mut self.body), prefix: raw });
         }

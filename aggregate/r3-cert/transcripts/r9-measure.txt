@@ -1,0 +1,651 @@
+# r3-cert hidden-u measurements
+# host: Apple M3 Pro, 11 logical CPUs, 18 GiB; rustc 1.96.0 (ac68faa20 2026-05-25); nice -n 10
+# binary sha256: b1ad581fd78266f4ae55a6d91d8aa500789dd5cf92a6152d1b2f510e399ec795; lab commit 0ee5a43
+## N=128 run 1 prove+verify | uptime: 22:10  up 11 days, 20:07, 1 user, load averages: 16.25 25.10 33.12
+# hidden-u certificate (lab profile 0xfff90007), N = 128
+uptime at start: 22:10  up 11 days, 20:07, 1 user, load averages: 16.25 25.10 33.12
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 128/128
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+         9.9 |      37 |      36 |      46  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+        17.8 |      71 |      69 |      80  P0 raw instance absorbed, registered-round transcript init
+      1195.1 |    1411 |    1411 |    1421  P1 WHIR commit (one table of 15 columns + multiplicities)
+        22.6 |    1424 |    1424 |    1434  P2 projections, integer lifts (u term r' in the witness), quotients
+       201.3 |    1584 |    1424 |    1434  P3 LogUp leaves and fractional GKR
+        47.9 |    1554 |    1522 |    1532  P4a master weights, public columns, claimed sum
+       357.2 |    1557 |    1452 |    1462  P4b master sumcheck (degree 8)
+        47.2 |    1507 |    1412 |    1422  P4c table sumcheck
+       711.0 |    3750 |    3750 |    3764  P5a Keccak trace (16 N slots, 72 layers stored)
+       408.3 |    4022 |    3750 |    3765  P5b masked output and mask sumcheck
+      9126.7 |    4422 |    1414 |    1426  P5c Keccak GKR (72 layer reductions)
+       262.2 |    1550 |    1430 |    1442  P5d input-link sumcheck
+         3.8 |    1431 |    1430 |    1442  P5e bit-wiring sumcheck
+       800.1 |    2112 |     113 |     125  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 4422 MiB = 4.32 GiB
+     13211.1  TOTAL prover
+prover transcript error: None; rounds 2785; FS calls 2785; coin bytes 935272; singleton hashes 2781; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        28.8 |      41 |      41 |      50  V0 parse, manifest, byte checks
+        40.0 |      43 |      43 |      52  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         2.7 |      43 |      43 |      53  V2 WHIR verification (29 values)
+         0.9 |      43 |      43 |      53  V3 hash-side terminal checks
+        35.3 |      68 |      63 |      74  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      63 |      63 |      74  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 68 MiB = 0.07 GiB
+       107.8  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+        8192  c_tilde
+         128  hint counts
+          70  quotients
+          64  commitment
+       18400  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        5760  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        1760  mask sumcheck
+          40  Keccak output claim
+      341760  Keccak GKR, 72 layers
+        2160  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      499629  WHIR proof
+      881799  TOTAL = 6889.05 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.54 bits; log2 max candidates 7.32
+certificate written to /tmp/out/h9-cert-128.bin
+uptime at end: 22:10  up 11 days, 20:07, 1 user, load averages: 17.61 24.96 32.93
+       13.79 real        73.04 user         6.61 sys
+          3573874688  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              586518  page reclaims
+                   8  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   8  voluntary context switches
+              658952  involuntary context switches
+        834274381747  instructions retired
+        243106868823  cycles elapsed
+          4316237208  peak memory footprint
+## N=128 run 1 fresh verify | uptime: 22:10  up 11 days, 20:07, 1 user, load averages: 17.61 24.96 32.93
+# hidden-u verify in a fresh process, N = 128, /tmp/out/h9-cert-128.bin
+uptime at start: 22:10  up 11 days, 20:07, 1 user, load averages: 17.61 24.96 32.93
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        30.2 |      36 |      36 |      45  V0 parse, manifest, byte checks
+        40.6 |      39 |      39 |      46  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         3.1 |      39 |      39 |      47  V2 WHIR verification (29 values)
+         1.3 |      39 |      39 |      48  V3 hash-side terminal checks
+        36.7 |      64 |      59 |      68  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      59 |      59 |      68  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 64 MiB = 0.06 GiB
+       111.9  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.13 real         0.35 user         0.05 sys
+            79331328  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               13937  page reclaims
+                  14  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+                3690  involuntary context switches
+          4502240061  instructions retired
+          1264780282  cycles elapsed
+            76120448  peak memory footprint
+## N=128 run 2 prove+verify | uptime: 22:10  up 11 days, 20:07, 1 user, load averages: 17.61 24.96 32.93
+# hidden-u certificate (lab profile 0xfff90007), N = 128
+uptime at start: 22:10  up 11 days, 20:07, 1 user, load averages: 17.61 24.96 32.93
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 128/128
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        14.7 |      37 |      36 |      45  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+        19.3 |      71 |      69 |      80  P0 raw instance absorbed, registered-round transcript init
+       943.2 |    1411 |    1411 |    1422  P1 WHIR commit (one table of 15 columns + multiplicities)
+        18.7 |    1424 |    1424 |    1434  P2 projections, integer lifts (u term r' in the witness), quotients
+       178.1 |    1584 |    1424 |    1434  P3 LogUp leaves and fractional GKR
+        48.0 |    1554 |    1522 |    1532  P4a master weights, public columns, claimed sum
+       387.9 |    1557 |    1452 |    1462  P4b master sumcheck (degree 8)
+        50.3 |    1507 |    1412 |    1422  P4c table sumcheck
+      1144.5 |    3750 |    3750 |    3764  P5a Keccak trace (16 N slots, 72 layers stored)
+       360.3 |    4022 |    3750 |    3765  P5b masked output and mask sumcheck
+      8604.6 |    4422 |    1414 |    1426  P5c Keccak GKR (72 layer reductions)
+       254.3 |    1550 |    1430 |    1442  P5d input-link sumcheck
+         3.3 |    1431 |    1430 |    1442  P5e bit-wiring sumcheck
+       658.9 |    2112 |     113 |     125  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 4422 MiB = 4.32 GiB
+     12686.2  TOTAL prover
+prover transcript error: None; rounds 2785; FS calls 2785; coin bytes 935272; singleton hashes 2781; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        23.6 |      41 |      41 |      50  V0 parse, manifest, byte checks
+        35.0 |      43 |      43 |      53  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         3.5 |      43 |      43 |      53  V2 WHIR verification (29 values)
+         0.8 |      43 |      43 |      53  V3 hash-side terminal checks
+        31.0 |      68 |      63 |      74  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      63 |      63 |      74  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 68 MiB = 0.07 GiB
+        93.9  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+        8192  c_tilde
+         128  hint counts
+          70  quotients
+          64  commitment
+       18400  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        5760  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        1760  mask sumcheck
+          40  Keccak output claim
+      341760  Keccak GKR, 72 layers
+        2160  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      499629  WHIR proof
+      881799  TOTAL = 6889.05 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.54 bits; log2 max candidates 7.32
+certificate written to /tmp/out/h9-cert-128.bin
+uptime at end: 22:10  up 11 days, 20:07, 1 user, load averages: 17.81 24.77 32.76
+       12.83 real        73.20 user         6.06 sys
+          2678063104  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              563601  page reclaims
+                   3  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   3  voluntary context switches
+              594870  involuntary context switches
+        833297869957  instructions retired
+        241676412681  cycles elapsed
+          4317203888  peak memory footprint
+## N=128 run 2 fresh verify | uptime: 22:10  up 11 days, 20:07, 1 user, load averages: 17.81 24.77 32.76
+# hidden-u verify in a fresh process, N = 128, /tmp/out/h9-cert-128.bin
+uptime at start: 22:10  up 11 days, 20:07, 1 user, load averages: 17.81 24.77 32.76
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        26.2 |      36 |      36 |      44  V0 parse, manifest, byte checks
+        36.1 |      39 |      39 |      46  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         2.7 |      39 |      39 |      47  V2 WHIR verification (29 values)
+         0.9 |      39 |      39 |      47  V3 hash-side terminal checks
+        30.9 |      64 |      59 |      68  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      59 |      59 |      68  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 64 MiB = 0.06 GiB
+        96.7  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.11 real         0.33 user         0.04 sys
+            79134720  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               13910  page reclaims
+                   2  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                2756  involuntary context switches
+          4479314823  instructions retired
+          1179574805  cycles elapsed
+            75923840  peak memory footprint
+## N=128 run 3 prove+verify | uptime: 22:10  up 11 days, 20:07, 1 user, load averages: 17.81 24.77 32.76
+# hidden-u certificate (lab profile 0xfff90007), N = 128
+uptime at start: 22:10  up 11 days, 20:07, 1 user, load averages: 17.81 24.77 32.76
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 128/128
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        13.2 |      37 |      36 |      46  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+        17.3 |      71 |      69 |      80  P0 raw instance absorbed, registered-round transcript init
+       914.0 |    1411 |    1411 |    1422  P1 WHIR commit (one table of 15 columns + multiplicities)
+        21.1 |    1424 |    1424 |    1434  P2 projections, integer lifts (u term r' in the witness), quotients
+       184.7 |    1584 |    1424 |    1434  P3 LogUp leaves and fractional GKR
+        47.1 |    1554 |    1522 |    1532  P4a master weights, public columns, claimed sum
+       354.7 |    1557 |    1452 |    1462  P4b master sumcheck (degree 8)
+        42.6 |    1507 |    1412 |    1422  P4c table sumcheck
+      1069.4 |    3750 |    3750 |    3764  P5a Keccak trace (16 N slots, 72 layers stored)
+       319.5 |    4022 |    3750 |    3765  P5b masked output and mask sumcheck
+      8669.2 |    4422 |    1414 |    1426  P5c Keccak GKR (72 layer reductions)
+       250.8 |    1550 |    1430 |    1442  P5d input-link sumcheck
+         3.3 |    1431 |    1430 |    1442  P5e bit-wiring sumcheck
+       797.6 |    2112 |     113 |     125  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 4422 MiB = 4.32 GiB
+     12704.5  TOTAL prover
+prover transcript error: None; rounds 2785; FS calls 2785; coin bytes 935272; singleton hashes 2781; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        27.8 |      41 |      41 |      50  V0 parse, manifest, byte checks
+        39.9 |      43 |      43 |      53  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         2.6 |      43 |      43 |      53  V2 WHIR verification (29 values)
+         1.3 |      43 |      43 |      53  V3 hash-side terminal checks
+        38.5 |      68 |      63 |      74  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      63 |      63 |      74  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 68 MiB = 0.07 GiB
+       110.3  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+        8192  c_tilde
+         128  hint counts
+          70  quotients
+          64  commitment
+       18400  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        5760  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        1760  mask sumcheck
+          40  Keccak output claim
+      341760  Keccak GKR, 72 layers
+        2160  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      499629  WHIR proof
+      881799  TOTAL = 6889.05 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.54 bits; log2 max candidates 7.32
+certificate written to /tmp/out/h9-cert-128.bin
+uptime at end: 22:10  up 11 days, 20:08, 1 user, load averages: 20.53 25.04 32.72
+       12.86 real        71.73 user         7.05 sys
+          2630041600  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              624059  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                  11  voluntary context switches
+              665165  involuntary context switches
+        834152176296  instructions retired
+        242165305378  cycles elapsed
+          4316171672  peak memory footprint
+## N=128 run 3 fresh verify | uptime: 22:10  up 11 days, 20:08, 1 user, load averages: 20.53 25.04 32.72
+# hidden-u verify in a fresh process, N = 128, /tmp/out/h9-cert-128.bin
+uptime at start: 22:10  up 11 days, 20:08, 1 user, load averages: 20.53 25.04 32.72
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        26.1 |      36 |      36 |      44  V0 parse, manifest, byte checks
+        44.0 |      39 |      39 |      46  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         4.9 |      39 |      39 |      47  V2 WHIR verification (29 values)
+         1.2 |      39 |      39 |      47  V3 hash-side terminal checks
+        40.4 |      64 |      59 |      68  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.1 |      59 |      59 |      68  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 64 MiB = 0.06 GiB
+       116.7  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.13 real         0.37 user         0.05 sys
+            79233024  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               13914  page reclaims
+                   5  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                4584  involuntary context switches
+          4483830780  instructions retired
+          1269948036  cycles elapsed
+            76038552  peak memory footprint
+## N=2048 run 1 prove+verify | uptime: 22:10  up 11 days, 20:08, 1 user, load averages: 20.53 25.04 32.72
+# hidden-u certificate (lab profile 0xfff9000b), N = 2048
+uptime at start: 22:10  up 11 days, 20:08, 1 user, load averages: 20.53 25.04 32.72
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 2048/2048
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       164.9 |     468 |     452 |     481  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+       116.1 |     530 |     528 |     552  P0 raw instance absorbed, registered-round transcript init
+      2949.4 |    3840 |    3840 |    3866  P1 WHIR commit (one table of 15 columns + multiplicities)
+       654.7 |    4037 |    4037 |    4063  P2 projections, integer lifts (u term r' in the witness), quotients
+      1959.0 |    5317 |    4037 |    4063  P3 LogUp leaves and fractional GKR
+       758.6 |    5521 |    5005 |    5032  P4a master weights, public columns, claimed sum
+      6531.5 |    5565 |    3885 |    3912  P4b master sumcheck (degree 8)
+        43.6 |    3940 |    3845 |    3872  P4c table sumcheck
+     10219.0 |    5027 |    4009 |    4036  P5a Keccak trace (16 N slots; 25 packed round boundaries)
+      1983.6 |    6443 |    4010 |    4038  P5b masked output and mask sumcheck
+    131495.3 |    6827 |    3848 |    3874  P5c Keccak GKR (72 layer reductions)
+      4001.8 |    6024 |    4104 |    4131  P5d input-link sumcheck
+        61.0 |    4105 |    4104 |    4131  P5e bit-wiring sumcheck
+      2942.1 |    5149 |    1058 |    1084  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 6827 MiB = 6.67 GiB
+    163880.6  TOTAL prover
+prover transcript error: None; rounds 3154; FS calls 3154; coin bytes 1204844; singleton hashes 3150; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       655.0 |     130 |     130 |     139  V0 parse, manifest, byte checks
+        78.7 |     132 |     132 |     141  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         7.6 |     133 |     132 |     141  V2 WHIR verification (29 values)
+         0.8 |     133 |     132 |     142  V3 hash-side terminal checks
+       524.9 |     533 |     457 |     466  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.9 |     457 |     457 |     466  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+      1268.0  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+      131072  c_tilde
+        2048  hint counts
+         280  quotients
+          64  commitment
+       23920  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        7040  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2080  mask sumcheck
+          40  Keccak output claim
+      384000  Keccak GKR, 72 layers
+        2640  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      878405  WHIR proof
+     1435425  TOTAL = 700.89 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.37 bits; log2 max candidates 5.32
+certificate written to /tmp/out/h9-cert-2048.bin
+uptime at end: 22:13  up 11 days, 20:10, 1 user, load averages: 30.31 28.46 32.78
+      165.69 real       823.00 user        57.91 sys
+          2654158848  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            16442407  page reclaims
+                   6  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                6455  voluntary context switches
+             3856114  involuntary context switches
+       9266271325471  instructions retired
+       2713486840232  cycles elapsed
+          7189206464  peak memory footprint
+## N=2048 run 1 fresh verify | uptime: 22:13  up 11 days, 20:10, 1 user, load averages: 30.31 28.46 32.78
+# hidden-u verify in a fresh process, N = 2048, /tmp/out/h9-cert-2048.bin
+uptime at start: 22:13  up 11 days, 20:10, 1 user, load averages: 30.31 28.46 32.78
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        77.7 |      86 |      86 |      91  V0 parse, manifest, byte checks
+        45.0 |      89 |      88 |      93  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         5.8 |      89 |      88 |      94  V2 WHIR verification (29 values)
+         0.9 |      89 |      89 |      94  V3 hash-side terminal checks
+       509.5 |     489 |     413 |     418  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.5 |     413 |     413 |     418  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 489 MiB = 0.48 GiB
+       639.4  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.75 real         4.41 user         0.22 sys
+           521371648  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               82633  page reclaims
+                   5  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   2  voluntary context switches
+               14297  involuntary context switches
+         58234000445  instructions retired
+         14331393027  cycles elapsed
+           518390480  peak memory footprint
+## N=2048 run 2 prove+verify | uptime: 22:13  up 11 days, 20:10, 1 user, load averages: 30.31 28.46 32.78
+# hidden-u certificate (lab profile 0xfff9000b), N = 2048
+uptime at start: 22:13  up 11 days, 20:10, 1 user, load averages: 30.31 28.46 32.78
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 2048/2048
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       146.2 |     468 |     452 |     481  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+       102.6 |     530 |     528 |     552  P0 raw instance absorbed, registered-round transcript init
+      2432.3 |    3840 |    3840 |    3866  P1 WHIR commit (one table of 15 columns + multiplicities)
+       527.1 |    4037 |    4037 |    4063  P2 projections, integer lifts (u term r' in the witness), quotients
+      2153.3 |    5317 |    4037 |    4063  P3 LogUp leaves and fractional GKR
+       931.3 |    5521 |    5005 |    5032  P4a master weights, public columns, claimed sum
+      6706.7 |    5565 |    3885 |    3912  P4b master sumcheck (degree 8)
+        55.0 |    3940 |    3845 |    3872  P4c table sumcheck
+     12107.2 |    5027 |    4009 |    4036  P5a Keccak trace (16 N slots; 25 packed round boundaries)
+      2120.8 |    6443 |    4010 |    4038  P5b masked output and mask sumcheck
+    131376.8 |    6827 |    3848 |    3874  P5c Keccak GKR (72 layer reductions)
+      3678.9 |    6024 |    4104 |    4131  P5d input-link sumcheck
+        53.0 |    4105 |    4104 |    4131  P5e bit-wiring sumcheck
+      2475.5 |    5149 |    1058 |    1084  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 6827 MiB = 6.67 GiB
+    164866.7  TOTAL prover
+prover transcript error: None; rounds 3154; FS calls 3154; coin bytes 1204844; singleton hashes 3150; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       160.7 |     130 |     130 |     139  V0 parse, manifest, byte checks
+        45.3 |     132 |     132 |     141  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         5.2 |     133 |     132 |     141  V2 WHIR verification (29 values)
+         1.1 |     133 |     132 |     142  V3 hash-side terminal checks
+       543.4 |     533 |     457 |     466  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.2 |     457 |     457 |     466  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       755.9  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+      131072  c_tilde
+        2048  hint counts
+         280  quotients
+          64  commitment
+       23920  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        7040  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2080  mask sumcheck
+          40  Keccak output claim
+      384000  Keccak GKR, 72 layers
+        2640  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      878405  WHIR proof
+     1435425  TOTAL = 700.89 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.37 bits; log2 max candidates 5.32
+certificate written to /tmp/out/h9-cert-2048.bin
+uptime at end: 22:16  up 11 days, 20:13, 1 user, load averages: 24.96 26.51 31.18
+      165.92 real       828.45 user        55.90 sys
+          3634233344  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            16470624  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                8083  voluntary context switches
+             3534365  involuntary context switches
+       9263402236136  instructions retired
+       2718866771754  cycles elapsed
+          7189190056  peak memory footprint
+## N=2048 run 2 fresh verify | uptime: 22:16  up 11 days, 20:13, 1 user, load averages: 24.96 26.51 31.18
+# hidden-u verify in a fresh process, N = 2048, /tmp/out/h9-cert-2048.bin
+uptime at start: 22:16  up 11 days, 20:13, 1 user, load averages: 24.96 26.51 31.18
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        77.5 |      86 |      86 |      91  V0 parse, manifest, byte checks
+        43.4 |      89 |      88 |      93  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         6.4 |      89 |      88 |      94  V2 WHIR verification (29 values)
+         0.8 |      89 |      89 |      94  V3 hash-side terminal checks
+       521.5 |     489 |     413 |     418  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.2 |     413 |     413 |     418  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 489 MiB = 0.48 GiB
+       649.8  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.78 real         4.66 user         0.22 sys
+           521306112  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               82687  page reclaims
+                   5  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   1  voluntary context switches
+               12234  involuntary context switches
+         58254726307  instructions retired
+         14753879531  cycles elapsed
+           518357760  peak memory footprint
+## N=2048 run 3 prove+verify | uptime: 22:16  up 11 days, 20:13, 1 user, load averages: 25.13 26.52 31.15
+# hidden-u certificate (lab profile 0xfff9000b), N = 2048
+uptime at start: 22:16  up 11 days, 20:13, 1 user, load averages: 25.13 26.52 31.15
+rayon threads: 11
+witness violations: Violations { z_out_of_range: 0, e_out_of_region: 0, sigs_over_omega: 0, max_hints: 75 }
+canonical signatures rebuilt from the committed witness (z, h, bits -> c_tilde check): identical to the originals and accepted by libcrux: 2048/2048
+-- prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       180.2 |     468 |     452 |     481  P-1 witness (z, e, S, Y, bits, nine-permutation sponge traces, multiplicities)
+       132.7 |     530 |     528 |     552  P0 raw instance absorbed, registered-round transcript init
+      2982.0 |    3840 |    3840 |    3866  P1 WHIR commit (one table of 15 columns + multiplicities)
+       367.1 |    4037 |    4037 |    4063  P2 projections, integer lifts (u term r' in the witness), quotients
+      1896.7 |    5317 |    4037 |    4063  P3 LogUp leaves and fractional GKR
+       672.0 |    5521 |    5005 |    5032  P4a master weights, public columns, claimed sum
+      6935.9 |    5565 |    3885 |    3912  P4b master sumcheck (degree 8)
+        51.6 |    3940 |    3845 |    3872  P4c table sumcheck
+     10635.9 |    5027 |    4009 |    4036  P5a Keccak trace (16 N slots; 25 packed round boundaries)
+      1703.5 |    6443 |    4010 |    4038  P5b masked output and mask sumcheck
+    267170.9 |    6827 |    3848 |    3874  P5c Keccak GKR (72 layer reductions)
+      4622.8 |    6024 |    4104 |    4131  P5d input-link sumcheck
+        56.3 |    4105 |    4104 |    4131  P5e bit-wiring sumcheck
+      4430.9 |    5149 |    1058 |    1084  P6 WHIR opening (29 values, 5 points)
+  peak live heap over all prover phases: 6827 MiB = 6.67 GiB
+    301838.6  TOTAL prover
+prover transcript error: None; rounds 3154; FS calls 3154; coin bytes 1204844; singleton hashes 3150; seeds declined 14; grinding 0; plain bit samples 0
+quotients inexact: 0; WHIR evals equal frontend claims: true
+-- verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       205.5 |     130 |     130 |     138  V0 parse, manifest, byte checks
+        55.2 |     132 |     132 |     141  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         5.7 |     133 |     132 |     141  V2 WHIR verification (29 values)
+         1.0 |     133 |     132 |     142  V3 hash-side terminal checks
+       554.2 |     533 |     457 |     466  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.2 |     457 |     457 |     466  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier phases: 533 MiB = 0.52 GiB
+       821.7  TOTAL verifier
+VERIFY: ACCEPT
+-- certificate bytes by component (exact):
+         512  manifest
+      131072  c_tilde
+        2048  hint counts
+         280  quotients
+          64  commitment
+       23920  LogUp GKR
+          80  leaf pair
+          40  table claim T
+        7040  master sumcheck
+        1520  table sumcheck
+         320  masked-output T openings
+        2080  mask sumcheck
+          40  Keccak output claim
+      384000  Keccak GKR, 72 layers
+        2640  input-link sumcheck
+         320  re-indexed bit claims
+        1040  bit-wiring sumcheck
+           4  WHIR length
+      878405  WHIR proof
+     1435425  TOTAL = 700.89 B/signature
+WHIR prescribed security for the 29-value protocol (p3 planner, JohnsonBound, per-term target 272): 270.37 bits; log2 max candidates 5.32
+certificate written to /tmp/out/h9-cert-2048.bin
+uptime at end: 22:21  up 11 days, 20:18, 1 user, load averages: 120.70 80.91 53.18
+      303.00 real       929.44 user        71.61 sys
+          3794845696  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+            17614975  page reclaims
+                   7  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+               10802  voluntary context switches
+             3745890  involuntary context switches
+       9275549018432  instructions retired
+       2831938146675  cycles elapsed
+          7189206512  peak memory footprint
+## N=2048 run 3 fresh verify | uptime: 22:21  up 11 days, 20:18, 1 user, load averages: 120.70 80.91 53.18
+# hidden-u verify in a fresh process, N = 2048, /tmp/out/h9-cert-2048.bin
+uptime at start: 22:21  up 11 days, 20:18, 1 user, load averages: 120.70 80.91 53.18
+-- verifier (fresh process) phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        80.9 |      86 |      86 |      91  V0 parse, manifest, byte checks
+        46.4 |      89 |      88 |      93  V1 transcript replay (LogUp GKR, Keccak GKR, links)
+         6.3 |      89 |      88 |      94  V2 WHIR verification (29 values)
+         1.5 |      89 |      89 |      94  V3 hash-side terminal checks
+       480.6 |     489 |     413 |     418  V4a public coefficients (ExpandA, mu, c from c_tilde, b, 14 projections, sums)
+         0.2 |     413 |     413 |     418  V4b claimed sum, master chain, master terminal
+  peak live heap over all verifier (fresh process) phases: 489 MiB = 0.48 GiB
+       615.9  TOTAL verifier (fresh process)
+VERIFY: ACCEPT
+        0.74 real         4.36 user         0.23 sys
+           521486336  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               82685  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+               12857  involuntary context switches
+         58227771376  instructions retired
+         14248628047  cycles elapsed
+           518537984  peak memory footprint

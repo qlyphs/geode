@@ -67,6 +67,10 @@ pub struct Shape {
     pub nq: usize,
     /// One query index per entry, of that many bits.
     pub widths: Vec<u8>,
+    /// F_q pool slack in 3-byte words. 0 is the QLYAUTH7 rule (fixed slack 512, zero padding
+    /// when short); a nonzero value is the round-10 lab rule: that slack, and a pool that runs
+    /// short is an error (`Decoded::short`), never padded.
+    pub qslack: u32,
 }
 
 pub const THETA_POOL: usize = 376;
@@ -83,19 +87,34 @@ impl Shape {
         d.extend_from_slice(&le32(self.nq as u32));
         d.extend_from_slice(&le32(self.widths.len() as u32));
         d.extend_from_slice(&self.widths);
+        if self.qslack != 0 {
+            // Round-10 lab shapes only: the slack is part of what the coins are derived for.
+            d.extend_from_slice(&le32(self.qslack));
+        }
         d
     }
     pub fn k_pool(&self) -> usize {
         if self.nk > 0 { 8 * (5 * self.nk + 32) } else { 0 }
     }
     pub fn q_pool(&self) -> usize {
-        if self.nq > 0 { 3 * (self.nq + 512) } else { 0 }
+        let slack = if self.qslack == 0 { 512 } else { self.qslack as usize };
+        if self.nq > 0 { 3 * (self.nq + slack) } else { 0 }
     }
     /// Bytes of the block the decoder reads: K pool, theta pool, F_q pool, 4 B per index (§5.5).
     pub fn used(&self) -> usize {
         self.k_pool() + if self.theta { THETA_POOL } else { 0 } + self.q_pool() + 4 * self.widths.len()
     }
 }
+
+/// The round-10 F_q slack for `nq` coefficients: 512 + ceil(nq / 400) words. With rejection
+/// probability (2^23 - q) / 2^23 < 2^-10 per word, the pool runs short with probability below
+/// 2^-768 for every nq up to 2^24 (aggregate/r10-check/qpool.py computes the tail exactly).
+pub fn qslack10(nq: usize) -> u32 {
+    (512 + nq.div_ceil(400)) as u32
+}
+
+/// Test-only: make every strict F_q pool look one coefficient short (both sides must reject).
+pub static FORCE_SHORT_Q: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Accept the first `count` candidates of `width` bytes (little endian, masked) below `modulus`,
 /// scanning the whole fixed pool; pad with zeros. No refill.
@@ -120,6 +139,25 @@ pub struct Decoded {
     pub theta: Option<[u64; 5]>,
     pub q: Vec<u32>,
     pub idx: Vec<u32>,
+    /// A strict (round-10) F_q pool held fewer than nq accepted words; `q` is then truncated.
+    pub short: bool,
+}
+
+/// Accepted candidates without padding (strict pools).
+fn pool_strict(raw: &[u8], count: usize, width: usize, modulus: u64, mask: u64) -> Vec<u64> {
+    let mut acc = Vec::with_capacity(count);
+    for c in raw.chunks_exact(width) {
+        if acc.len() == count {
+            break;
+        }
+        let mut w = [0u8; 8];
+        w[..width].copy_from_slice(c);
+        let x = u64::from_le_bytes(w) & mask;
+        if x < modulus {
+            acc.push(x);
+        }
+    }
+    acc
 }
 
 /// Decode a block (§5). `raw` may be the used prefix or the whole formal block; the suffix is
@@ -143,7 +181,16 @@ pub fn decode(raw: &[u8], s: &Shape) -> Decoded {
         out.theta = Some(cands.into_iter().find(|c| c[1..].iter().any(|&x| x != 0)).unwrap_or([0, 1, 0, 0, 0]));
     }
     if s.nq > 0 {
-        out.q = pool(take(s.q_pool()), s.nq, 3, Q, 0x7f_ffff).into_iter().map(|x| x as u32).collect();
+        if s.qslack == 0 {
+            out.q = pool(take(s.q_pool()), s.nq, 3, Q, 0x7f_ffff).into_iter().map(|x| x as u32).collect();
+        } else {
+            let mut q: Vec<u32> = pool_strict(take(s.q_pool()), s.nq, 3, Q, 0x7f_ffff).into_iter().map(|x| x as u32).collect();
+            if FORCE_SHORT_Q.load(std::sync::atomic::Ordering::Relaxed) {
+                q.truncate(s.nq - 1);
+            }
+            out.short = q.len() < s.nq;
+            out.q = q;
+        }
     }
     for &b in &s.widths {
         assert!((1..=31).contains(&b), "index width");
@@ -181,6 +228,44 @@ pub fn node_hash(l: &[u8; 64], r: &[u8; 64]) -> [u8; 64] {
     let mut out = [0u8; 64];
     h.finalize_xof().read(&mut out);
     out
+}
+
+/// Round-10 lab node hash (one independent vector-commitment oracle per committed tree):
+/// H64(0x81 || LE32(profile) || LE16(tree commit round) || left || right), 135 bytes, one
+/// SHAKE256 block.
+pub fn node_hash_tree(profile: u32, tree: u16, l: &[u8; 64], r: &[u8; 64]) -> [u8; 64] {
+    let mut h = Shake256::default();
+    h.update(&[0x81]);
+    h.update(&le32(profile));
+    h.update(&le16(tree));
+    h.update(l);
+    h.update(r);
+    let mut out = [0u8; 64];
+    h.finalize_xof().read(&mut out);
+    out
+}
+
+/// Round-10 checks of the strict pool and the tree-separated node hash: (description, pass).
+pub fn r10_selfcheck() -> Vec<(String, bool)> {
+    let mut v = vec![];
+    let s = Shape { nq: 8, qslack: qslack10(8), ..Default::default() };
+    let d = decode(&vec![0xff; s.used()], &s);
+    v.push(("strict pool of rejected words: short, not padded".to_string(), d.short && d.q.is_empty()));
+    let legacy = Shape { nq: 8, ..Default::default() };
+    v.push(("legacy pool of rejected words: padded with zeros (QLYAUTH7 rule kept)".to_string(), !decode(&vec![0xff; legacy.used()], &legacy).short && decode(&vec![0xff; legacy.used()], &legacy).q == vec![0; 8]));
+    let ok: Vec<u8> = (0..s.used()).map(|i| if i % 3 == 2 { 0 } else { 1 }).collect();
+    let d = decode(&ok, &s);
+    v.push(("strict pool of accepted words: full".to_string(), !d.short && d.q.len() == 8));
+    v.push(("strict descriptor differs from the legacy one".to_string(), s.descriptor() != Shape { nq: 8, ..Default::default() }.descriptor()));
+    v.push(("legacy descriptor unchanged (13 bytes + widths)".to_string(), legacy.descriptor().len() == 13));
+    let (l, r) = ([7u8; 64], [9u8; 64]);
+    v.push(("same (L, R) under tree rounds 1 and 2: different digests".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash_tree(0xfff9_100b, 2, &l, &r)));
+    v.push(("same (L, R) under two profiles: different digests".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash_tree(0xfff9_110b, 1, &l, &r)));
+    v.push(("tree-separated node differs from the QLYAUTH7 node".to_string(), node_hash_tree(0xfff9_100b, 1, &l, &r) != node_hash(&l, &r)));
+    for (nq, need) in [(14 * (2048 + 2048), 512usize), (14 * (16384 + 2048), 960), (14 * (65536 + 2048), 2112)] {
+        v.push((format!("qslack10({nq}) = {} >= {need} (failure <= 2^-768)", qslack10(nq)), qslack10(nq) as usize >= need));
+    }
+    v
 }
 
 /// The root of a length-one tree holding a round's scalar body.

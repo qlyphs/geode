@@ -110,7 +110,7 @@ enum NodeAny {
 impl PseudoCompressionFunction<[u64; 8], 2> for NodeAny {
     fn compress(&self, input: [[u64; 8]; 2]) -> [u64; 8] {
         match self {
-            NodeAny::V7 => Node7.compress(input),
+            NodeAny::V7 => Node7::default().compress(input),
             NodeAny::V4 => ShakeNode.compress(input),
         }
     }

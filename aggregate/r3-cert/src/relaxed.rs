@@ -93,13 +93,19 @@ pub enum Mode {
 
 pub struct Signed {
     pub input: SigInput,
+    /// The challenge seed the signature uses (H(mu || w1Encode(u)) unless another hash is given).
+    pub ct: [u8; 64],
     pub attempts: u64,
     pub hints: usize,
     pub max_abs_z: i64,
     pub out_of_region: usize,
 }
 
-fn try_sign(ntt: &Ntt, key: &RKey, mu: &[u8; 64], mode: Mode, seed: &[u8], attempt: u64, bumps: usize) -> Option<Signed> {
+/// The challenge hash: c_tilde from mu and the encoded high bits.
+pub type ChallengeHash = dyn Fn(&[u8; 64], &[u8]) -> [u8; 64] + Sync;
+
+#[allow(clippy::too_many_arguments)]
+fn try_sign(ntt: &Ntt, key: &RKey, mu: &[u8; 64], mode: Mode, seed: &[u8], attempt: u64, bumps: usize, hash: &ChallengeHash) -> Option<Signed> {
     let mut rd = stream(seed, b"y", attempt);
     let mut y = vec![0i64; L * N];
     let mut b3 = [0u8; 3];
@@ -134,7 +140,7 @@ fn try_sign(ntt: &Ntt, key: &RKey, mu: &[u8; 64], mode: Mode, seed: &[u8], attem
     }
     let tr = mlnat::tr_of(&key.pk);
     let _ = tr;
-    let ct = mlnat::c_tilde_of(mu, &mlnat::w1_encode(&u));
+    let ct = hash(mu, &mlnat::w1_encode(&u));
     let mut c = mlnat::sample_in_ball(&ct);
     ntt.fwd(&mut c);
     let mut z = y.clone();
@@ -196,29 +202,41 @@ fn try_sign(ntt: &Ntt, key: &RKey, mu: &[u8; 64], mode: Mode, seed: &[u8], attem
             }
         }
     }
-    Some(Signed { input: SigInput { z, u }, attempts: attempt + 1, hints, max_abs_z, out_of_region })
+    Some(Signed { input: SigInput { z, u }, ct, attempts: attempt + 1, hints, max_abs_z, out_of_region })
 }
 
 /// Sign (rec.ctx, rec.msg) under the relaxed rules. Attempts run in parallel batches; the
 /// smallest accepted attempt index is returned, so the result is deterministic.
 pub fn sign(ntt: &Ntt, key: &RKey, ctx: &[u8], msg: &[u8], mode: Mode, seed: &[u8]) -> Signed {
+    sign_h(ntt, key, ctx, msg, mode, seed, &|mu, w1| mlnat::c_tilde_of(mu, w1))
+}
+
+/// The same signer with another challenge hash (hash-side soundness tests of the hidden-u
+/// certificate: wrong suffix, omitted padding permutation, wrong nibble or bit order).
+pub fn sign_h(ntt: &Ntt, key: &RKey, ctx: &[u8], msg: &[u8], mode: Mode, seed: &[u8], hash: &ChallengeHash) -> Signed {
     let mu = mlnat::mu_of(&key.tr, ctx, msg);
     let mut bumps = 0usize;
     let mut start = 0u64;
     loop {
         let batch = 4096u64;
-        let found = (start..start + batch).into_par_iter().filter_map(|a| try_sign(ntt, key, &mu, mode, seed, a, bumps)).min_by_key(|s| s.attempts);
+        let found = (start..start + batch).into_par_iter().filter_map(|a| try_sign(ntt, key, &mu, mode, seed, a, bumps, hash)).min_by_key(|s| s.attempts);
         if let Some(s) = found {
             return s;
         }
         if let Mode::Hints(h) = mode {
             // Calibrate the number of deliberate hints from one valid-mode attempt's natural count.
-            if let Some(v) = (start..start + 64).find_map(|a| try_sign(ntt, key, &mu, Mode::Valid, seed, a, 0)) {
+            if let Some(v) = (start..start + 64).find_map(|a| try_sign(ntt, key, &mu, Mode::Valid, seed, a, 0, hash)) {
                 bumps = h.saturating_sub(v.hints);
             }
         }
         start += batch;
         assert!(start < 1 << 26, "relaxed signer did not converge");
+    }
+}
+
+impl RKey {
+    pub fn tr(&self) -> [u8; 64] {
+        self.tr
     }
 }
 

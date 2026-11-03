@@ -1,0 +1,50 @@
+# binary sha256: b1ad581fd78266f4ae55a6d91d8aa500789dd5cf92a6152d1b2f510e399ec795; lab commit 0ee5a43
+prover mode: baseline (direct first round and fold)
+# keccak kernel: 256 Keccak-f[1600] permutations, GKR over Goldilocks^5 + WHIR (p3-whir 0.8.0), SHAKE256 transcript
+uptime at start: 22:45  up 11 days, 20:43, 1 user, load averages: 22.19 24.84 30.20
+rayon threads: 11
+native keccak::f1600 (crate keccak 0.1.6) on 256 states: 0.05 ms
+layer circuit (72 layers) output = native Keccak-f[1600]: 256/256
+round polynomial degrees per round (theta-a, theta-b, chi): [6, 4, 4]; gathers [6, 3, 3]
+uptime before prove: 22:45  up 11 days, 20:43, 1 user, load averages: 22.19 24.84 30.20
+-- keccak prover phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+       139.4 |     300 |     300 |     306  K0 witness: 72 layers (native, field values)
+       146.6 |     472 |     472 |     479  K1 WHIR commit [in, out]
+        34.4 |     552 |     552 |     509  K2 output claim, canonical-input zerocheck
+         0.0 |       0 |       0 |       0  K3a GKR main sumchecks (72 layers, 2417 ms of the next line)
+         0.0 |       0 |       0 |       0  K3b GKR wiring sumchecks (234 ms of the next line)
+      2661.1 |     555 |     264 |     241  K3 GKR (72 layer reductions)
+       162.3 |     267 |       9 |      16  K4 WHIR opening (3 claims)
+  peak live heap over all keccak prover phases: 555 MiB = 0.54 GiB
+      3143.9  TOTAL keccak prover
+  main-sumcheck split (ms, summed over 73 sumchecks): round 1 (base) 163, phase-A EF rounds 1042, phase-A folds 893 (of which first fold 197), phase B 133
+  operation counts (millions; thread-local counters, from loop sizes):
+                                        general EF*EF mul    mixed EF*F mul        EF add/sub   table selection      base F*F mul
+    round 1 (base field)                             0.07             44.76             44.88              0.00             93.91
+    first fold                                       0.00             39.58             39.58              0.00              0.00
+    phase-A rounds 2..                             123.03             14.63            157.21              0.00              0.00
+    phase-A folds 2.. and eq halving                39.27              0.00             78.56              0.00              0.00
+    phase B (s rounds and folds)                     3.75              0.20              6.51              0.00              0.00
+    wiring sumchecks                                 0.92             37.75             37.75              0.00              0.00
+-- keccak verifier phases (wall clock ms | peak live heap MiB within phase | live heap MiB at end | process footprint MiB at end) --
+        42.0 |       5 |       5 |      11  KV1 transcript replay, 72 layer checks
+         4.6 |      10 |       9 |      16  KV2 WHIR verification (3 claims)
+  peak live heap over all keccak verifier phases: 10 MiB = 0.01 GiB
+        46.6  TOTAL keccak verifier
+VERIFY: ACCEPT
+-- proof bytes: total 655052 = commitment 64 + count 4 + frontend 7803 elements x 40 = 312120 + WHIR 342864 ; 2558.8 B/permutation
+-- prover 3143.9 ms per 256 permutations = 12575.4 ms per 1024
+[PASS] honest proof: ACCEPT
+[PASS] committed output with one bit flipped (instance 17, cell 900): REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] committed outputs of instances 0 and 1 swapped: REJECT round 23 rho-pi-chi-iota: main terminal check
+[PASS] non-canonical padding cell (instance 3, cell 1700 = 1; never read by the circuit): REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] non-boolean input cell (instance 5, cell 77 = 2), honest GKR on the field values: REJECT booleanity: main terminal check
+[PASS] same, UNSAFE control without the canonical-input zerocheck: ACCEPT
+[PASS] tampered byte in output claim: REJECT booleanity: main terminal check
+[PASS] tampered byte in first booleanity round: REJECT booleanity: main terminal check
+[PASS] tampered byte in a GKR layer message (middle of the stream): REJECT round 12 theta-a: main terminal check
+[PASS] tampered byte in the WHIR proof: REJECT WHIR MerkleProofInvalid { position: 0, reason: "Base field Merkle multiproof verification failed" }
+[PASS] one trailing byte: REJECT trailing bytes
+KECCAK SUMMARY: 12/12 tests behave as expected
+uptime at end: 22:46  up 11 days, 20:43, 1 user, load averages: 21.84 24.51 29.89
