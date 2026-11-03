@@ -1,0 +1,322 @@
+# Hidden-u certificate: round-10 security ledger (ledger10.py)
+
+## 1. Functional checks
+[check] 72 layers: degrees (5,3,3) x 24, gathers (6,3,3) x 24
+[check] signed chi: A(1 - (1+B)(1-C)/2) = A(1 - B + C + BC)/2 = enc(a ^ (~b & c)) on all 8 inputs (A = 1 - 2a)
+[check] the zero row is a fixed point of theta-a, theta-b, chi (the dummy slots)
+[check] 72 layers on +-1 rows equal Keccak-f[1600] (8 random states); padding cells stay 0
+[check] theta-a reads only cells < 1600; chi and theta-b outputs vanish on cells >= 1600
+[check] upos_of is a bijection from (plane, coefficient) onto the 8,192 U positions; src_of inverts it
+[check] nine permutations with the 0x1f || ... || 0x80 padding block give hashlib SHAKE256(mu || U, 64)
+[check] every absorbed rate bit is the mu bit or the u bit (plane, coefficient) given by src_of
+[check] the input-link summand (Wa, Wa8, Wb, Wc patterns, e_q slot weights) equals the true Keccak input rows on all 16 x 2048 cells
+[check] slot-8 output cells s < 512 equal 1 - 2 c_tilde bit s
+[check] K - (a - 1) and start - st0_2 written with d0 = prod(1 - Bj), d15 = prod Bj equal the public-u region polynomials (48 cases)
+[check] XOR of multilinear evaluations is not the multilinear evaluation of the XOR: 1 vs 5
+[check] hidden-u no-wrap bound 8923771996974608384 < p
+
+## 2. Round tables vs measurements
+[check] N = 32: 2631 registered rounds (equal to the measured transcript)
+[check] N = 128: 2785 registered rounds, coin bytes 935272, singletons 2781 (equal to the measured transcript)
+[check] N = 2048: 3154 registered rounds, coin bytes 1204844, singletons 3150 (equal to the measured transcript)
+[check] N = 128 and 2048: component element counts x 40 B equal the measured bytes (Keccak GKR, mask, link, bit wiring, master, table, T openings, LogUp GKR)
+[check] the per-round WHIR terms sum to the round-9 / p3 composed values (270.368 at N = 2048 A, 270.539 at N = 128)
+
+## 3. Per-round ledger and compiled bounds (Johnson regime, planner target 272, REQ-1 and REQ-2 assumed)
+
+### registered: N = 128, PCS dimension 23, regime Johnson
+WHIR phases (m, r, k) [(23, 4, 6), (17, 7, 5), (12, 9, 4), (8, 11, 4)], final variables 4, queries [141, 80, 62, 51], index bits [21, 19, 17, 15]
+rounds k = 2785, singleton rounds 2781, q_V = 12200, q_Pi = 3115, largest tree 2^21 leaves, formal coin block 92928 B (r_min = 743424 bits)
+frontend (rounds before WHIR): 291.715; WHIR: 270.539; decoders: 768.000
+D_alg = 9024 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 768.000 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 270.539   eps_max (largest round): 272.075  [OOD answer; query indices, gamma / agree^141 + 2(141+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 208.075, with eps_sum 206.539;  quantum (CDHZ) with eps_max 135.753, with eps_sum 134.217
+  E = 2^20: classical (CF24) with eps_max 188.075, with eps_sum 186.539;  quantum (CDHZ) with eps_max 115.753, with eps_sum 114.217
+
+### registered A: N = 2048, PCS dimension 26, regime Johnson
+WHIR phases (m, r, k) [(26, 2, 6), (20, 5, 5), (15, 8, 5), (10, 10, 5)], final variables 5, queries [293, 112, 70, 56], index bits [22, 20, 18, 15]
+rounds k = 3154, singleton rounds 3150, q_V = 17621, q_Pi = 3681, largest tree 2^22 leaves, formal coin block 173568 B (r_min = 1388544 bits)
+round type                                                  count  sum -log2  max -log2
+initial commitment; projections                                 1    302.658    302.658
+quotients; theta                                                1    290.678    290.678
+GKR layer-1 finals; beta_0, lambda_1                            1    313.678    313.678
+GKR round                                                     253    305.695    313.678
+GKR finals; beta_k (, lambda_k+1)                              22    309.252    313.678
+explicit (P_leaf, Q_leaf); gamma_P, gamma_Q                     1    314.678    314.678
+T; gamma_Z, gamma_B, tau, omega, mu, r0                         1    309.063    309.063
+master round                                                   22    307.219    311.678
+table round                                                    19    309.430    313.678
+mask round                                                     26    308.978    313.678
+Keccak p-round                                               1080    302.727    312.356
+Keccak s-round                                                792    302.826    312.093
+Keccak gathered values; wiring betas                           72    308.508    314.678
+Keccak wiring round                                           792    304.049    313.678
+input-link round                                               22    308.634    313.093
+re-indexed bit claims; gamma_q                                  1    314.678    314.678
+bit-wiring round                                               13    309.978    313.678
+empty; initial OOD point                                        1    283.356    283.356
+initial OOD answer, 29 opened values; batching alpha            1    308.820    308.820
+WHIR sumcheck                                                  21    271.707    275.408
+WHIR commitment; OOD point                                      3    281.356    282.356
+OOD answer; query indices, gamma                                3    271.142    272.116
+final polynomial; final query indices                           1    276.058    276.058
+final sumcheck                                                  5    315.678    318.000
+frontend (rounds before WHIR): 290.677; WHIR: 270.368; decoders: 736.545
+D_alg = 10272 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 736.545 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 270.368   eps_max (largest round): 272.116  [OOD answer; query indices, gamma / agree^112 + 2(112+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 208.116, with eps_sum 206.368;  quantum (CDHZ) with eps_max 135.794, with eps_sum 134.046
+  E = 2^20: classical (CF24) with eps_max 188.116, with eps_sum 186.368;  quantum (CDHZ) with eps_max 115.794, with eps_sum 114.046
+
+### B (benchmarked): N = 2048, PCS dimension 26, regime Johnson
+WHIR phases (m, r, k) [(26, 3, 6), (20, 5, 5), (15, 8, 5), (10, 10, 5)], final variables 5, queries [191, 112, 70, 56], index bits [23, 20, 18, 15]
+rounds k = 3154, singleton rounds 3150, q_V = 15466, q_Pi = 3579, largest tree 2^23 leaves, formal coin block 173568 B (r_min = 1388544 bits)
+frontend (rounds before WHIR): 289.677; WHIR: 270.129; decoders: 736.545
+D_alg = 10272 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 736.545 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 270.129   eps_max (largest round): 272.116  [OOD answer; query indices, gamma / agree^112 + 2(112+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 208.116, with eps_sum 206.129;  quantum (CDHZ) with eps_max 135.794, with eps_sum 133.807
+  E = 2^20: classical (CF24) with eps_max 188.116, with eps_sum 186.129;  quantum (CDHZ) with eps_max 115.794, with eps_sum 113.807
+
+### C16-a: N = 16384, PCS dimension 29, regime Johnson
+WHIR phases (m, r, k) [(29, 2, 6), (23, 5, 5), (18, 8, 5), (13, 10, 5), (8, 11, 3)], final variables 5, queries [293, 112, 70, 56, 51], index bits [25, 23, 21, 18, 16]
+rounds k = 3486, singleton rounds 3481, q_V = 20744, q_Pi = 4063, largest tree 2^25 leaves, formal coin block 777024 B (r_min = 6216192 bits)
+frontend (rounds before WHIR): 287.759; WHIR: 268.432; decoders: 638.624
+D_alg = 11313 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 638.624 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 268.432   eps_max (largest round): 272.116  [OOD answer; query indices, gamma / agree^112 + 2(112+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 208.116, with eps_sum 204.432;  quantum (CDHZ) with eps_max 135.794, with eps_sum 132.110
+  E = 2^20: classical (CF24) with eps_max 188.116, with eps_sum 184.432;  quantum (CDHZ) with eps_max 115.794, with eps_sum 112.110
+
+### C16-b: N = 16384, PCS dimension 29, regime Johnson
+WHIR phases (m, r, k) [(29, 3, 6), (23, 5, 5), (18, 8, 5), (13, 10, 5), (8, 11, 3)], final variables 5, queries [191, 112, 70, 56, 51], index bits [26, 23, 21, 18, 16]
+rounds k = 3486, singleton rounds 3481, q_V = 18283, q_Pi = 3961, largest tree 2^26 leaves, formal coin block 777024 B (r_min = 6216192 bits)
+frontend (rounds before WHIR): 286.759; WHIR: 267.801; decoders: 638.624
+D_alg = 11313 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 638.624 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 267.801   eps_max (largest round): 271.408  [WHIR sumcheck / 2C(29,3)/B + 2L/B (fold: MCA + sumcheck)]
+  E = 2^0: classical (CF24) with eps_max 207.408, with eps_sum 203.801;  quantum (CDHZ) with eps_max 135.086, with eps_sum 131.479
+  E = 2^20: classical (CF24) with eps_max 187.408, with eps_sum 183.801;  quantum (CDHZ) with eps_max 115.086, with eps_sum 111.479
+
+### C64 (round-9 candidate): N = 65536, PCS dimension 31, regime Johnson
+WHIR phases (m, r, k) [(31, 1, 6), (25, 2, 5), (20, 5, 5), (15, 8, 5), (10, 11, 5)], final variables 5, queries [634, 293, 112, 70, 51], index bits [26, 22, 20, 18, 16]
+rounds k = 3695, singleton rounds 3690, q_V = 35791, q_Pi = 4850, largest tree 2^26 leaves, formal coin block 2844864 B (r_min = 22758912 bits)
+round type                                                  count  sum -log2  max -log2
+initial commitment; projections                                 1    303.658    303.658
+quotients; theta                                                1    286.768    286.768
+GKR layer-1 finals; beta_0, lambda_1                            1    314.678    314.678
+GKR round                                                     406    306.013    314.678
+GKR finals; beta_k (, lambda_k+1)                              28    309.897    314.678
+explicit (P_leaf, Q_leaf); gamma_P, gamma_Q                     1    315.678    315.678
+T; gamma_Z, gamma_B, tau, omega, mu, r0                         1    309.795    309.795
+master round                                                   27    307.923    312.678
+table round                                                    19    310.430    314.678
+mask round                                                     31    309.724    314.678
+Keccak p-round                                               1440    303.312    313.356
+Keccak s-round                                                792    303.826    313.093
+Keccak gathered values; wiring betas                           72    309.508    315.678
+Keccak wiring round                                           792    305.049    314.678
+input-link round                                               27    309.338    314.093
+re-indexed bit claims; gamma_q                                  1    315.678    315.678
+bit-wiring round                                               13    310.978    314.678
+empty; initial OOD point                                        1    280.356    280.356
+initial OOD answer, 29 opened values; batching alpha            1    309.820    309.820
+WHIR sumcheck                                                  26    269.990    273.408
+WHIR commitment; OOD point                                      4    280.449    281.356
+OOD answer; query indices, gamma                                4    270.630    272.116
+final polynomial; final query indices                           1    276.910    276.910
+final sumcheck                                                  5    315.678    318.000
+frontend (rounds before WHIR): 286.768; WHIR: 269.266; decoders: 572.753
+D_alg = 11985 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 572.753 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 269.266   eps_max (largest round): 272.116  [OOD answer; query indices, gamma / agree^112 + 2(112+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 208.116, with eps_sum 205.266;  quantum (CDHZ) with eps_max 135.794, with eps_sum 132.944
+  E = 2^20: classical (CF24) with eps_max 188.116, with eps_sum 185.266;  quantum (CDHZ) with eps_max 115.794, with eps_sum 112.944
+
+### C64-b: N = 65536, PCS dimension 31, regime Johnson
+WHIR phases (m, r, k) [(31, 2, 6), (25, 4, 5), (20, 7, 5), (15, 9, 5), (10, 11, 5)], final variables 5, queries [293, 141, 80, 62, 51], index bits [27, 24, 22, 19, 16]
+rounds k = 3695, singleton rounds 3690, q_V = 23061, q_Pi = 4317, largest tree 2^27 leaves, formal coin block 2844864 B (r_min = 22758912 bits)
+frontend (rounds before WHIR): 285.768; WHIR: 267.703; decoders: 572.753
+D_alg = 11985 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 572.753 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 267.703   eps_max (largest round): 271.408  [WHIR sumcheck / 2C(31,2)/B + 2L/B (fold: MCA + sumcheck)]
+  E = 2^0: classical (CF24) with eps_max 207.408, with eps_sum 203.703;  quantum (CDHZ) with eps_max 135.086, with eps_sum 131.381
+  E = 2^20: classical (CF24) with eps_max 187.408, with eps_sum 183.703;  quantum (CDHZ) with eps_max 115.086, with eps_sum 111.381
+
+### Decoder slack 512 (current code) at large N, for comparison
+N = 16384: decoder distance 153.901, classical E = 2^20 69.901, quantum E = 2^20 -2.421
+N = 65536: decoder distance -0.000, classical E = 2^20 -84.000, quantum E = 2^20 -156.322
+
+## 4. Quantum goal 2^-128 at Q = 2^64, E = 2^20
+            registered A N =   2048: needs every round <= 2^-284.32; largest non-query round 2^-275.41 -> NOT reachable in this regime
+         B (benchmarked) N =   2048: needs every round <= 2^-284.32; largest non-query round 2^-274.41 -> NOT reachable in this regime
+                   C16-a N =  16384: needs every round <= 2^-284.32; largest non-query round 2^-272.41 -> NOT reachable in this regime
+                   C16-b N =  16384: needs every round <= 2^-284.32; largest non-query round 2^-271.41 -> NOT reachable in this regime
+ C64 (round-9 candidate) N =  65536: needs every round <= 2^-284.32; largest non-query round 2^-273.41 -> NOT reachable in this regime
+                   C64-b N =  65536: needs every round <= 2^-284.32; largest non-query round 2^-271.41 -> NOT reachable in this regime
+
+Unique-decoding regime (WHIR Corollary 4.11 + BCIKS20; list size 1; no OOD needed), query target T:
+N =   2048 (2, [5, 8, 10], [6, 5, 5, 5])      T = 272: queries [402, 285, 274, 273], eps_max 272.348, quantum E=2^20 116.026, classical E=2^20 188.348
+N =   2048 (2, [5, 8, 10], [6, 5, 5, 5])      T = 286: queries [422, 300, 288, 287], eps_max 286.146, quantum E=2^20 129.824, classical E=2^20 202.146
+N =   2048 (2, [5, 8, 10], [6, 5, 5, 5])      T = 290: queries [428, 304, 292, 291], eps_max 290.000, quantum E=2^20 133.678, classical E=2^20 206.000
+N =   2048 (3, [5, 8, 10], [6, 5, 5, 5])      T = 272: queries [328, 285, 274, 273], eps_max 272.265, quantum E=2^20 115.943, classical E=2^20 188.265
+N =   2048 (3, [5, 8, 10], [6, 5, 5, 5])      T = 286: queries [345, 300, 288, 287], eps_max 286.376, quantum E=2^20 130.054, classical E=2^20 202.376
+N =   2048 (3, [5, 8, 10], [6, 5, 5, 5])      T = 290: queries [350, 304, 292, 291], eps_max 289.000, quantum E=2^20 132.678, classical E=2^20 205.000
+N =  16384 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3]) T = 272: queries [402, 285, 274, 273, 273], eps_max 272.348, quantum E=2^20 116.026, classical E=2^20 188.348
+N =  16384 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3]) T = 286: queries [422, 300, 288, 287, 287], eps_max 286.146, quantum E=2^20 129.824, classical E=2^20 202.146
+N =  16384 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3]) T = 290: queries [428, 304, 292, 291, 291], eps_max 287.000, quantum E=2^20 130.678, classical E=2^20 203.000
+N =  65536 (2, [4, 7, 9, 11], [6, 5, 5, 5, 5]) T = 272: queries [402, 299, 276, 273, 273], eps_max 272.232, quantum E=2^20 115.910, classical E=2^20 188.232
+N =  65536 (2, [4, 7, 9, 11], [6, 5, 5, 5, 5]) T = 286: queries [422, 314, 290, 287, 287], eps_max 285.000, quantum E=2^20 128.678, classical E=2^20 201.000
+N =  65536 (2, [4, 7, 9, 11], [6, 5, 5, 5, 5]) T = 290: queries [428, 318, 294, 291, 291], eps_max 285.000, quantum E=2^20 128.678, classical E=2^20 201.000
+N =  65536 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]) T = 272: queries [656, 402, 285, 274, 273], eps_max 272.265, quantum E=2^20 115.943, classical E=2^20 188.265
+N =  65536 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]) T = 286: queries [690, 422, 300, 288, 287], eps_max 286.000, quantum E=2^20 129.678, classical E=2^20 202.000
+N =  65536 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]) T = 290: queries [699, 428, 304, 292, 291], eps_max 286.000, quantum E=2^20 129.678, classical E=2^20 202.000
+
+## 5. The unique-decoding profile family (T = 286, pow 0, no OOD; REQ-1, REQ-2): full per-round ledgers
+NOTE: the round table is the Johnson one with the OOD error terms set to 0; removing the OOD rounds changes k by at most 1 + (number of WHIR rounds), which moves no figure by more than 0.001 bit.
+
+### UD-286 (4, [7, 9, 11], [6, 5, 4, 4]): N = 128, PCS dimension 23, regime unique decoding
+WHIR phases (m, r, k) [(23, 4, 6), (17, 7, 5), (12, 9, 4), (8, 11, 4)], final variables 4, queries [314, 290, 287, 287], index bits [21, 19, 17, 15]
+rounds k = 2785, singleton rounds 2781, q_V = 28032, q_Pi = 3959, largest tree 2^21 leaves, formal coin block 92928 B (r_min = 743424 bits)
+frontend (rounds before WHIR): 299.036; WHIR: 284.441; decoders: 768.000
+D_alg = 9024 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 768.000 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 284.441   eps_max (largest round): 286.192  [OOD answer; query indices, gamma / agree^287 + 2(287+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 222.192, with eps_sum 220.441;  quantum (CDHZ) with eps_max 149.870, with eps_sum 148.119
+  E = 2^20: classical (CF24) with eps_max 202.192, with eps_sum 200.441;  quantum (CDHZ) with eps_max 129.870, with eps_sum 128.119
+
+### UD-286 (2, [5, 8, 10], [6, 5, 5, 5]): N = 2048, PCS dimension 26, regime unique decoding
+WHIR phases (m, r, k) [(26, 2, 6), (20, 5, 5), (15, 8, 5), (10, 10, 5)], final variables 5, queries [422, 300, 288, 287], index bits [22, 20, 18, 15]
+rounds k = 3154, singleton rounds 3150, q_V = 32374, q_Pi = 4447, largest tree 2^22 leaves, formal coin block 173568 B (r_min = 1388544 bits)
+round type                                                  count  sum -log2  max -log2
+initial commitment; projections                                 1    307.980    307.980
+quotients; theta                                                1    296.000    296.000
+GKR layer-1 finals; beta_0, lambda_1                            1    319.000    319.000
+GKR round                                                     253    311.017    319.000
+GKR finals; beta_k (, lambda_k+1)                              22    314.574    319.000
+explicit (P_leaf, Q_leaf); gamma_P, gamma_Q                     1    320.000    320.000
+T; gamma_Z, gamma_B, tau, omega, mu, r0                         1    314.385    314.385
+master round                                                   22    312.541    317.000
+table round                                                    19    314.752    319.000
+mask round                                                     26    314.300    319.000
+Keccak p-round                                               1080    308.049    317.678
+Keccak s-round                                                792    308.148    317.415
+Keccak gathered values; wiring betas                           72    313.830    320.000
+Keccak wiring round                                           792    309.371    319.000
+input-link round                                               22    313.956    318.415
+re-indexed bit claims; gamma_q                                  1    320.000    320.000
+bit-wiring round                                               13    315.300    319.000
+empty; initial OOD point                                        1   1039.989   1039.989
+initial OOD answer, 29 opened values; batching alpha            1    314.142    314.142
+WHIR sumcheck                                                  21    287.234    290.000
+WHIR commitment; OOD point                                      3   1038.404   1039.989
+OOD answer; query indices, gamma                                3    284.801    286.146
+final polynomial; final query indices                           1    286.596    286.596
+final sumcheck                                                  5    315.678    318.000
+frontend (rounds before WHIR): 295.999; WHIR: 284.242; decoders: 736.545
+D_alg = 10272 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 736.545 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 284.242   eps_max (largest round): 286.146  [OOD answer; query indices, gamma / agree^422 + 2(422+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 222.146, with eps_sum 220.242;  quantum (CDHZ) with eps_max 149.824, with eps_sum 147.920
+  E = 2^20: classical (CF24) with eps_max 202.146, with eps_sum 200.242;  quantum (CDHZ) with eps_max 129.824, with eps_sum 127.920
+
+### UD-286 (3, [5, 8, 10], [6, 5, 5, 5]): N = 2048, PCS dimension 26, regime unique decoding
+WHIR phases (m, r, k) [(26, 3, 6), (20, 5, 5), (15, 8, 5), (10, 10, 5)], final variables 5, queries [345, 300, 288, 287], index bits [23, 20, 18, 15]
+rounds k = 3154, singleton rounds 3150, q_V = 30948, q_Pi = 4370, largest tree 2^23 leaves, formal coin block 173568 B (r_min = 1388544 bits)
+frontend (rounds before WHIR): 295.999; WHIR: 284.142; decoders: 736.545
+D_alg = 10272 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 736.545 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 284.142   eps_max (largest round): 286.376  [OOD answer; query indices, gamma / agree^345 + 2(345+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 222.376, with eps_sum 220.142;  quantum (CDHZ) with eps_max 150.054, with eps_sum 147.820
+  E = 2^20: classical (CF24) with eps_max 202.376, with eps_sum 200.142;  quantum (CDHZ) with eps_max 130.054, with eps_sum 127.820
+
+### UD-286 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3]): N = 16384, PCS dimension 29, regime unique decoding
+WHIR phases (m, r, k) [(29, 2, 6), (23, 5, 5), (18, 8, 5), (13, 10, 5), (8, 11, 3)], final variables 5, queries [422, 300, 288, 287, 287], index bits [25, 23, 21, 18, 16]
+rounds k = 3486, singleton rounds 3481, q_V = 41807, q_Pi = 5065, largest tree 2^25 leaves, formal coin block 777024 B (r_min = 6216192 bits)
+frontend (rounds before WHIR): 293.081; WHIR: 283.207; decoders: 638.624
+D_alg = 11313 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 638.624 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 283.205   eps_max (largest round): 286.146  [OOD answer; query indices, gamma / agree^422 + 2(422+1)L/B (eps_shift)]
+  E = 2^0: classical (CF24) with eps_max 222.146, with eps_sum 219.205;  quantum (CDHZ) with eps_max 149.824, with eps_sum 146.883
+  E = 2^20: classical (CF24) with eps_max 202.146, with eps_sum 199.205;  quantum (CDHZ) with eps_max 129.824, with eps_sum 126.883
+
+### UD-286 (2, [4, 7, 9, 11], [6, 5, 5, 5, 5]): N = 65536, PCS dimension 31, regime unique decoding
+WHIR phases (m, r, k) [(31, 2, 6), (25, 4, 5), (20, 7, 5), (15, 9, 5), (10, 11, 5)], final variables 5, queries [422, 314, 290, 287, 287], index bits [27, 24, 22, 19, 16]
+rounds k = 3695, singleton rounds 3690, q_V = 44340, q_Pi = 5290, largest tree 2^27 leaves, formal coin block 2844864 B (r_min = 22758912 bits)
+frontend (rounds before WHIR): 291.090; WHIR: 281.961; decoders: 572.753
+D_alg = 11985 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 572.753 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 281.958   eps_max (largest round): 285.000  [WHIR sumcheck / 2C(31,2)/B + 2L/B (fold: MCA + sumcheck)]
+  E = 2^0: classical (CF24) with eps_max 221.000, with eps_sum 217.958;  quantum (CDHZ) with eps_max 148.678, with eps_sum 145.636
+  E = 2^20: classical (CF24) with eps_max 201.000, with eps_sum 197.958;  quantum (CDHZ) with eps_max 128.678, with eps_sum 125.636
+
+### UD-286 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]): N = 65536, PCS dimension 31, regime unique decoding
+WHIR phases (m, r, k) [(31, 1, 6), (25, 2, 5), (20, 5, 5), (15, 8, 5), (10, 11, 5)], final variables 5, queries [690, 422, 300, 288, 287], index bits [26, 22, 20, 18, 16]
+rounds k = 3695, singleton rounds 3690, q_V = 52372, q_Pi = 5677, largest tree 2^26 leaves, formal coin block 2844864 B (r_min = 22758912 bits)
+frontend (rounds before WHIR): 291.090; WHIR: 282.700; decoders: 572.753
+D_alg = 11985 <= 2^20 (sum of frontend root numerators, projection and lookup excluded); decoder distance 572.753 >= 400 bits; census k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512: all hold
+eps_sum (sum over rounds): 282.696   eps_max (largest round): 286.000  [WHIR sumcheck / 2C(31,1)/B + 2L/B (fold: MCA + sumcheck)]
+  E = 2^0: classical (CF24) with eps_max 222.000, with eps_sum 218.696;  quantum (CDHZ) with eps_max 149.678, with eps_sum 146.374
+  E = 2^20: classical (CF24) with eps_max 202.000, with eps_sum 198.696;  quantum (CDHZ) with eps_max 129.678, with eps_sum 126.374
+
+Johnson regime with a higher query target (shows that queries are not the binding term):
+N = 2048 A, T = 286: queries [308, 118, 73, 59], eps_max 275.408 [WHIR sumcheck / 2C(15,8)/B + 2L/B (fold: MCA + sumcheck)], quantum E=2^20 119.086
+N = 2048 A, T = 300: queries [323, 124, 77, 61], eps_max 275.408 [WHIR sumcheck / 2C(15,8)/B + 2L/B (fold: MCA + sumcheck)], quantum E=2^20 119.086
+
+Johnson regime with the MCA constant of BCGM 2025/2051 Theorem 9.2 (n^2 dependence) instead of DKT26 Theorem 5.12:
+N =    128 (4, [7, 9, 11], [6, 5, 4, 4])     : eps_sum 232.833, eps_max 235.839; classical E=2^20 151.839 (sum: 148.833); quantum E=2^20 79.517
+N =   2048 (2, [5, 8, 10], [6, 5, 5, 5])     : eps_sum 233.435, eps_max 236.839; classical E=2^20 152.839 (sum: 149.435); quantum E=2^20 80.517
+N =  16384 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3]): eps_sum 227.435, eps_max 230.839; classical E=2^20 146.839 (sum: 143.435); quantum E=2^20 74.517
+N =  65536 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5]): eps_sum 227.730, eps_max 230.339; classical E=2^20 146.339 (sum: 143.730); quantum E=2^20 74.017
+
+NOTE: conditional on the cited theorems and hypotheses listed in SECURITY-hidden-u.md (H1-H9).
+
+## 6. Registry-driven ledger (round table, degrees, opening shape and census read from the verifier registry export)
+registry directory: aggregate/r10-security/registry (r10-large-n commit 43383ca; rows asserted equal to the enforced verifier table by the exporter)
+     N fam     k schedule (r0, rates, folds)            queries                     D_alg     dec    q_V  q_V(M) h=d+1 r_min  IOP sum      max  cl 2^20   cl sum   qu E=1  qu 2^20
+   128   J  2785 (4, [7, 9, 11], [6, 5, 4, 4])          [141, 80, 62, 51]            9024 768.000  12200   10060    22  1632  270.539  272.075  188.075  186.539  135.753  115.753
+   128   U  2781 (2, [5, 8, 10], [6, 5, 4, 4])          [422, 300, 288, 287]         9024 768.000  28599   17927    20  2368  284.410  286.146  202.146  200.410  149.824  129.824
+  2048   J  3154 (2, [5, 8, 10], [6, 5, 5, 5])          [293, 112, 70, 56]          10272 736.545  17621   13722    23  1792  270.368  272.116  188.116  186.368  135.794  115.794
+  2048   U  3150 (2, [5, 8, 10], [6, 5, 5, 5])          [422, 300, 288, 287]        10272 736.545  32366   21643    23  2368  284.242  286.146  202.146  200.242  149.824  129.824
+  4096   J  3279 (2, [4, 7, 10], [6, 5, 5, 5])          [293, 141, 80, 56]          10649 704.146  19019       -    24  1792  270.249  272.075  188.075  186.249  135.753  115.753
+  4096   U  3275 (2, [5, 8, 10], [6, 5, 5, 5])          [422, 300, 288, 287]        10649 704.146  33913       -    24  2368  284.071  286.146  202.146  200.071  149.824  129.824
+ 16384   J  3486 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5])    [634, 293, 112, 70, 51]     11313 638.624  33053       -    25  1632  270.141  272.116  188.116  186.141  135.794  115.794
+ 16384   U  3481 (2, [5, 8, 10, 11], [6, 5, 5, 5, 3])   [422, 300, 288, 287, 287]   11313 638.624  41797       -    26  2368  283.205  286.146  202.146  199.205  149.824  129.824
+ 65536   J  3695 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5])    [634, 293, 112, 70, 51]     11985 572.753  35791       -    27  1632  269.266  272.116  188.116  185.266  135.794  115.794
+ 65536   U  3690 (1, [2, 5, 8, 11], [6, 5, 5, 5, 5])    [690, 422, 300, 288, 287]   11985 572.753  52362       -    27  2368  282.696  286.000  202.000  198.696  149.678  129.678
+[check] round-11 patch: handoff entry = (m - 1) L0 / B with m = 30 (J) / 29 (U); final tail = v_fin rounds of 2/B;
+        every (eps_sum, eps_max, classical, quantum) equals the round-10 value to 0.001 bit: no registered round changed
+[check] every Johnson registry equals the Python port: same row count, same D_alg, q_V, q_Pi, and the same eps_sum and eps_max to 1e-6 bit
+[check] gates on every registry: D_alg <= 2^20, decoder distance <= 2^-400, k <= 2^16, q_V <= 2^24, q_Pi <= 2^20, h <= 32, r_min >= 512,
+        F_q slack >= 512 + ceil(nq/400) with short pools rejected, 29 scalar claims, OOD 1 (J) / 0 (U), batch degree 29 (J) / 28 (U)
+[check] every registry query count equals the planner formula at its own rates (Johnson target 272, unique decoding target 286)
+NOTE: quantum figures are claimed only for the unique-decoding family (U); the Johnson column is shown for comparison.
+
+### registry N = 2048, family J: per-phase errors (count, sum -log2, max -log2); largest round: WHIR round 2
+commitment                        1    302.658    302.658
+projections                       1    290.678    290.678
+LogUp GKR                       276    305.572    313.678
+LogUp leaves                      1    314.678    314.678
+master weights                    1    309.063    309.063
+master sumcheck                  22    307.219    311.678
+table sumcheck                   19    309.430    313.678
+mask sumcheck                    26    308.978    313.678
+Keccak GKR main                1944    301.762    312.093
+Keccak GKR wiring               792    304.049    313.678
+input link                       22    308.634    313.093
+bit wiring                       14    309.923    313.678
+WHIR initial                      2    283.356    283.356
+WHIR sumcheck initial             6    273.823    276.408
+WHIR                              6    271.141    272.116
+WHIR sumcheck                    15    272.086    275.408
+WHIR final                        1    276.058    276.058
+WHIR sumcheck final               5    315.678    318.000
+
+### registry N = 2048, family U: per-phase errors (count, sum -log2, max -log2); largest round: WHIR round 1
+commitment                        1    307.980    307.980
+projections                       1    296.000    296.000
+LogUp GKR                       276    310.894    319.000
+LogUp leaves                      1    320.000    320.000
+master weights                    1    314.385    314.385
+master sumcheck                  22    312.541    317.000
+table sumcheck                   19    314.752    319.000
+mask sumcheck                    26    314.300    319.000
+Keccak GKR main                1944    307.084    317.415
+Keccak GKR wiring               792    309.371    319.000
+input link                       22    313.956    318.415
+bit wiring                       14    315.245    319.000
+WHIR initial                      1    314.193    314.193
+WHIR sumcheck initial             6    287.415    290.000
+WHIR                              3    284.801    286.146
+WHIR sumcheck                    15    290.321    293.000
+WHIR final                        1    286.596    286.596
+WHIR sumcheck final               5    315.678    318.000
